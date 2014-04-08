@@ -315,6 +315,14 @@ void OptionDialog::saveAndClose()
 
    Brewtarget::setOption("mashHopAdjustment", lineEdit_mashHop->text().toDouble() / 100);
    Brewtarget::setOption("firstWortHopAdjustment", lineEdit_firstWort->text().toDouble() / 100);
+   Brewtarget::setOption("crushGrain", checkBox_crush->isChecked());
+   Brewtarget::setOption("grainsToWater", checkBox_grainsToWater->isChecked());
+   Brewtarget::setOption("fly", radioButton_fly->isChecked());
+   Brewtarget::setOption("double", radioButton_double->isChecked());
+   Brewtarget::setOption("single", radioButton_single->isChecked());
+   Brewtarget::setOption("biab", checkBox_biab->isChecked());
+   Brewtarget::setOption("nochill", checkBox_nochill->isChecked());
+
    // Make sure the main window updates.
    if( Brewtarget::mainWindow() )
       Brewtarget::mainWindow()->showChanges();
@@ -423,6 +431,24 @@ void OptionDialog::showChanges()
    lineEdit_mashHop->setText( Brewtarget::displayAmount(Brewtarget::option("mashHopAdjustment",0).toDouble()*100,0,0) );
    lineEdit_firstWort->setText( Brewtarget::displayAmount(Brewtarget::option("firstWortHopAdjustment", 1.10).toDouble()*100,0,0) );
 
+   // New stuff for the processes dialog
+   if ( Brewtarget::option("crushGrain", false).toBool() )
+      checkBox_crush->setCheckState(Qt::Checked);
+
+   if ( Brewtarget::option("grainsToWater",false).toBool() )
+      checkBox_grainsToWater->setCheckState(Qt::Checked);
+
+   if ( Brewtarget::option("fly", false).toBool() )
+      radioButton_fly->setChecked(true);
+   else if ( Brewtarget::option("double", false).toBool() )
+      radioButton_double->setChecked(true);
+   else
+      radioButton_single->setChecked(true);
+
+   if ( Brewtarget::option("biab", false).toBool()  )
+      checkBox_biab->setCheckState(Qt::Checked);
+   if ( Brewtarget::option("nochill", false).toBool() )
+      checkBox_nochill->setCheckState(Qt::Checked);
 }
 
 void OptionDialog::changeEvent(QEvent* e)

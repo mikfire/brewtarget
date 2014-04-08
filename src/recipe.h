@@ -288,7 +288,8 @@ public:
    Style* style() const;
    
    // Other junk.
-   QVector<PreInstruction> mashInstructions(double timeRemaining, double totalWaterAdded_l, unsigned int size);
+   QVector<PreInstruction> firstMashInstruction(double timeRemaining, double totalWaterAdded_l, MashStep* step);
+   QVector<PreInstruction> mashInstructions(double timeRemaining, double totalWaterAdded_l, QList<MashStep*> steps);
    QVector<PreInstruction> mashSteps();
    QVector<PreInstruction> hopSteps(Hop::Use type = Hop::Boil);
    QVector<PreInstruction> miscSteps(Misc::Use type = Misc::Boil);
@@ -418,6 +419,7 @@ private:
    // Adds instructions to the recipe.
    Instruction* postboilFermentablesIns();
    Instruction* postboilIns();
+   Instruction* crushGrainsIns();
    Instruction* mashFermentableIns();
    Instruction* mashWaterIns(unsigned int size);
    Instruction* firstWortHopsIns();
