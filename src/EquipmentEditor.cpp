@@ -90,6 +90,15 @@ EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
 	// Check boxen
    connect(checkBox_calcBoilVolume, SIGNAL(stateChanged(int)), this, SLOT(updateCheckboxRecord(int)));
    connect(checkBox_defaultEquipment, SIGNAL(stateChanged(int)), this, SLOT(updateDefaultEquipment(int)));
+
+   // v2.1 adds some more check boxen
+   connect(checkBox_crushGrains, SIGNAL(stateChanged(int)),   this, SLOT(updateCrushGrains(int)));
+   connect(checkBox_grainsToWater, SIGNAL(stateChanged(int)), this, SLOT(updateGrainsToWater(int)));
+   connect(radioButton_singleBatch, SIGNAL(toggled(bool)),     this, SLOT(updateSparge(bool)));
+   connect(radioButton_doubleBatch, SIGNAL(toggled(bool)),     this, SLOT(updateSparge(bool)));
+   connect(radioButton_flySparge, SIGNAL(toggled(bool)),       this, SLOT(updateSparge(bool)));
+   connect(checkBox_nochill, SIGNAL(stateChanged(int)),       this, SLOT(updateNochill(int)));
+   connect(checkBox_biab, SIGNAL(stateChanged(int)),          this, SLOT(updateBiab(int)));
 	
 	// make sure the dialog gets populated the first time it's opened from the menu
 	equipmentSelected();
@@ -202,6 +211,30 @@ void EquipmentEditor::save()
    obsEquip->setNotes(textEdit_notes->toPlainText());
    obsEquip->setCalcBoilVolume(checkBox_calcBoilVolume->checkState() == Qt::Checked);
 
+   obsEquip->setCrushGrains(checkBox_crushGrains->checkState() == Qt::Checked);
+   obsEquip->setGrainsToWater(checkBox_grainsToWater->checkState() == Qt::Checked);
+   obsEquip->setBiab(checkBox_biab->checkState() == Qt::Checked);
+   obsEquip->setNochill(checkBox_nochill->checkState() == Qt::Checked);
+
+   if ( radioButton_flySparge->isChecked() && ! obsEquip->flySparge()) 
+   {
+      obsEquip->setFlySparge(true);
+      obsEquip->setSingleBatch(false);
+      obsEquip->setDoubleBatch(false);
+   }
+   else if ( radioButton_doubleBatch->isChecked() && ! obsEquip->doubleBatch() ) 
+   {
+      obsEquip->setFlySparge(false);
+      obsEquip->setSingleBatch(false);
+      obsEquip->setDoubleBatch(true);
+   }
+   else if ( ! obsEquip->singleBatch() )
+   {
+      obsEquip->setFlySparge(false);
+      obsEquip->setSingleBatch(true);
+      obsEquip->setDoubleBatch(false);
+   }
+
    setVisible(false);
    return;
 }
@@ -262,8 +295,6 @@ void EquipmentEditor::showChanges()
    Brewtarget::getThicknessUnits( &volumeUnit, &weightUnit );
    label_absorption->setText(tr("Grain absorption (%1/%2)").arg(volumeUnit->getUnitName()).arg(weightUnit->getUnitName()));
 
-   //equipmentComboBox->setIndexByEquipment(e);
-
    lineEdit_name->setText(e->name());
    lineEdit_name->setCursorPosition(0);
    lineEdit_boilSize->setText( Brewtarget::displayAmount(e->boilSize_l(), Units::liters) );
@@ -292,12 +323,50 @@ void EquipmentEditor::showChanges()
    lineEdit_boilingPoint->setText( Brewtarget::displayAmount(e->boilingPoint_c(), Units::celsius) );
 
    lineEdit_hopUtilization->setText(Brewtarget::displayAmount(e->hopUtilization_pct(),0,1));
+
+   // This looks pretty atomic. Let's not mess with it
    checkBox_defaultEquipment->blockSignals(true);
    if ( Brewtarget::option("defaultEquipmentKey",-1) == e->key() ) 
       checkBox_defaultEquipment->setCheckState(Qt::Checked);
    else
       checkBox_defaultEquipment->setCheckState(Qt::Unchecked);
    checkBox_defaultEquipment->blockSignals(false);
+
+   // Brew methods
+   checkBox_crushGrains->blockSignals(true);
+   checkBox_crushGrains->setCheckState( e->crushGrains() ? Qt::Checked : Qt::Unchecked );
+   checkBox_crushGrains->blockSignals(false);
+
+   checkBox_grainsToWater->blockSignals(true);
+   checkBox_grainsToWater->setCheckState( e->grainsToWater() ? Qt::Checked : Qt::Unchecked );
+   checkBox_grainsToWater->blockSignals(false);
+
+   checkBox_nochill->blockSignals(true);
+   checkBox_nochill->setCheckState( e->nochill() ? Qt::Checked : Qt::Unchecked );
+   checkBox_nochill->blockSignals(false);
+
+   checkBox_biab->blockSignals(true);
+   checkBox_biab->setCheckState( e->biab() ? Qt::Checked : Qt::Unchecked );
+   checkBox_biab->blockSignals(false);
+
+   if ( e->flySparge() ) 
+   {
+      radioButton_flySparge->blockSignals(true);
+      radioButton_flySparge->setChecked(true);
+      radioButton_flySparge->blockSignals(false);
+   }
+   else if ( e->singleBatch() )
+   {
+      radioButton_singleBatch->blockSignals(true);
+      radioButton_singleBatch->setChecked(true);
+      radioButton_singleBatch->blockSignals(false);
+   }
+   else if ( e->doubleBatch() )
+   {
+      radioButton_doubleBatch->blockSignals(true);
+      radioButton_doubleBatch->setChecked(true);
+      radioButton_doubleBatch->blockSignals(false);
+   }
 }
 
 void EquipmentEditor::updateCheckboxRecord(int state)
@@ -392,4 +461,46 @@ void EquipmentEditor::closeEvent(QCloseEvent *event)
 {
    cancel();
    event->accept();
+}
+
+void EquipmentEditor::updateCrushGrains(int state)
+{
+   obsEquip->setCrushGrains( state == Qt::Checked );
+}
+
+void EquipmentEditor::updateGrainsToWater(int state)
+{
+   obsEquip->setGrainsToWater( state == Qt::Checked );
+}
+
+void EquipmentEditor::updateSparge(bool checked)
+{
+   if ( sender() == radioButton_flySparge ) 
+   {
+      obsEquip->setFlySparge(true);
+      obsEquip->setSingleBatch(false);
+      obsEquip->setDoubleBatch(false);
+   }
+   else if ( sender() == radioButton_doubleBatch ) 
+   {
+      obsEquip->setFlySparge(false);
+      obsEquip->setSingleBatch(false);
+      obsEquip->setDoubleBatch(true);
+   }
+   else 
+   {
+      obsEquip->setFlySparge(false);
+      obsEquip->setSingleBatch(true);
+      obsEquip->setDoubleBatch(false);
+   }
+}
+
+void EquipmentEditor::updateNochill(int state)
+{
+   obsEquip->setNochill( state == Qt::Checked );
+}
+
+void EquipmentEditor::updateBiab(int state)
+{
+   obsEquip->setBiab( state == Qt::Checked );
 }

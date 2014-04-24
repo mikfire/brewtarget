@@ -69,6 +69,13 @@ public slots:
    void updateCheckboxRecord(int state);
    //! \brief set the default equipment, or unset the current equipment as the default
    void updateDefaultEquipment(int state);
+
+   // New to v2.1
+   void updateCrushGrains(int state);
+   void updateGrainsToWater(int state);
+   void updateSparge(bool checked);  
+   void updateNochill(int state);
+   void updateBiab(int state);
    
    void changed(QMetaProperty,QVariant);
    void updateField();

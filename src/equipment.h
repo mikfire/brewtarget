@@ -80,6 +80,15 @@ public:
    //! \brief Set the boiling point of water in Celsius.
    Q_PROPERTY( double boilingPoint_c        READ boilingPoint_c        WRITE setBoilingPoint_c        NOTIFY changedBoilingPoint_c )
 
+   // I don't think these need to worry about a notify
+   Q_PROPERTY( bool crushGrains             READ crushGrains        WRITE setCrushGrains              /*NOTIFY changed*/)
+   Q_PROPERTY( bool grainsToWater           READ grainsToWater      WRITE setGrainsToWater            /*NOTIFY changed*/)
+   Q_PROPERTY( bool biab                    READ biab               WRITE setBiab                     /*NOTIFY changed*/)
+   Q_PROPERTY( bool nochill                 READ nochill            WRITE setNochill                  /*NOTIFY changed*/)
+   Q_PROPERTY( bool flySparge               READ flySparge          WRITE setFlySparge                /*NOTIFY changed*/)
+   Q_PROPERTY( bool singleBatch             READ singleBatch        WRITE setSingleBatch              /*NOTIFY changed*/)
+   Q_PROPERTY( bool doubleBatch             READ doubleBatch        WRITE setDoubleBatch              /*NOTIFY changed*/)
+
    // Set
    void setName( const QString &var );
    void setBoilSize_l( double var );
@@ -99,6 +108,14 @@ public:
    void setNotes( const QString &var );
    void setGrainAbsorption_LKg(double var);
    void setBoilingPoint_c(double var);
+   void setCrushGrains(bool var);
+   void setGrainsToWater(bool var);
+   void setBiab(bool var);
+   void setNochill(bool var);
+   void setFlySparge(bool var);
+   void setSingleBatch(bool var);
+   void setDoubleBatch(bool var);
+
 
    // Get
    QString name() const;
@@ -119,6 +136,13 @@ public:
    QString notes() const;
    double grainAbsorption_LKg();
    double boilingPoint_c() const;
+   bool crushGrains() const;
+   bool grainsToWater() const;
+   bool biab() const;
+   bool nochill() const;
+   bool flySparge() const;
+   bool singleBatch() const;
+   bool doubleBatch() const;
 
    //! \brief Calculate how much wort is left immediately at knockout.
    double wortEndOfBoil_l( double kettleWort_l ) const;

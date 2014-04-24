@@ -437,6 +437,41 @@ void Equipment::setBoilingPoint_c(double var)
    }
 }
 
+void Equipment::setCrushGrains(bool var) 
+{
+   set("crushGrains", "crushGrains", var);
+}
+
+void Equipment::setGrainsToWater(bool var) 
+{
+   set("grainsToWater", "grainsToWater", var);
+}
+
+void Equipment::setBiab(bool var) 
+{
+   set("biab", "biab", var);
+}
+
+void Equipment::setNochill(bool var) 
+{
+   set("nochill", "nochill", var);
+}
+
+void Equipment::setFlySparge(bool var) 
+{
+   set("flySparge", "flySparge", var);
+}
+
+void Equipment::setSingleBatch(bool var) 
+{
+   set("singleBatch", "singleBatch", var);
+}
+
+void Equipment::setDoubleBatch(bool var) 
+{
+   set("doubleBatch", "doubleBatch", var);
+}
+
 //============================"GET" METHODS=====================================
 
 QString Equipment::name() const
@@ -529,6 +564,35 @@ double Equipment::boilingPoint_c() const
    return get("boiling_point").toDouble();
 }
 
+bool Equipment::crushGrains() const
+{
+   return get("crushGrains").toBool();
+}
+
+bool Equipment::grainsToWater() const
+{
+   return get("grainsToWater").toBool();
+}
+bool Equipment::biab() const
+{
+   return get("biab").toBool();
+}
+bool Equipment::nochill() const
+{
+   return get("nochill").toBool();
+}
+bool Equipment::flySparge() const
+{
+   return get("flySparge").toBool();
+}
+bool Equipment::singleBatch() const
+{
+   return get("singleBatch").toBool();
+}
+bool Equipment::doubleBatch() const
+{
+   return get("doubleBatch").toBool();
+}
 void Equipment::doCalculations()
 {
    // Only do the calculation if we're asked to.

@@ -35,10 +35,18 @@ create table equipment(
    top_up_kettle real DEFAULT 0.0,
    hop_utilization real DEFAULT 100.0,
    notes text DEFAULT '',
-   -- Out BeerXML extensions
+   -- Our BeerXML extensions
    real_evap_rate real DEFAULT 0.0,
    boiling_point real DEFAULT 100.0,
    absorption real DEFAULT 1.085,
+   -- Brewing methods extensions
+   crushGrains boolean DEFAULT 0,
+   grainsToWater boolean DEFAULT 0,
+   singleBatch boolean DEFAULT 1,
+   doubleBatch boolean DEFAULT 0,
+   flySparge boolean DEFAULT 0,
+   nochill  boolean DEFAULT 0,
+   biab     boolean DEFAULT 0,
    -- Metadata
    deleted boolean DEFAULT 0,
    display boolean DEFAULT 1
