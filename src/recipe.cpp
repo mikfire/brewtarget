@@ -165,26 +165,47 @@ void Recipe::insertInstruction(Instruction* ins, int pos)
    Database::instance().insertInstruction(ins,pos);
 }
 
-Instruction* Recipe::mashFermentableIns()
+Instruction* Recipe::crushGrainsIns()
 {
    Instruction* ins;
    QString str,tmp;
    int i;
 
-   /*** Add grains ***/
    ins = Database::instance().newInstruction(this);
-   ins->setName(tr("Add grains"));
-   str = tr("Add ");
+   QList<QString> reagents = getReagents(fermentables());
+   for( i = 0; i < reagents.size(); ++i )
+      tmp += reagents.at(i);
+
+   /*** Add grains ***/
+   ins->setName(tr("Crush Grain"));
+   str = tr("Crush %1").arg(tmp);
+   ins->setDirections(str);
+   
+   return ins;
+}
+
+Instruction* Recipe::mashFermentableIns()
+{
+   Instruction* ins;
+   QString tmp;
+   int i;
+
+   ins = Database::instance().newInstruction(this);
    QList<QString> reagents = getReagents(fermentables());
 
-   for( i = 0; i < reagents.size(); ++i )
-      str += reagents.at(i);
+   /*** Add grains ***/
+   if ( Brewtarget::option("crushGrain", false).toBool() ) {
+      tmp = tr("crushed grain");
+   }
+   else {
+      for( i = 0; i < reagents.size(); ++i )
+         tmp += reagents.at(i);
+   }
 
-   str += tr("to the mash tun.");
-   ins->setDirections(str);
+   ins->setName(tr("Add grains"));
+   ins->setDirections(tr("Add %1 to the mash tun").arg(tmp));
 
    return ins;
-
 }
 
 Instruction* Recipe::mashWaterIns(unsigned int size)
@@ -209,20 +230,39 @@ Instruction* Recipe::mashWaterIns(unsigned int size)
    return ins;
 }
 
-QVector<PreInstruction> Recipe::mashInstructions(double timeRemaining, double totalWaterAdded_l, unsigned int size)
+QVector<PreInstruction> Recipe::firstMashInstruction(double timeRemaining, double totalWaterAdded_l, MashStep* step)
+{
+   QVector<PreInstruction> preins;
+   QString str, title;
+
+   str = tr("Add %1 water at %2 to mash tun.")
+         .arg(Brewtarget::displayAmount(step->infuseAmount_l(), Units::liters))
+         .arg(Brewtarget::displayAmount(step->infuseTemp_c(), Units::celsius));
+   title = tr("Preheat mash tun");
+   timeRemaining += 5;
+   preins.push_back( PreInstruction(str, title, timeRemaining));
+
+   str = tr("Add grains to water to bring mash to %3.")
+         .arg(Brewtarget::displayAmount(step->stepTemp_c(), Units::celsius));
+   title = QString("%1 - %2").arg(step->typeStringTr()).arg(step->name());
+   preins.push_back( PreInstruction(str, title, timeRemaining) );
+
+   return preins;
+}
+
+QVector<PreInstruction> Recipe::mashInstructions(double timeRemaining, double totalWaterAdded_l, QList<MashStep*>steps)
 {
    QVector<PreInstruction> preins;
    MashStep* mstep;
    QString str;
-   unsigned int i;
+   int i;
 
-   if( mash() == 0 )
+   if( steps.size() == 0 )
       return preins;
    
-   QList<MashStep*> msteps = mash()->mashSteps();
-   for( i = 0; i < size; ++i )
+   for( i = 0; i < steps.size(); ++i )
    {
-      mstep = msteps[i];
+      mstep = steps.at(i);
 
       if( mstep->type() == MashStep::Infusion )
       {
@@ -580,29 +620,52 @@ void Recipe::generateInstructions()
    QVector<PreInstruction> preinstructions;
 
    // Mash instructions
-
    size = (mash() == 0) ? 0 : mash()->mashSteps().size();
    if( size > 0 )
    {
-     /*** prepare mashed fermentables ***/
-     mashFermentableIns();
+      QList<MashStep*> msteps = mash()->mashSteps();
 
-     /*** Prepare water additions ***/
-     mashWaterIns(size);
+      /*** Heat water ***/
+      mashWaterIns(size);
 
-     timeRemaining = mash()->totalTime();
+      timeRemaining = mash()->totalTime();
 
-     /*** Generate the mash instructions ***/
-     preinstructions = mashInstructions(timeRemaining, totalWaterAdded_l, size);
+      /*** prepare mashed fermentables ***/
+      if ( Brewtarget::option("crushGrain",false).toBool() )
+         crushGrainsIns();
 
-      /*** Hops mash additions ***/
-     preinstructions += hopSteps(Hop::Mash);
+      // Adding grains to water requires some work
+      if ( Brewtarget::option("grainsToWater", false).toBool() )
+      {
+         MashStep* firstStep = msteps.takeFirst();
+         addPreinstructions(firstMashInstruction(timeRemaining, totalWaterAdded_l, firstStep));
+
+         totalWaterAdded_l += firstStep->infuseAmount_l();
+         timeRemaining -= firstStep->stepTime_min();
+      }
+      else 
+      {
+         mashFermentableIns();
+      }
+
+
+      /*** Generate the first set of mash instructions ***/
+      // Note: This works because brewtarget will not allow you to make a mash
+      // that does not have an infusion as its first step. You may be able to
+      // mess with that, but if you do I have to assume you know what you are
+      // doing.
+
+      /*** Generate the mash instructions ***/
+      preinstructions = mashInstructions(timeRemaining, totalWaterAdded_l, msteps);
+
+       /*** Hops mash additions ***/
+      preinstructions += hopSteps(Hop::Mash);
 
       /*** Misc mash additions ***/
-     preinstructions += miscSteps(Misc::Mash);
+      preinstructions += miscSteps(Misc::Mash);
 
-     /*** Add the preinstructions into the instructions ***/
-     addPreinstructions(preinstructions);
+      /*** Add the preinstructions into the instructions ***/
+      addPreinstructions(preinstructions);
 
    } // END mash instructions.
 
