@@ -184,6 +184,7 @@ public:
     *        amount we wish to display
     */
    static QString displayAmount( BeerXMLElement* element, QObject* object, QString attribute, Unit* units=0, int precision=3 );
+   static QString displayAmount( double amount, QString section, QString attribute, Unit* units=0, int precision = 3);
 
    /*!
     *  \brief Displays an amount in the appropriate units.
