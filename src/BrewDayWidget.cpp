@@ -37,7 +37,7 @@
 
 // NOTE: QPrinter has no parent? Will it get destroyed properly?
 BrewDayWidget::BrewDayWidget(QWidget* parent) :
-   QWidget(parent), recObs(0), printer(new QPrinter()), doc(new QWebView(this))
+   QWidget(parent), recObs(0), printer(new QPrinter()), doc(new QTextBrowser(this))
 {
    setupUi(this);
 

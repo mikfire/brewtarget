@@ -393,8 +393,8 @@ QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
    Qml
    Sql
    Xml
-   WebKit
-   WebKitWidgets
+   #WebKit
+   #WebKitWidgets
 )
 
 #=================================Tests========================================
@@ -416,8 +416,8 @@ QT5_USE_MODULES(
    Qml
    Sql
    Xml
-   WebKit
-   WebKitWidgets
+   #WebKit
+   #WebKitWidgets
    Test
 )
 
