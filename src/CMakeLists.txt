@@ -397,34 +397,6 @@ QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
    #WebKitWidgets
 )
 
-#=================================Tests========================================
-
-#QT4_WRAP_CPP( testing_MOC_SRCS ${SRCDIR}/Testing.h )
-ADD_EXECUTABLE(
-   brewtarget_tests
-   ${SRCDIR}/Testing.cpp
-   ${testing_MOC_SRCS}
-   $<TARGET_OBJECTS:btobjlib>
-)
-
-QT5_USE_MODULES(
-   brewtarget_tests
-   Widgets
-   Multimedia
-   Network
-   PrintSupport
-   Qml
-   Sql
-   Xml
-   #WebKit
-   #WebKitWidgets
-   Test
-)
-
-ADD_TEST(
-   NAME test
-   COMMAND brewtarget_tests
-)
 
 #=================================Installs=====================================
 

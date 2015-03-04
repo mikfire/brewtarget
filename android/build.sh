@@ -5,5 +5,6 @@ cmake --debug-output -DCMAKE_TOOLCHAIN_FILE=AndroidToolchain.cmake \
 -DQt5_DIR=$DIR/Qt5 -DQt5Core_DIR=$DIR/Qt5Core -DQt5Multimedia_DIR=$DIR/Qt5Multimedia \
 -DQt5PrintSupport_DIR=$DIR/Qt5PrintSupport -DQt5Qml_DIR=$DIR/Qt5Qml \
 -DQt5Sql_DIR=$DIR/Qt5Sql -DQt5Xml_DIR=$DIR/Qt5Xml -DQt5Widgets_DIR=$DIR/Qt5Widgets \
--DQt5Network_DIR=$DIR/Qt5Network -DQt5Gui_DIR=$DIR/Qt5Gui -DANDROID_APK_DIR=. ../CMakeLists.txt
+-DQt5Network_DIR=$DIR/Qt5Network -DQt5Gui_DIR=$DIR/Qt5Gui \
+../CMakeLists.txt
 

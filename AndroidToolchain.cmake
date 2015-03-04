@@ -151,11 +151,13 @@ if(DEFINED QTANDROID_EXPORTED_TARGET)
     endfunction()
 
     function(generate_apk)
-        get_filename_component(QTDIR "${Qt5Core_DIR}/../../../" ABSOLUTE)
+#        get_filename_component(QTDIR "${Qt5Core_DIR}/../../../" ABSOLUTE)
+        set(QTDIR "/home/mik/Qt5.4.1/5.4/android_x86")
         find_program(ANDROID_DEPLOY_QT androiddeployqt HINTS "${QTDIR}/bin")
         set(EXPORT_DIR "${CMAKE_BINARY_DIR}/${QTANDROID_EXPORTED_TARGET}_build_apk/")
         set(EXECUTABLE_DESTINATION_PATH "${EXPORT_DIR}/libs/${ANDROID_ABI}/lib${QTANDROID_EXPORTED_TARGET}.so")
 
+        message(WARNING "${EXPORT_DIR}")
         add_custom_target("create-apk-${QTANDROID_EXPORTED_TARGET}"
             COMMAND cmake -E echo "Generating $<TARGET_NAME:${QTANDROID_EXPORTED_TARGET}> with ${ANDROID_DEPLOY_QT}"
             COMMAND cmake -E copy_directory "${ANDROID_APK_DIR}" "${EXPORT_DIR}"
