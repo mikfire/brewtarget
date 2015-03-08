@@ -364,12 +364,22 @@ ADD_LIBRARY(
    ${brewtarget_UIS_H}
 )
 
-ADD_EXECUTABLE(
-   ${brewtarget_EXECUTABLE}
-   ${SRCDIR}/main.cpp
-   ${brewtarget_ICON}
-   $<TARGET_OBJECTS:btobjlib>
-)
+IF( ANDROID )
+   ADD_LIBRARY(
+      ${brewtarget_EXECUTABLE}
+      SHARED
+      ${brewtarget_ICON}
+      $<TARGET_OBJECTS:btobjlib>
+      )
+ELSE()
+   ADD_EXECUTABLE(
+      ${brewtarget_EXECUTABLE}
+      ${SRCDIR}/main.cpp
+      ${brewtarget_ICON}
+      $<TARGET_OBJECTS:btobjlib>
+   )
+ENDIF()
+
 ADD_DEPENDENCIES( ${brewtarget_EXECUTABLE} translations )
 
 # Link brewtarget against appropriate libraries.
@@ -385,33 +395,52 @@ IF( WIN32 AND MINGW )
    SET_TARGET_PROPERTIES( ${brewtarget_EXECUTABLE} PROPERTIES LINK_FLAGS "-Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl,-subsystem,windows")
 ENDIF()
 
-QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
-   Widgets
-   Multimedia
-   Network
-   PrintSupport
-   Qml
-   Sql
-   Xml
-   #WebKit
-   #WebKitWidgets
-)
+IF( ANDROID )
+   # webkit and webkitwidgets aren't translated to android yet.
+   QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
+      Widgets
+      Multimedia
+      Network
+      PrintSupport
+      Qml
+      Sql
+      Xml
+   )
+ELSE()
+   QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
+      Widgets
+      Multimedia
+      Network
+      PrintSupport
+      Qml
+      Sql
+      Xml
+      WebKit
+      WebKitWidgets
+   )
+ENDIF()
 
 
 #=================================Installs=====================================
 
-# Install executable.
-INSTALL( TARGETS ${brewtarget_EXECUTABLE}
-         RUNTIME DESTINATION ${TARGETPATH} )
+# Install library for Android, executables for everybody else.
+IF( ANDROID )
+   MESSAGE( STATUS "TARGETPATH is ${TARGETPATH}" )
+   INSTALL( TARGETS ${brewtarget_EXECUTABLE}
+      LIBRARY DESTINATION ${TARGETPATH} )
+ELSE()
+   INSTALL( TARGETS ${brewtarget_EXECUTABLE}
+            RUNTIME DESTINATION ${TARGETPATH} )
 
 # Install the translations.
-INSTALL(FILES ${QM_FILES}
-        DESTINATION "${DATAPATH}/translations_qm")
+   INSTALL(FILES ${QM_FILES}
+         DESTINATION "${DATAPATH}/translations_qm")
 
-IF( APPLE )
-   # This SHOULD run macdeployqt on the app bundle at install time.
-   # Don't know if it works. Could someone try?
-   # May have to add a WORKING_DIRECTORY.
-   INSTALL( CODE
-            "EXECUTE_PROCESS( COMMAND ${QT_BINARY_DIR}/macdeployqt ${BT_BUNDLE_DIR} )" )
+   IF( APPLE )
+      # This SHOULD run macdeployqt on the app bundle at install time.
+      # Don't know if it works. Could someone try?
+      # May have to add a WORKING_DIRECTORY.
+      INSTALL( CODE
+               "EXECUTE_PROCESS( COMMAND ${QT_BINARY_DIR}/macdeployqt ${BT_BUNDLE_DIR} )" )
+   ENDIF()
 ENDIF()

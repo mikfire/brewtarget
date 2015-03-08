@@ -6,6 +6,12 @@ CMAKE_POLICY( VERSION 2.8.11 )
 # NOTE: cmake . -DCMAKE_INSTALL_PREFIX=/tmp/blah && make DESTDIR=/foo
 # will install to /foo/tmp/blah.
 
+IF( ${ANDROID} )
+   MESSAGE( STATUS "Building for android" )
+ELSE()
+   MESSAGE( FATAL_ERROR "ANDROID not set" )
+ENDIF()
+
 # Where the binary goes.
 SET(brewtarget_EXECUTABLE "brewtarget")
 
@@ -196,7 +202,15 @@ IF( NOT DOCDIR )
 ENDIF()
 
 # Actual install directories.
-IF( UNIX AND NOT APPLE )
+# ANDROID needs to go first, since it will match (UNIX and NOT APPLE)
+IF( ANDROID )
+   SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/android/libs/${ARM_TARGET}/)
+   SET( DATAPATH "${DATAROOTDIR}/${CMAKE_PROJECT_NAME}" )
+   SET( TARGETPATH ${BINDIR} )
+   SET( DOCPATH ${DOCDIR} )
+   SET(ANDROID_PACKAGE "org.brewtarget.brewtarget")
+   add_subdirectory(android)
+ELSEIF( UNIX AND NOT APPLE )
   SET( DATAPATH "${DATAROOTDIR}/${CMAKE_PROJECT_NAME}" )
   SET( TARGETPATH ${BINDIR} )
   SET( DOCPATH ${DOCDIR} )

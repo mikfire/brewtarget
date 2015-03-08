@@ -47,6 +47,7 @@
 #include <QPixmap>
 #include <QSplashScreen>
 #include <QSettings>
+#include <QStandardPaths>
 
 #include "brewtarget.h"
 #include "config.h"
@@ -295,7 +296,11 @@ TempScale Brewtarget::getTemperatureScale()
 QString Brewtarget::getDataDir()
 {
    QString dir = qApp->applicationDirPath();
-#if defined(Q_OS_LINUX) // Linux OS.
+
+#if defined(Q_OS_ANDROID) //Android must be first, because it will test as Linux too
+   dir = QString("assets:/data");
+
+#elif defined(Q_OS_LINUX) // Linux OS.
 
    dir = QString(CONFIGDATADIR);
 
@@ -321,7 +326,11 @@ QString Brewtarget::getDataDir()
 QString Brewtarget::getDocDir()
 {
    QString dir = qApp->applicationDirPath();
-#if defined(Q_OS_LINUX) // Linux OS.
+
+#if defined(Q_OS_ANDROID) // Android has to be first, because it will also match Linux
+   dir = QString("assets:/docs");
+
+#elif defined(Q_OS_LINUX) // Linux OS.
 
    dir = QString(CONFIGDOCDIR);
 
@@ -346,7 +355,11 @@ QString Brewtarget::getDocDir()
 
 QString Brewtarget::getConfigDir(bool *success)
 {
-#if defined(Q_OS_LINUX) || defined(Q_OS_MAC) // Linux OS or Mac OS.
+#if defined(Q_OS_ANDROID)
+   // If I understand this correctly, each application has its own homedir. I
+   // am rolling with that assumption and not trying to get clever.
+   return QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+#elif defined(Q_OS_LINUX) || defined(Q_OS_MAC) // Linux OS or Mac OS.
 
    QDir dir;
    QFileInfo fileInfo;

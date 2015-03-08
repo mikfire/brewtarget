@@ -1,4 +1,4 @@
 # Build directory. Ignore everything but dummyfile
 build/*
 !build/dummyfile
-
+android-build/*
