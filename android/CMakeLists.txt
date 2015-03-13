@@ -18,15 +18,36 @@
 
 #ADD_CUSTOM_TARGET (java_src DEPENDS ${TARGET_JAVA_FILES})
 MESSAGE( STATUS "Parsing android/cmakelists.txt")
+SET( DOCSRC "${ROOTDIR}/doc" )
+SET( brewtarget_ASSETDIR "${CMAKE_BINARY_DIR}/android/assets" )
+SET( brewtarget_DATADIR "${brewtarget_ASSETDIR}/data" )
+SET( brewtarget_DOCDIR "${brewtarget_ASSETDIR}/docs" )
+SET( brewtarget_RES_DB "${brewtarget_DATADIR}/default_db.sqlite" )
 
-SET( brewtaget_RES_DB "{$CMAKE_BINARY_DIR}/res/database.sqlite" )
 SET( TARGET "${CMAKE_BINARY_DIR}/lib/x86/libbrewtarget.so" )
 
 ADD_CUSTOM_COMMAND(
-   OUTPUT brewTargetDefaultDatabase
+   OUTPUT ${brewtarget_RES_DB}
+   COMMAND cmake -E make_directory ${brewtarget_DATADIR}
    COMMAND cmake -E copy ${DATADIR}/default_db.sqlite ${brewtarget_RES_DB}
 )
-ADD_CUSTOM_TARGET ( brewtarget_resources DEPENDS ${brewtarget_RES_DB} )
+
+ADD_CUSTOM_COMMAND(
+   OUTPUT "${brewtarget_DOCDIR}/brewtarget-manual.html"
+   COMMAND cmake -E make_directory ${brewtarget_DOCDIR}
+   COMMAND cmake -E copy "${DOCSRC}/brewtarget-manual.html" ${brewtarget_DOCDIR}
+   COMMAND cmake -E make_directory "${brewtarget_DOCDIR}/images"
+   COMMAND cmake -E copy_directory "${DOCSRC}/images" "${brewtarget_DOCDIR}/images"
+)
+
+# All the assets we need go here.
+ADD_CUSTOM_TARGET(
+   brewtarget_assets
+   DEPENDS
+   ${brewtarget_RES_DB}
+   "${brewtarget_DOCDIR}/brewtarget-manual.html"
+)
+
 find_program(ANDROID_DEPLOY_QT NAMES androiddeployqt PATHS ${_qt5Core_install_prefix}/bin/ )
 
 # Look for androiddeployqt program
@@ -68,10 +89,10 @@ endforeach()
 
 add_custom_command (
   OUTPUT createApkFromAndroidDeployQtDebug
-  DEPENDS ${PACKAGE_SOURCE_ANDROID}/AndroidManifest.xml ${brewtarget_RES_DB}
+  DEPENDS ${PACKAGE_SOURCE_ANDROID}/AndroidManifest.xml brewtarget_assets
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR} ${PACKAGE_SOURCE_ANDROID}
-  COMMAND ${ANDROID_DEPLOY_QT} --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PACKAGE_SOURCE_ANDROID}/configAndroid.json --debug
-  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/bin/QtApp-debug.apk ${CMAKE_CURRENT_BINARY_DIR}/bin/brewtarget-Android-debug-${ANDROID_ABI}-${brewtarget_VERSION}.apk
+  COMMAND ${ANDROID_DEPLOY_QT} --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PACKAGE_SOURCE_ANDROID}/configAndroid.json --debug --verbose
+  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/bin/QtApp-debug.apk ${CMAKE_CURRENT_BINARY_DIR}/bin/brewtarget-Android-debug-${ANDROID_ABI}-${brewtarget_VERSION_STRING}.apk
 )
 
 add_custom_command (
