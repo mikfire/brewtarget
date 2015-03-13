@@ -125,8 +125,6 @@ MainWindow::MainWindow(QWidget* parent)
    // Need to call this to get all the widgets added (I think).
    setupUi(this);
 
-   QDesktopWidget *desktop = QApplication::desktop();
-
    // Ensure database initializes.
    Database::instance();
 
@@ -136,10 +134,10 @@ MainWindow::MainWindow(QWidget* parent)
    // Different palettes for some text. This is all done via style sheets now.
    QColor wPalette = tabWidget_recipeView->palette().color(QPalette::Active,QPalette::Base);
 
-   goodSS = QString( "QLineEdit:read-only { color: #008800; background: %1 }").arg(wPalette.name());
-   lowSS  = QString( "QLineEdit:read-only { color: #0000D0; background: %1 }").arg(wPalette.name());
-   highSS = QString( "QLineEdit:read-only { color: #D00000; background: %1 }").arg(wPalette.name());
-   boldSS = QString( "QLineEdit:read-only { font: bold 12px; color: #000000; background: %1 }").arg(wPalette.name());
+   goodSS = QString( "QLineEdit:read-only { font-size: 14px; color: #008800; background: %1 }").arg(wPalette.name());
+   lowSS  = QString( "QLineEdit:read-only { font-size: 14px; color: #0000D0; background: %1 }").arg(wPalette.name());
+   highSS = QString( "QLineEdit:read-only { font-size: 14px; color: #D00000; background: %1 }").arg(wPalette.name());
+   boldSS = QString( "QLineEdit:read-only { font-size: 14px; font-style: bold; color: #000000; background: %1 }").arg(wPalette.name());
 
    // The bold style sheet doesn't change, so set it here once.
    lineEdit_boilSg->setStyleSheet(boldSS);
@@ -315,13 +313,23 @@ MainWindow::MainWindow(QWidget* parent)
    fileSaver->setDefaultSuffix(QString("xml"));
 
    // Do some magic on the splitter widget to keep the tree from expanding
+#if defined(Q_OS_ANDROID)
+   splitter_2->setStretchFactor(0,0.75);
+   splitter_2->setStretchFactor(1,0.25);
+#else
    splitter_2->setStretchFactor(0,0);
    splitter_2->setStretchFactor(1,1);
+#endif
+
 
    // Once more with the context menus too
    setupContextMenu();
 
-   // If we saved a size the last time we ran, use it
+   // If we are on android, just maximaze the winder. Otherwise, try to find
+   // something useful.
+#if !defined(Q_OS_ANDROID)
+   QDesktopWidget *desktop = QApplication::desktop();
+
    if ( Brewtarget::hasOption("geometry"))
    {
       restoreGeometry(Brewtarget::option("geometry").toByteArray());
@@ -329,12 +337,13 @@ MainWindow::MainWindow(QWidget* parent)
    }
    else
    {
-      // otherwise, guess a reasonable size at 1/4 of the screen.
+      // otherwise, guess at a reasonable size
       int width = desktop->width();
       int height = desktop->height();
 
-      this->resize(width/2,height/2);
+      this->resize(width*0.67,height/2);
    }
+#endif
 
    // If we saved the selected recipe name the last time we ran, select it and show it.
    if (Brewtarget::hasOption("recipeKey"))
