@@ -125,9 +125,10 @@ bool Brewtarget::ensureDirectoriesExist()
       return false;
    }
 
+   qDebug() << "found data dir" << getDataDir();
    // Check doc dir
    dir.setPath(getDocDir());
-   if( ! dir.exists() || ! dir.isReadable() )
+   if( ! dir.exists() ||! dir.isReadable() )
    {
       QMessageBox::information(
          0,
@@ -138,6 +139,7 @@ bool Brewtarget::ensureDirectoriesExist()
    }
 
    // Check config dir
+   success = true;
    dir.setPath(getConfigDir(&success));
    if( !success || ! dir.exists() || ! dir.isReadable() )
    {
@@ -356,9 +358,38 @@ QString Brewtarget::getDocDir()
 QString Brewtarget::getConfigDir(bool *success)
 {
 #if defined(Q_OS_ANDROID)
-   // If I understand this correctly, each application has its own homedir. I
-   // am rolling with that assumption and not trying to get clever.
-   return QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+   bool tmp;
+   QFile::Permissions sevenFiveFive = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner;
+   QDir dir = QDir::home();
+
+   if( !dir.exists("brewtarget") )
+   {
+      logW( QString("\"%1\" does not exist...creating.").arg(dir.absolutePath() + "/brewtarget") );
+
+      // Try to make brewtarget dir.
+      if( ! dir.mkdir("brewtarget") )
+      {
+         logE( QString("Could not create \"%1\"").arg(dir.absolutePath() + "/brewtarget") );
+         if( success != 0 )
+            *success = false;
+         return "";
+      }
+
+      // chmod 755 ~/.config/brewtarget
+      QFile::setPermissions( dir.absolutePath() + "/brewtarget", sevenFiveFive );
+   }
+
+   if( ! dir.cd("brewtarget") )
+   {
+      logE(QString("Could not CD into \"%1\"").arg(dir.absolutePath() + "/brewtarget"));
+      if( success != 0 )
+         *success = false;
+      return "";
+   }
+
+   if( success != 0 )
+      *success = true;
+   return dir.absolutePath() + "/";
 #elif defined(Q_OS_LINUX) || defined(Q_OS_MAC) // Linux OS or Mac OS.
 
    QDir dir;
@@ -589,7 +620,11 @@ int Brewtarget::run()
    }
 
    _mainWindow = new MainWindow();
+#if defined(Q_OS_ANDROID)
+   _mainWindow->showMaximized();
+#else
    _mainWindow->setVisible(true);
+#endif
    splashScreen.finish(_mainWindow);
 
    checkForNewVersion(_mainWindow);
