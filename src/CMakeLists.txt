@@ -370,7 +370,10 @@ IF( ANDROID )
       SHARED
       ${brewtarget_ICON}
       $<TARGET_OBJECTS:btobjlib>
+      ${SRCDIR}/main.cpp
       )
+   QT5_USE_MODULES( ${brewtarget_EXECUTABLE} Gui Core Multimedia Network PrintSupport Qml Sql Svg Xml AndroidExtras )
+   target_link_libraries(${brewtarget_EXECUTABLE} ${QT_LIBRARIES})
 ELSE()
    ADD_EXECUTABLE(
       ${brewtarget_EXECUTABLE}
@@ -378,6 +381,7 @@ ELSE()
       ${brewtarget_ICON}
       $<TARGET_OBJECTS:btobjlib>
    )
+   QT5_USE_MODULES( ${brewtarget_EXECUTABLE} Widgets Multimedia Network PrintSupport Qml Sql Xml WebKit WebKitWidgets )
 ENDIF()
 
 ADD_DEPENDENCIES( ${brewtarget_EXECUTABLE} translations )
@@ -394,32 +398,6 @@ IF( WIN32 AND MINGW )
    #    '-Wl,-s' strips the executable of symbols.
    SET_TARGET_PROPERTIES( ${brewtarget_EXECUTABLE} PROPERTIES LINK_FLAGS "-Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl,-subsystem,windows")
 ENDIF()
-
-IF( ANDROID )
-   # webkit and webkitwidgets aren't translated to android yet.
-   QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
-      Widgets
-      Multimedia
-      Network
-      PrintSupport
-      Qml
-      Sql
-      Xml
-   )
-ELSE()
-   QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
-      Widgets
-      Multimedia
-      Network
-      PrintSupport
-      Qml
-      Sql
-      Xml
-      WebKit
-      WebKitWidgets
-   )
-ENDIF()
-
 
 #=================================Installs=====================================
 
