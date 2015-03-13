@@ -91,7 +91,7 @@ add_custom_command (
   OUTPUT createApkFromAndroidDeployQtDebug
   DEPENDS ${PACKAGE_SOURCE_ANDROID}/AndroidManifest.xml brewtarget_assets
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR} ${PACKAGE_SOURCE_ANDROID}
-  COMMAND ${ANDROID_DEPLOY_QT} --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PACKAGE_SOURCE_ANDROID}/configAndroid.json --debug --verbose
+  COMMAND ${ANDROID_DEPLOY_QT} --output ${CMAKE_CURRENT_BINARY_DIR}/ --input ${PACKAGE_SOURCE_ANDROID}/configAndroid.json --debug 
   COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/bin/QtApp-debug.apk ${CMAKE_CURRENT_BINARY_DIR}/bin/brewtarget-Android-debug-${ANDROID_ABI}-${brewtarget_VERSION_STRING}.apk
 )
 
