@@ -1764,6 +1764,7 @@
    <addaction name="actionEquipments"/>
    <addaction name="actionMashs"/>
    <addaction name="actionStyles"/>
+   <addaction name="actionBrewIt"/>
    <addaction name="separator"/>
    <addaction name="actionFermentables"/>
    <addaction name="actionHops"/>
@@ -2189,6 +2190,18 @@
   <action name="actionStrikeWater_Calculator">
    <property name="text">
     <string>Strike Water Calculator</string>
+   </property>
+  </action>
+  <action name="actionBrewIt">
+   <property name="icon">
+    <iconset resource="../brewtarget.qrc">
+     <normaloff>:/images/Beer_mug.svg</normaloff>:/images/Beer_mug.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Brew It</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a brewnote for the recipe</string>
    </property>
   </action>
  </widget>

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file alias="images/backup.png">images/backup.png</file>
+        <file alias="images/Beer_mug.svg">images/Beer_mug.svg</file>
         <file alias="images/brewtarget.svg">images/brewtarget.svg</file>
         <file alias="images/bubbles.svg">images/bubbles.svg</file>
         <file alias="images/clipboard.svg">images/clipboard.svg</file>

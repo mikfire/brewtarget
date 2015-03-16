@@ -31,8 +31,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>626</width>
-        <height>438</height>
+        <width>620</width>
+        <height>432</height>
        </rect>
       </property>
       <property name="configSection" stdset="0">
@@ -44,7 +44,7 @@
          <item>
           <widget class="QToolBox" name="toolBox_brewnote">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+            <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -72,8 +72,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>242</width>
-              <height>349</height>
+              <width>252</width>
+              <height>350</height>
              </rect>
             </property>
             <property name="configSection" stdset="0">
@@ -269,8 +269,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>242</width>
-              <height>349</height>
+              <width>252</width>
+              <height>350</height>
              </rect>
             </property>
             <property name="configSection" stdset="0">
@@ -475,8 +475,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>242</width>
-              <height>349</height>
+              <width>252</width>
+              <height>350</height>
              </rect>
             </property>
             <property name="configSection" stdset="0">
@@ -606,7 +606,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
            <item>
             <layout class="QFormLayout" name="formLayout_3">
              <property name="fieldGrowthPolicy">

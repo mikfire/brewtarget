@@ -134,10 +134,12 @@ MainWindow::MainWindow(QWidget* parent)
    // Different palettes for some text. This is all done via style sheets now.
    QColor wPalette = tabWidget_recipeView->palette().color(QPalette::Active,QPalette::Base);
 
-   goodSS = QString( "QLineEdit:read-only { font-size: 14px; color: #008800; background: %1 }").arg(wPalette.name());
-   lowSS  = QString( "QLineEdit:read-only { font-size: 14px; color: #0000D0; background: %1 }").arg(wPalette.name());
-   highSS = QString( "QLineEdit:read-only { font-size: 14px; color: #D00000; background: %1 }").arg(wPalette.name());
-   boldSS = QString( "QLineEdit:read-only { font-size: 14px; font-style: bold; color: #000000; background: %1 }").arg(wPalette.name());
+   this->setStyleSheet( "* { font-size: 12pt }" );
+
+   goodSS = QString( "QLineEdit:read-only { font-size: 12pt; color: #008800; background: %1 }").arg(wPalette.name());
+   lowSS  = QString( "QLineEdit:read-only { font-size: 12pt; color: #0000D0; background: %1 }").arg(wPalette.name());
+   highSS = QString( "QLineEdit:read-only { font-size: 12pt; color: #D00000; background: %1 }").arg(wPalette.name());
+   boldSS = QString( "QLineEdit:read-only { font-size: 12pt; font-style: bold; color: #000000; background: %1 }").arg(wPalette.name());
 
    // The bold style sheet doesn't change, so set it here once.
    lineEdit_boilSg->setStyleSheet(boldSS);
@@ -394,6 +396,7 @@ MainWindow::MainWindow(QWidget* parent)
    connect( actionDeleteSelected, SIGNAL(triggered()), this, SLOT(deleteSelected()) );
    connect( actionSave, SIGNAL(triggered()), this, SLOT(save()) );
    connect( actionDonate, SIGNAL( triggered() ), this, SLOT( openDonateLink() ) );
+   connect( actionBrewIt, SIGNAL( triggered() ), this, SLOT( brewItHelper() ));
 
    // Printing signals/slots.
    // Refactoring is good.  It's like a rye saison fermenting away
@@ -1214,7 +1217,6 @@ Yeast* MainWindow::selectedYeast()
    return y;
 }
 
-
 void MainWindow::removeSelectedFermentable()
 {
     QModelIndexList selected = fermentableTable->selectionModel()->selectedIndexes();
@@ -1241,7 +1243,6 @@ void MainWindow::removeSelectedFermentable()
         recipeObs->removeFermentable(itemsToRemove.at(i));
     }
 }
-
 
 void MainWindow::editSelectedFermentable()
 {
@@ -1310,7 +1311,6 @@ void MainWindow::removeSelectedHop()
     }
 
 }
-
 
 void MainWindow::removeSelectedMisc()
 {
@@ -1543,6 +1543,7 @@ void MainWindow::setTreeSelection(QModelIndex item)
    active->scrollTo(item,QAbstractItemView::PositionAtCenter);
 
 }
+
 // reduces the inventory by the selected recipes
 void MainWindow::reduceInventory(){
 

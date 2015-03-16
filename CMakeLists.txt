@@ -9,7 +9,7 @@ CMAKE_POLICY( VERSION 2.8.11 )
 IF( ${ANDROID} )
    MESSAGE( STATUS "Building for android" )
 ELSE()
-   MESSAGE( FATAL_ERROR "ANDROID not set" )
+   MESSAGE( STATUS "Desktop build" )
 ENDIF()
 
 # Where the binary goes.
