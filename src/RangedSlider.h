@@ -123,6 +123,7 @@ private:
    QPen _prefRangePen;
    QBrush _markerBrush;
    bool _markerTextIsValue;
+   int _pixelRatio;
 };
 
 #endif /*RANGEDSLIDER_H*/

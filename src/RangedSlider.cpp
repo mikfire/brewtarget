@@ -32,6 +32,8 @@
 #include <QToolTip>
 #include <QLinearGradient>
 #include <QPainterPath>
+#include <QMessageBox>
+#include <QScreen>
 
 #include <QDebug>
 
@@ -53,7 +55,15 @@ RangedSlider::RangedSlider(QWidget* parent)
      _markerBrush(QColor(255,255,255)),
      _markerTextIsValue(false)
 {
-   setMinimumSize( 32, 32 );
+
+   QScreen *srn = QApplication::screens().at(0);
+   qreal dotsperinch = (qreal)srn->logicalDotsPerInch();
+
+   _pixelRatio = QVariant( dotsperinch/72 ).toInt();
+   if ( _pixelRatio == 0 )
+      _pixelRatio = 1;
+
+   setMinimumSize( 32, 32 * _pixelRatio );
    setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Fixed );
    
    // Generate mouse move events whenever mouse movers over widget.
@@ -151,7 +161,7 @@ void RangedSlider::setTickMarks( double primaryInterval, int secondaryTicks )
 
 QSize RangedSlider::sizeHint() const
 {
-   static const QSize hint(64,32);
+   static const QSize hint(64,32 * _pixelRatio);
    
    return hint;
 }
@@ -164,14 +174,19 @@ void RangedSlider::mouseMoveEvent(QMouseEvent* event)
    QToolTip::showText( tipPoint, _tooltipText, this );
 }
 
+// All of the numbers in here are based on a 32 pixel wide rectangle. The text
+// on top of the slider gets half of that, and the slider gets the other half.
 void RangedSlider::paintEvent(QPaintEvent* event)
 {
+
    static const QFont textFont("Arial", 14, QFont::Black);
    static const QFontMetrics textFontMetrics(textFont);
    static const QPalette palette(QApplication::palette());
-   static const int indTextHeight=16;
-   static const int rectHeight = 16;
-   static const int indWidth   = 4;
+
+   static const int indTextHeight = 16 * _pixelRatio;
+   static const int rectHeight    = 16 * _pixelRatio;
+   static const int indWidth      = 4 * _pixelRatio;
+
    static const QColor fgRectColor(0,127,0);
    static const QColor textColor(0,127,0);
    
@@ -179,13 +194,13 @@ void RangedSlider::paintEvent(QPaintEvent* event)
    //const int textWidth = textFontMetrics.width(_valText);
    static const int textWidth = textFontMetrics.width("1.000");
    
+   QPainter painter(this);
    QLinearGradient glassGrad( QPointF(0,0), QPointF(0,rectHeight) );
    glassGrad.setColorAt( 0, QColor(255,255,255,127) );
    glassGrad.setColorAt( 1, QColor(255,255,255,0) );
    QBrush glassBrush(glassGrad);
    
-   QPainter painter(this);
-   float rectWidth   = 512;
+   float rectWidth   = 512 * _pixelRatio;
    float fgRectLeft  = rectWidth/(_max-_min) * (_prefMin-_min);
    float fgRectWidth = rectWidth/(_max-_min) * (_prefMax-_prefMin);
    float indX        = rectWidth/(_max-_min) * (_val-_min);
@@ -200,76 +215,76 @@ void RangedSlider::paintEvent(QPaintEvent* event)
    painter.save();
 
       // Indicator text.
-      QRectF markerTextRect = painter.boundingRect( QRectF(), Qt::AlignCenter | Qt::AlignBottom, _markerTextIsValue? _valText : _markerText );
-      float markerTextLeft = qBound( 0.f, static_cast<float>(indLeft*(width()-textWidth-2)/rectWidth - markerTextRect.width()/2), static_cast<float>(width()-textWidth-2-markerTextRect.width()));
-      painter.drawText(
-         markerTextLeft, 0,
-         markerTextRect.width(), 16,
-         Qt::AlignCenter | Qt::AlignBottom,
-         _markerTextIsValue? _valText : _markerText
-      );
+   QRectF markerTextRect = painter.boundingRect( QRectF(), Qt::AlignCenter | Qt::AlignBottom, _markerTextIsValue? _valText : _markerText );
+   float markerTextLeft = qBound( 0.f, static_cast<float>(indLeft*(width()-textWidth-2)/rectWidth - markerTextRect.width()/2), static_cast<float>(width()-textWidth-2-markerTextRect.width()));
+   painter.drawText(
+      markerTextLeft, 0,
+      markerTextRect.width(), 16 * _pixelRatio,
+      Qt::AlignCenter | Qt::AlignBottom,
+      _markerTextIsValue? _valText : _markerText
+   );
 
-      // Scale coordinates so that 'rectWidth' units == width()-textWidth-2 pixels.
-      painter.scale( (width()-textWidth-2)/rectWidth, 1.0 );
-      painter.translate(0, indTextHeight);
-      
-      painter.setPen(Qt::NoPen);
-      
-      // Make sure anything we draw "inside" the "glass rectangle" stays inside.
-      QPainterPath clipRect;
-      clipRect.addRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8, 8 );
-      painter.setClipPath(clipRect);
-      
-      // Draw the background rectangle.
-      painter.setBrush(_bgBrush);
-      painter.setRenderHint(QPainter::Antialiasing);
-      painter.drawRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8, 8 );
-      painter.setRenderHint(QPainter::Antialiasing,false);
-      
-      // Draw the style "foreground" rectangle.
-      painter.save();
-         painter.setBrush(_prefRangeBrush);
-         painter.setPen(_prefRangePen);
-         painter.setRenderHint(QPainter::Antialiasing);
-         //painter.drawRect( QRectF(fgRectLeft, 0, fgRectWidth, rectHeight) );
-         painter.drawRoundedRect( QRectF(fgRectLeft, 0, fgRectWidth, rectHeight), 8,8 );
-      painter.restore();
-      
-      // Draw the indicator.
-      painter.setBrush(_markerBrush);
-      painter.drawRect( QRectF(indLeft, 0, indWidth, rectHeight) );
-      
-      // Draw a white to clear gradient to suggest "glassy."
-      painter.setBrush(glassBrush);
-      painter.setRenderHint(QPainter::Antialiasing);
-      painter.drawRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8, 8 );
-      painter.setRenderHint(QPainter::Antialiasing,false);
-      
-      // Draw the ticks.
-      painter.setPen(Qt::black);
-      if( _tickInterval > 0.0 )
+   // Scale coordinates so that 'rectWidth' units == width()-textWidth-2 pixels.
+   painter.scale( (width()-textWidth-2)/rectWidth, 1.0 );
+   painter.translate(0, indTextHeight);
+   
+   painter.setPen(Qt::NoPen);
+   
+   // Make sure anything we draw "inside" the "glass rectangle" stays inside.
+   QPainterPath clipRect;
+   clipRect.addRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8 * _pixelRatio, 8 * _pixelRatio );
+   painter.setClipPath(clipRect);
+   
+   // Draw the background rectangle.
+   painter.setBrush(_bgBrush);
+   painter.setRenderHint(QPainter::Antialiasing);
+   painter.drawRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8 * _pixelRatio, 8 * _pixelRatio );
+   painter.setRenderHint(QPainter::Antialiasing,false);
+   
+   // Draw the style "foreground" rectangle.
+   painter.save();
+   painter.setBrush(_prefRangeBrush);
+   painter.setPen(_prefRangePen);
+   painter.setRenderHint(QPainter::Antialiasing);
+   painter.drawRoundedRect( QRectF(fgRectLeft, 0, fgRectWidth, rectHeight), 8 * _pixelRatio,8 * _pixelRatio );
+   painter.restore();
+   
+   // Draw the indicator.
+   painter.setBrush(_markerBrush);
+   painter.drawRect( QRectF(indLeft, 0, indWidth, rectHeight) );
+   
+   // Draw a white to clear gradient to suggest "glassy."
+   painter.setBrush(glassBrush);
+   painter.setRenderHint(QPainter::Antialiasing);
+   painter.drawRoundedRect( QRectF(0, 0, rectWidth, rectHeight), 8 * _pixelRatio, 8 * _pixelRatio );
+   painter.setRenderHint(QPainter::Antialiasing,false);
+   
+   // Draw the ticks.
+   painter.setPen(Qt::black);
+   if( _tickInterval > 0.0 )
+   {
+      int secTick = 1;
+      for( double currentTick = _min+_tickInterval; _max - currentTick > _tickInterval-1e-6; currentTick += _tickInterval )
       {
-         int secTick = 1;
-         for( double currentTick = _min+_tickInterval; _max - currentTick > _tickInterval-1e-6; currentTick += _tickInterval )
+         painter.translate( rectWidth/(_max-_min) * _tickInterval, 0);
+         if( secTick == _secondaryTicks )
          {
-            painter.translate( rectWidth/(_max-_min) * _tickInterval, 0);
-            if( secTick == _secondaryTicks )
-            {
-               painter.drawLine( QPointF(0,0.25*rectHeight), QPointF(0,0.75*rectHeight) );
-               secTick = 1;
-            }
-            else
-            {
-               painter.drawLine( QPointF(0,0.333*rectHeight), QPointF(0,0.666*rectHeight) );
-               ++secTick;
-            }
+            painter.drawLine( QPointF(0,0.25*rectHeight), QPointF(0,0.75*rectHeight) );
+            secTick = 1;
+         }
+         else
+         {
+            painter.drawLine( QPointF(0,0.333*rectHeight), QPointF(0,0.666*rectHeight) );
+            ++secTick;
          }
       }
+   }
    painter.restore();
    
    painter.translate( width() - textWidth, indTextHeight );
    // Draw the text.
    painter.setPen(textColor);
    painter.setFont(textFont);
-   painter.drawText( 0, 0, textWidth, 16, Qt::AlignRight | Qt::AlignVCenter, _valText );
+   painter.drawText( 0, 0, textWidth, 16 * _pixelRatio, Qt::AlignRight | Qt::AlignVCenter, _valText );
+
 }
