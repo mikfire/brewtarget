@@ -114,6 +114,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_boilSize
+                     text: obsEquip.boilSize_l
                   }
 
                   Label {
@@ -132,6 +133,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_batchSize
+                     text: obsEquip.batchSize_l
                   }
                }
             }
@@ -152,6 +154,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_boilTime
+                     text: obsEquip.boilTime_min
                      Layout.fillWidth: true
                   }
 
@@ -161,6 +164,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_evaporationRate
+                     text: obsEquip.evapRate_lHr
                      Layout.fillWidth: true
                   }
 
@@ -170,6 +174,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_topUpKettle
+                     text: obsEquip.topUpKettle_l
                      Layout.fillWidth: true
                   }
 
@@ -179,6 +184,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_topUpWater
+                     text: obsEquip.topUpWater_l
                      Layout.fillWidth: true
                   }
 
@@ -188,6 +194,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_grainAbsorption
+                     text: obsEquip.grainAbsorption_LKg
                      Layout.fillWidth: true
                   }
 
@@ -207,6 +214,7 @@ Item {
                   TextField {
                      id: lineEdit_boilingPoint
                      Layout.fillWidth: true
+                     text: obsEquip.boilingPoint_c
                   }
 
                   Label {
@@ -215,6 +223,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_hopUtilization
+                     text: obsEquip.hopUtilization_pct
                      Layout.fillWidth: true
                   }
                }
@@ -254,6 +263,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_tunVolume
+                     text: obsEquip.tunVolume_l
                      Layout.fillWidth: true
                   }
 
@@ -263,6 +273,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_tunWeight
+                     text: obsEquip.tunWeight_kg
                      Layout.fillWidth: true
                   }
 
@@ -272,6 +283,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_tunSpecificHeat
+                     text: obsEquip.tunSpecificHeat_calGC
                      Layout.fillWidth: true
                   }
 
@@ -300,6 +312,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_trubChillerLoss
+                     text: obsEquip.trubChillerLoss_l
                      anchors {
                         right: parent.right
                         left: label_trubChillerLoss.right
@@ -313,6 +326,7 @@ Item {
                   }
                   TextField {
                      id: lineEdit_lauterDeadspace
+                     text: obsEquip.lauterDeadspace_l
                      anchors {
                         right: parent.right
                         left: label_lauterDeadspace.right
@@ -334,6 +348,7 @@ Item {
                   id: textEdit_notes
                   width: parent.width
                   height: parent.height
+                  text: obsEquip.notes
 
                }
             }
