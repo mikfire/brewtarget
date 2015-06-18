@@ -38,6 +38,8 @@
 #include <QLineEdit>
 #include <QTextEdit>
 
+#include <QQuickView>
+
 // Forward declarations
 class BtGenericEdit;
 class BtMassEdit;
@@ -155,10 +157,13 @@ public slots:
 
    //! Edit the equipment currently selected in our combobox.
    void equipmentSelected();
+   void equipmentSelected(int indexSelected);
    //! If state==Qt::Checked, set the "calculate boil volume" checkbox. Otherwise, unset.
    void updateCheckboxRecord();
    //! \brief set the default equipment, or unset the current equipment as the default
    void updateDefaultEquipment(int state);
+
+   void show();
 
    void changed(QMetaProperty,QVariant);
 
@@ -177,6 +182,10 @@ private:
    Equipment* obsEquip;
    EquipmentListModel* equipmentListModel;
    BeerXMLSortProxyModel* equipmentSortProxyModel;
+   QQuickView* view;
+   QQuickItem *item;
+   QQmlContext *ctx; 
+
 
    void showChanges();
 

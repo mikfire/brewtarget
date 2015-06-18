@@ -26,6 +26,12 @@
 #include <QDebug>
 #include <QCloseEvent>
 
+#include <QQuickView>
+#include <QQmlProperty>
+#include <QQmlError>
+#include <QQmlEngine>
+#include <QtQml>
+
 #include "BtLineEdit.h"
 #include "BtLabel.h"
 
@@ -43,6 +49,32 @@
 EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
    : QDialog(parent)
 {
+
+   qmlRegisterType<BtVolumeEdit>("org.brewtarget.BtVolumeEdit", 1, 0, "btVolumeEdit");
+   qmlRegisterType<BtVolumeLabel>("org.brewtarget.BtVolumeLabel", 1, 0, "btVolumeLabel");
+
+   view = new QQuickView();
+   item = view->rootObject();
+   ctx = view->rootContext();
+
+   equipmentListModel = new EquipmentListModel();
+   equipmentSortProxyModel = new BeerXMLSortProxyModel(equipmentListModel);
+
+   ctx->setContextProperty("equipmentListModel", equipmentListModel);
+   ctx->setContextProperty("equipmentSortProxyModel", equipmentSortProxyModel);
+   ctx->setContextProperty("kitEditor", this);
+
+   equipmentSelected(0);
+
+   view->setSource(QUrl(QStringLiteral("qrc:qml/EquipmentEditor.qml")));
+   if ( view->status() != QQuickView::Ready ) {
+      if ( view->status() == QQuickView::Error ) {
+         qDebug() << view->errors();
+      }
+   }
+
+   /* Yeah. This is cute and I am going to have to completely rewrite it :p
+      All I want to do now is see if I can pop the QML defined winder
    doLayout();
 
    if( singleEquipEditor )
@@ -105,7 +137,10 @@ EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
 
    // make sure the dialog gets populated the first time it's opened from the menu
    equipmentSelected();
+   */
 }
+
+void EquipmentEditor::show() { view->show(); }
 
 void EquipmentEditor::doLayout()
 {
@@ -511,17 +546,25 @@ void EquipmentEditor::retranslateUi()
 
 void EquipmentEditor::setEquipment( Equipment* e )
 {
+
+   // DEBUG MODE ONLY
    if( e )
    {
       obsEquip = e;
 
+
+      /* I will have to figure out how to do thisS
+       ******** FIX ME *********
+       I think it should be a matter of doing something with the conext or the
+       item.
       // Make sure the combo box gets set to the right place.
       QModelIndex modelIndex(equipmentListModel->find(e));
       QModelIndex viewIndex(equipmentSortProxyModel->mapFromSource(modelIndex));
       if( viewIndex.isValid() )
          equipmentComboBox->setCurrentIndex(viewIndex.row());
-
-      showChanges();
+      */
+      ctx->setContextProperty("obsEquip", obsEquip);
+      // showChanges();
    }
 }
 
@@ -563,9 +606,17 @@ void EquipmentEditor::clear()
 void EquipmentEditor::equipmentSelected()
 {
    QModelIndex modelIndex;
-   QModelIndex viewIndex(
-      equipmentComboBox->model()->index(equipmentComboBox->currentIndex(),0)
-   );
+   QModelIndex viewIndex( equipmentComboBox->model()->index(equipmentComboBox->currentIndex(),0));
+
+   modelIndex = equipmentSortProxyModel->mapToSource(viewIndex);
+
+   setEquipment( equipmentListModel->at(modelIndex.row()) );
+}
+
+void EquipmentEditor::equipmentSelected(int indexSelected)
+{
+   QModelIndex modelIndex;
+   QModelIndex viewIndex( equipmentSortProxyModel->index(indexSelected,0 ));
 
    modelIndex = equipmentSortProxyModel->mapToSource(viewIndex);
 
