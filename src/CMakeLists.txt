@@ -310,19 +310,12 @@ QT5_WRAP_UI(brewtarget_UIS_H ${brewtarget_UIS})
 QT5_ADD_RESOURCES(brewtarget_QRC_CPP ${brewtarget_QRC})
 QT5_ADD_RESOURCES(brewtarget_cfg_QRC_CPP ${brewtarget_cfg_QRC})
 
+# Add the qml files
+QT5_ADD_RESOURCES(brewtarget_qml_QRC ${qml_QRC})
+
 # Translations
 # Creates the .qm files.
 QT5_CREATE_TRANSLATION(${TRANSLATIONS_FILES} ${FILES_TO_TRANSLATE})
-
-
-# Create the moc sources from the headers.
-#QT4_WRAP_CPP(brewtarget_MOC_SRCS ${brewtarget_MOC_HEADERS})
-# Create the ui_*.h files from the *.ui files.
-#QT4_WRAP_UI(brewtarget_UIS_H ${brewtarget_UIS})
-# Generate the resource .cpp from the .qrc file.
-#QT4_ADD_RESOURCES(brewtarget_QRC_CPP ${brewtarget_QRC})
-# Creates the .qm files.
-#QT4_ADD_TRANSLATION(QM_FILES ${TRANSLATIONS_FILES})
 
 # Add a target for the QM_FILES so that we can add
 # the translations as a dependency for the executable later.
@@ -355,6 +348,7 @@ ADD_LIBRARY(
    ${brewtarget_MOC_SRCS}
    ${brewtarget_QRC_CPP}
    ${brewtarget_UIS_H}
+   ${brewtarget_qml_QRC}
 )
 
 ADD_EXECUTABLE(
@@ -384,6 +378,7 @@ QT5_USE_MODULES( ${brewtarget_EXECUTABLE}
    Network
    PrintSupport
    Qml
+   Quick
    Sql
    Xml
    WebKit
@@ -407,6 +402,7 @@ QT5_USE_MODULES(
    Network
    PrintSupport
    Qml
+   Quick
    Sql
    Xml
    WebKit

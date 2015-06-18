@@ -100,7 +100,9 @@ FIND_PACKAGE(Qt5PrintSupport REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5PrintSupport_INCLUDE_DIRS})
 
 FIND_PACKAGE(Qt5Qml REQUIRED)
+FIND_PACKAGE(Qt5Quick REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Qml_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${Qt5Quick_INCLUDE_DIRS})
 
 FIND_PACKAGE(Qt5Sql REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Sql_INCLUDE_DIRS})
@@ -160,6 +162,7 @@ SET_PROPERTY(
 #=========================Configure brewtarget.qrc.in==========================
 
 SET( brewtarget_QRC "${CMAKE_CURRENT_SOURCE_DIR}/brewtarget.qrc" )
+SET( qml_QRC "${CMAKE_CURRENT_SOURCE_DIR}/qmlbrewtarget.qrc" )
 
 #============================Doxygen Custom Target=============================
 FIND_PROGRAM( DOXYGEN_CMD doxygen )
@@ -345,7 +348,6 @@ IF( WIN32 )
    FIND_PACKAGE(Qt5MultimediaWidgets REQUIRED)
    FIND_PACKAGE(Qt5OpenGL REQUIRED)
    FIND_PACKAGE(Qt5Sensors REQUIRED)
-   FIND_PACKAGE(Qt5Quick REQUIRED)
    FIND_PACKAGE(Qt5Positioning REQUIRED)
 
    GET_TARGET_PROPERTY(QtCore_location Qt5::Core LOCATION_${CMAKE_BUILD_TYPE})
