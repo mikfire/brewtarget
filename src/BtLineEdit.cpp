@@ -261,6 +261,9 @@ void BtLineEdit::setText( QString amount, int precision)
    double amt;
    bool ok = false;
 
+   if ( _property == "lineEdit_boilSize" ) {
+      qDebug() << "Dumping string" << amount;
+   }
    if ( _type == STRING )
       QLineEdit::setText(amount);
    else
@@ -268,7 +271,7 @@ void BtLineEdit::setText( QString amount, int precision)
       amt = Brewtarget::toDouble(amount,&ok);
       if ( !ok )
          Brewtarget::logW( QString("BtLineEdit::setText(QString,int) could not conver %1 to double").arg(amount) );
-      QLineEdit::setText(displayAmount(amt, precision));
+      insert(displayAmount(amt, precision));
    }
 }
 
@@ -276,6 +279,12 @@ void BtLineEdit::setText( QVariant amount, int precision)
 {
    setText(amount.toString(), precision);
 }
+
+// Why? Why do I do these things? Every time I write a line of code, FSM weeps
+QString BtLineEdit::prop() { return _property; }
+void BtLineEdit::setProp(QString propName) { _property = propName; }
+QString BtLineEdit::section() { return _section; }
+void BtLineEdit::setSection( QString section ) { qDebug() << "Setting section " << section; _section = section; }
 
 BtGenericEdit::BtGenericEdit(QWidget *parent)
    : BtLineEdit(parent,GENERIC)
@@ -291,6 +300,7 @@ BtVolumeEdit::BtVolumeEdit(QWidget *parent)
    : BtLineEdit(parent,VOLUME)
 {
 }
+
 
 BtTemperatureEdit::BtTemperatureEdit(QWidget *parent)
    : BtLineEdit(parent,TEMPERATURE)

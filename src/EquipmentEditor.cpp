@@ -66,6 +66,8 @@ EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
 
    equipmentSelected(0);
 
+   qmlRegisterType<BtVolumeEdit>("org.brewtarget.BtVolumeEdit", 1, 0, "BtVolumeEdit" );
+
    view->setSource(QUrl(QStringLiteral("qrc:qml/EquipmentEditor.qml")));
    if ( view->status() != QQuickView::Ready ) {
       if ( view->status() == QQuickView::Error ) {

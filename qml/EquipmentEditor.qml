@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
+import org.brewtarget.BtVolumeEdit 1.0
 
 Item {
    height: 550
@@ -112,9 +113,12 @@ Item {
                      id: label_boilSize
                      text: qsTr("Pre-boil Volume")
                   }
-                  TextField {
+                  BtVolumeEdit {
                      id: lineEdit_boilSize
-                     text: obsEquip.boilSize_l
+                     property string configSection: "equipmentEditor"
+                     property string editField: "lineEdit_boilSize"
+                     text: displayAmount(obsEquip.boilSize_l)
+                     onEditingFinished: console.debug(text)
                   }
 
                   Label {

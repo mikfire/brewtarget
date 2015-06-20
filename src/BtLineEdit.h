@@ -49,6 +49,7 @@ class BtLineEdit : public QLineEdit
 {
    Q_OBJECT
    Q_ENUMS(FieldType)
+   Q_PROPERTY( QString text READ text WRITE setText );
 
 public:
 
@@ -82,6 +83,13 @@ public:
    void    setText( double amount, int precision = 3);
    void    setText( QString amount, int precision=3 );
    void    setText( QVariant amount, int precision=3 );
+
+   // May St Stevens have mercy upon my soul
+   QString prop();
+   void setProp( QString propName );
+
+   QString section();
+   void setSection( QString section );
 
 public slots:
    void lineChanged();
@@ -122,7 +130,7 @@ class BtVolumeEdit : public BtLineEdit
    Q_OBJECT
 
 public:
-   BtVolumeEdit(QWidget* parent);
+   BtVolumeEdit(QWidget* parent = 0);
 };
 
 class BtTemperatureEdit : public BtLineEdit
