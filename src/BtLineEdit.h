@@ -48,22 +48,8 @@ class BtStringEdit;
 class BtLineEdit : public QLineEdit
 {
    Q_OBJECT
-   Q_ENUMS(FieldType)
-   Q_PROPERTY( QString text READ text WRITE setText );
 
 public:
-
-   enum FieldType {
-      GENERIC,
-      MASS,
-      VOLUME,
-      TEMPERATURE,
-      TIME,
-      DENSITY,
-      COLOR,
-      STRING,
-      MIXED // ick, but I have to figure this out.
-   };
 
    /*! \brief Initialize the BtLineEdit with the parent and do some things with the type
    * \param parent - QWidget* to the parent object
@@ -73,7 +59,7 @@ public:
    *       Not sure how to signal the parent to redisplay
    */
 
-   BtLineEdit(QWidget* parent = 0, FieldType type = GENERIC);
+   BtLineEdit(QWidget* parent = 0, UnitType type = None);
    double toSI(unitDisplay oldUnit = noUnit, unitScale oldScale = noScale, bool force = false);
    // Use this when you want to do something with the returned QString
    QString displayAmount( double amount, int precision = 3);
@@ -101,8 +87,7 @@ signals:
 protected:
    QWidget *btParent;
    QString _section, _property;
-   FieldType _type;
-   Unit* _units;
+   UnitType _type;
 
    void initializeProperty();
    void initializeSection();

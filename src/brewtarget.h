@@ -243,6 +243,8 @@ public:
 
    // One method to rule them all, and in darkness bind them
    static UnitSystem* findUnitSystem(Unit* unit, unitDisplay display);
+   static UnitSystem* findUnitSystem(UnitType unit, unitDisplay display);
+
    static QString colorUnitName(unitDisplay display);
 
    //! \return true iff the string has a valid unit substring at the end.

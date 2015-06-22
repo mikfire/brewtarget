@@ -67,6 +67,8 @@ enum UnitType
    Temp     = 0x400000,
    Color    = 0x500000,
    Density  = 0x600000,
+   Mixed    = 0x700000,
+   String   = 0x800000,
    None     = 0x000000
 };
 

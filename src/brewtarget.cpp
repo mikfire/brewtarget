@@ -1253,6 +1253,21 @@ UnitSystem* Brewtarget::findUnitSystem(Unit* unit, unitDisplay display)
    return 0;
 }
 
+UnitSystem* Brewtarget::findUnitSystem(UnitType unit, unitDisplay display) 
+{
+   int key = unit;
+
+   // noUnit means get the default UnitSystem. Through little planning on my
+   // part, it happens that is equivalent to just the unitType
+   if ( display != noUnit )
+      key |= display;
+
+   if ( thingToUnitSystem.contains( key ) )
+      return thingToUnitSystem.value(key);
+
+   return 0;
+}
+
 void Brewtarget::getThicknessUnits( Unit** volumeUnit, Unit** weightUnit )
 {
    *volumeUnit = thingToUnitSystem.value(Volume | displayDef)->thicknessUnit();
