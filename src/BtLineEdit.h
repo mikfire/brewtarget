@@ -49,6 +49,13 @@ class BtLineEdit : public QLineEdit
 {
    Q_OBJECT
 
+   Q_PROPERTY(int type READ type WRITE setType)
+   Q_PROPERTY(QString sectionName READ section WRITE setSection)
+   Q_PROPERTY(QString editField READ editField WRITE setEditField)
+   Q_PROPERTY(QString text READ readText WRITE setText )
+   // This doesn't exist yet
+   // Q_PROPERTY(QString forceUnit READ forceUnit WRITE setForceUnit)
+
 public:
 
    /*! \brief Initialize the BtLineEdit with the parent and do some things with the type
@@ -64,6 +71,9 @@ public:
    // Use this when you want to do something with the returned QString
    QString displayAmount( double amount, int precision = 3);
 
+   // Messing about
+   QString readText();
+
    // Use one of these when you just want to set the text
    void    setText( BeerXMLElement* element, int precision=3 );
    void    setText( double amount, int precision = 3);
@@ -71,11 +81,18 @@ public:
    void    setText( QVariant amount, int precision=3 );
 
    // May St Stevens have mercy upon my soul
-   QString prop();
-   void setProp( QString propName );
+   QString editField();
+   void setEditField( QString editField );
 
    QString section();
    void setSection( QString section );
+
+   int type();
+   void setType(int type);
+/*
+   bool forceUnit();
+   void setForceUnit(bool force=false);
+*/
 
 public slots:
    void lineChanged();

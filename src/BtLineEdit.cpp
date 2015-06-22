@@ -196,6 +196,32 @@ QString BtLineEdit::displayAmount( double amount, int precision)
    return Brewtarget::displayAmount(amount, unit, precision, unitDsp, scale);
 }
 
+QString BtLineEdit::readText() {
+   double amt;
+   bool ok = false;
+
+
+   if ( _property == "lineEdit_boilSize" ) {
+      qDebug() << Q_FUNC_INFO << "Converting string" << text();
+      qDebug() << Q_FUNC_INFO << "type() = " << type() << "editField =" << editField() << "section =" << section();
+
+   }
+
+   return text();
+
+   if ( _type == String )
+      return text();
+   else
+   {
+      amt = Brewtarget::toDouble(text(),&ok);
+      if ( !ok )
+         Brewtarget::logW( QString("BtLineEdit::setText(QString,int) could not conver %1 to double").arg(text()) );
+      else 
+         return displayAmount(amt);
+   }
+   return "AFU";
+}
+
 void BtLineEdit::setText( double amount, int precision)
 {
    QLineEdit::setText( displayAmount(amount,precision) );
@@ -238,7 +264,9 @@ void BtLineEdit::setText( QString amount, int precision)
    bool ok = false;
 
    if ( _property == "lineEdit_boilSize" ) {
-      qDebug() << "Dumping string" << amount;
+      qDebug() << Q_FUNC_INFO << "Dumping string" << amount;
+      qDebug() << Q_FUNC_INFO << "type() = " << type() << "editField =" << editField() << "section =" << section();
+
    }
    if ( _type == String )
       QLineEdit::setText(amount);
@@ -247,20 +275,25 @@ void BtLineEdit::setText( QString amount, int precision)
       amt = Brewtarget::toDouble(amount,&ok);
       if ( !ok )
          Brewtarget::logW( QString("BtLineEdit::setText(QString,int) could not conver %1 to double").arg(amount) );
-      insert(displayAmount(amt, precision));
+      QLineEdit::setText(displayAmount(amt, precision));
    }
 }
 
 void BtLineEdit::setText( QVariant amount, int precision)
 {
+   qDebug() << Q_FUNC_INFO;
    setText(amount.toString(), precision);
 }
 
+
 // Why? Why do I do these things? Every time I write a line of code, FSM weeps
-QString BtLineEdit::prop() { return _property; }
-void BtLineEdit::setProp(QString propName) { _property = propName; }
+QString BtLineEdit::editField() { return _property; }
 QString BtLineEdit::section() { return _section; }
-void BtLineEdit::setSection( QString section ) { qDebug() << "Setting section " << section; _section = section; }
+int    BtLineEdit::type() { return (int)_type; }
+
+void BtLineEdit::setEditField(QString editField) { _property = editField; }
+void BtLineEdit::setSection(QString section) { _section = section; }
+void BtLineEdit::setType(int type) { _type = (UnitType)type; }
 
 BtGenericEdit::BtGenericEdit(QWidget *parent)
    : BtLineEdit(parent,None)

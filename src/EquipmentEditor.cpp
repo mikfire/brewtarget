@@ -50,7 +50,7 @@ EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
    : QDialog(parent)
 {
 
-//   qmlRegisterType<BtVolumeEdit>("org.brewtarget.BtVolumeEdit", 1, 0, "btVolumeEdit");
+   qmlRegisterType<BtLineEdit>("org.brewtarget.BtLineEdit", 1, 0, "BtLineEdit");
 //   qmlRegisterType<BtVolumeLabel>("org.brewtarget.BtVolumeLabel", 1, 0, "btVolumeLabel");
 
    view = new QQuickView();
@@ -66,9 +66,7 @@ EquipmentEditor::EquipmentEditor(QWidget* parent, bool singleEquipEditor)
 
    equipmentSelected(0);
 
-   qmlRegisterType<BtVolumeEdit>("org.brewtarget.BtVolumeEdit", 1, 0, "BtVolumeEdit" );
-
-   view->setSource(QUrl(QStringLiteral("qrc:qml/EquipmentEditor.qml")));
+   view->setSource(QUrl(QStringLiteral("qrc:EquipmentEditor.qml")));
    if ( view->status() != QQuickView::Ready ) {
       if ( view->status() == QQuickView::Error ) {
          qDebug() << view->errors();
