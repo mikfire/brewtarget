@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1050</width>
-    <height>829</height>
+    <width>1313</width>
+    <height>878</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,6 +32,12 @@
    <iconset resource="../brewtarget.qrc">
     <normaloff>:/images/brewtarget.svg</normaloff>:/images/brewtarget.svg</iconset>
   </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AnimatedDocks</set>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
@@ -39,190 +45,21 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="verticalLayout_12">
-        <item>
-         <widget class="QLabel" name="label_Brewtarget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="pixmap">
-           <pixmap resource="../brewtarget.qrc">:/images/title.png</pixmap>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTabWidget" name="tabWidget_Trees">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="acceptDrops">
-           <bool>true</bool>
-          </property>
-          <property name="tabPosition">
-           <enum>QTabWidget::West</enum>
-          </property>
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>16</width>
-            <height>16</height>
-           </size>
-          </property>
-          <widget class="QWidget" name="tabTree_recipe">
-           <property name="acceptDrops">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>Recipes</string>
-           </property>
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/brewtarget.svg</normaloff>:/images/brewtarget.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <attribute name="toolTip">
-            <string>Recipes</string>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <widget class="RecipeTreeView" name="treeView_recipe">
-              <property name="acceptDrops">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_style">
-           <property name="acceptDrops">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>Styles</string>
-           </property>
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallStyle.svg</normaloff>:/images/smallStyle.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="StyleTreeView" name="treeView_style">
-              <property name="acceptDrops">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_equip">
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallKettle.svg</normaloff>:/images/smallKettle.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="EquipmentTreeView" name="treeView_equip"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_ferm">
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallBarley.svg</normaloff>:/images/smallBarley.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <attribute name="toolTip">
-            <string>Fermentables</string>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="FermentableTreeView" name="treeView_ferm"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_hops">
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallHop.svg</normaloff>:/images/smallHop.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <attribute name="toolTip">
-            <string>Hops</string>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="HopTreeView" name="treeView_hops"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_misc">
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallQuestion.svg</normaloff>:/images/smallQuestion.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <attribute name="toolTip">
-            <string>Miscs</string>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="MiscTreeView" name="treeView_misc"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tabTree_yeast">
-           <attribute name="icon">
-            <iconset resource="../brewtarget.qrc">
-             <normaloff>:/images/smallYeast.svg</normaloff>:/images/smallYeast.svg</iconset>
-           </attribute>
-           <attribute name="title">
-            <string/>
-           </attribute>
-           <attribute name="toolTip">
-            <string>Yeasts</string>
-           </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="YeastTreeView" name="treeView_yeast"/>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
       <widget class="QSplitter" name="splitter_horizontal">
        <property name="acceptDrops">
         <bool>true</bool>
        </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+       <property name="opaqueResize">
+        <bool>true</bool>
+       </property>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
        </property>
        <widget class="QScrollArea" name="scrollArea_2">
         <property name="widgetResizable">
@@ -233,8 +70,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>636</width>
-           <height>412</height>
+           <width>961</width>
+           <height>411</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -271,7 +108,7 @@
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Name</string>
+                   <string>&amp;Name</string>
                   </property>
                   <property name="buddy">
                    <cstring>lineEdit_name</cstring>
@@ -326,7 +163,7 @@
                        <enum>Qt::CustomContextMenu</enum>
                       </property>
                       <property name="text">
-                       <string>Target Boil Size</string>
+                       <string>Tar&amp;get Boil Size</string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_boilSize</cstring>
@@ -431,7 +268,7 @@
                        <enum>Qt::CustomContextMenu</enum>
                       </property>
                       <property name="text">
-                       <string>Calculated Boil Size</string>
+                       <string>&amp;Calculated Boil Size</string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_calcBoilSize</cstring>
@@ -450,7 +287,7 @@
                        <enum>Qt::CustomContextMenu</enum>
                       </property>
                       <property name="text">
-                       <string>Calculated Batch Size</string>
+                       <string>Ca&amp;lculated Batch Size</string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_calcBatchSize</cstring>
@@ -566,7 +403,7 @@
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>Equipment</string>
+                       <string>Eq&amp;uipment</string>
                       </property>
                       <property name="buddy">
                        <cstring>equipmentButton</cstring>
@@ -616,7 +453,7 @@
                        <enum>Qt::CustomContextMenu</enum>
                       </property>
                       <property name="text">
-                       <string>Target Batch Size</string>
+                       <string>Target Batch Si&amp;ze</string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_batchSize</cstring>
@@ -837,14 +674,14 @@
                  <layout class="QVBoxLayout" name="verticalLayout_lcd">
                   <item>
                    <layout class="QGridLayout" name="gridLayout">
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
                     <property name="horizontalSpacing">
                      <number>4</number>
                     </property>
                     <property name="verticalSpacing">
                      <number>5</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
                     </property>
                     <item row="4" column="1">
                      <widget class="StyleRangeWidget" name="styleRangeWidget_srm" native="true">
@@ -1096,8 +933,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>636</width>
-           <height>323</height>
+           <width>961</width>
+           <height>359</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1134,6 +971,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_19">
               <item>
                <widget class="QTableView" name="fermentableTable">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="contextMenuPolicy">
                  <enum>Qt::CustomContextMenu</enum>
                 </property>
@@ -1648,8 +1491,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1050</width>
-     <height>21</height>
+     <width>1313</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAbout">
@@ -1776,6 +1619,195 @@
    <addaction name="actionRefractometer_Tools"/>
    <addaction name="separator"/>
   </widget>
+  <widget class="QDockWidget" name="dockWidget_trees">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout_9">
+     <item>
+      <widget class="QLabel" name="label_Brewtarget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="../brewtarget.qrc">:/images/title.png</pixmap>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QTabWidget" name="tabWidget_Trees">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="acceptDrops">
+        <bool>true</bool>
+       </property>
+       <property name="tabPosition">
+        <enum>QTabWidget::West</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <widget class="QWidget" name="tabTree_recipe">
+        <property name="acceptDrops">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Recipes</string>
+        </property>
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/brewtarget.svg</normaloff>:/images/brewtarget.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Recipes</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_10">
+         <item>
+          <widget class="RecipeTreeView" name="treeView_recipe">
+           <property name="acceptDrops">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_style">
+        <property name="acceptDrops">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Styles</string>
+        </property>
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallStyle.svg</normaloff>:/images/smallStyle.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="StyleTreeView" name="treeView_style">
+           <property name="acceptDrops">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_equip">
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallKettle.svg</normaloff>:/images/smallKettle.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <item>
+          <widget class="EquipmentTreeView" name="treeView_equip"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_ferm">
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallBarley.svg</normaloff>:/images/smallBarley.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Fermentables</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="FermentableTreeView" name="treeView_ferm"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_hops">
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallHop.svg</normaloff>:/images/smallHop.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Hops</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="HopTreeView" name="treeView_hops"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_misc">
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallQuestion.svg</normaloff>:/images/smallQuestion.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Miscs</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="MiscTreeView" name="treeView_misc"/>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tabTree_yeast">
+        <attribute name="icon">
+         <iconset resource="../brewtarget.qrc">
+          <normaloff>:/images/smallYeast.svg</normaloff>:/images/smallYeast.svg</iconset>
+        </attribute>
+        <attribute name="title">
+         <string/>
+        </attribute>
+        <attribute name="toolTip">
+         <string>Yeasts</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="YeastTreeView" name="treeView_yeast"/>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionAbout_BrewTarget">
    <property name="icon">
     <iconset resource="../brewtarget.qrc">
@@ -1827,7 +1859,7 @@
      <normaloff>:/images/smallQuestion.svg</normaloff>:/images/smallQuestion.svg</iconset>
    </property>
    <property name="text">
-    <string>&amp;Miscs</string>
+    <string>M&amp;iscs</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
@@ -1875,7 +1907,7 @@
      <normaloff>:/images/exit.svg</normaloff>:/images/exit.svg</iconset>
    </property>
    <property name="text">
-    <string>&amp;Exit</string>
+    <string>E&amp;xit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1896,7 +1928,7 @@
      <normaloff>:/images/preferences-other.png</normaloff>:/images/preferences-other.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Options</string>
+    <string>Optio&amp;ns</string>
    </property>
   </action>
   <action name="actionManual">
@@ -2133,7 +2165,7 @@
      <normaloff>:/images/clock.svg</normaloff>:/images/clock.svg</iconset>
    </property>
    <property name="text">
-    <string>Timers</string>
+    <string>Ti&amp;mers</string>
    </property>
    <property name="toolTip">
     <string>Show timers</string>
@@ -2145,7 +2177,7 @@
      <normaloff>:/images/filesave.svg</normaloff>:/images/filesave.svg</iconset>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>&amp;Save</string>
    </property>
    <property name="toolTip">
     <string>Save</string>
@@ -2178,7 +2210,7 @@
   </action>
   <action name="actionStrikeWater_Calculator">
    <property name="text">
-    <string>Strike Water Calculator</string>
+    <string>Strike &amp;Water Calculator</string>
    </property>
   </action>
   <action name="actionRecipeBBCode">
@@ -2333,7 +2365,6 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabWidget_Trees</tabstop>
   <tabstop>treeView_recipe</tabstop>
   <tabstop>treeView_style</tabstop>
   <tabstop>treeView_equip</tabstop>
@@ -2386,6 +2417,7 @@
  </tabstops>
  <resources>
   <include location="../brewtarget.qrc"/>
+  <include location="../../../.designer/brewtarget.qrc"/>
  </resources>
  <connections>
   <connection>

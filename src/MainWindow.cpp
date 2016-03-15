@@ -134,13 +134,40 @@ MainWindow::MainWindow(QWidget* parent)
    QLocale::setDefault(german);
    */
 
-   QDesktopWidget *desktop = QApplication::desktop();
-
    // Ensure database initializes.
    Database::instance();
 
    // Set the window title.
    setWindowTitle( QString("Brewtarget - %1").arg(VERSIONSTRING) );
+
+   // Null out the recipe
+   recipeObs = 0;
+
+   setupEditors();
+
+   setupSliders();
+
+   setupTables();
+
+   // Create the keyboard shortcuts
+   setupShortCuts();
+
+   // Once more with the context menus too
+   setupContextMenu();
+
+   setupWindowState();
+
+   setupFileDialogs();
+
+   setupActions();
+
+   // Set up the printer
+   printer = new QPrinter;
+   printer->setPageSize(QPrinter::Letter);
+
+   // Do some magic on the splitter widget to keep the tree from expanding
+   splitter_vertical->setStretchFactor(0,0);
+   splitter_vertical->setStretchFactor(1,1);
 
    // Different palettes for some text. This is all done via style sheets now.
    QColor wPalette = tabWidget_recipeView->palette().color(QPalette::Active,QPalette::Base);
@@ -153,16 +180,64 @@ MainWindow::MainWindow(QWidget* parent)
    // The bold style sheet doesn't change, so set it here once.
    lineEdit_boilSg->setStyleSheet(boldSS);
 
-   // Null out the recipe
-   recipeObs = 0;
+   // playing around now.
+   QDockWidget *toolDock = new QDockWidget(tr("Hops"),this);
+   toolDock->setObjectName("embeddedHopEditor");
+   toolDock->setWidget(embedHop);
+   addDockWidget(Qt::RightDockWidgetArea, toolDock);
 
+   /*
+   toolDock = new QDockWidget(tr("Fermentable"),this);
+   toolDock->setObjectName("embeddedFermentableEditor");
+   toolDock->setWidget(embedFerm);
+   addDockWidget(Qt::RightDockWidgetArea, toolDock);
+   */
+
+   // playing about with docks
+   connect( dockWidget_trees, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(swapTabs(Qt::DockWidgetArea)));
+   connect( hopTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
+   // connect( fermentableTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
+
+}
+
+void MainWindow::crossTableDancing( const QModelIndex& proxyIndex)
+{
+   QObject* calledBy = sender();
+   QWidget* active = qobject_cast<QWidget*>(calledBy);
+   QModelIndex ndx;
+ 
+   qDebug() << Q_FUNC_INFO << "active:" << active;
+   if ( active == hopTable ) {
+      Hop* load;
+      ndx = hopTableProxy->mapToSource(proxyIndex);
+      load = hopTableModel->getHop(ndx.row());
+
+      embedHop->setHop(load);
+   }
+   else if ( active == fermentableTable ) {
+      Fermentable* load;
+
+      ndx = fermTableProxy->mapToSource(proxyIndex);
+      load = fermTableModel->getFermentable(ndx.row());
+
+      embedFerm->setFermentable(load);
+   }
+
+}
+
+void MainWindow::setupEditors()
+{
    dialog_about = new AboutDialog(this);
    equipEditor = new EquipmentEditor(this);
    singleEquipEditor = new EquipmentEditor(this, true);
    fermDialog = new FermentableDialog(this);
    fermEditor = new FermentableEditor(this);
+   embedFerm = new FermentableEditor(this);
    hopDialog = new HopDialog(this);
    hopEditor = new HopEditor(this);
+
+   embedHop = new HopEditor(this);
+
    mashEditor = new MashEditor(this);
    mashStepEditor = new MashStepEditor(this);
    mashWizard = new MashWizard(this);
@@ -184,7 +259,10 @@ MainWindow::MainWindow(QWidget* parent)
    mashDesigner = new MashDesigner(this);
    pitchDialog = new PitchDialog(this);
    btDatePopup = new BtDatePopup(this);
+}
 
+void MainWindow::setupSliders()
+{
    styleRangeWidget_og->setRange(1.000, 1.120);
    styleRangeWidget_og->setPrecision(3);
    styleRangeWidget_og->setTickMarks(0.010, 2);
@@ -230,7 +308,10 @@ MainWindow::MainWindow(QWidget* parent)
       grad.setColorAt( 1, QColor(255,255,255,0) );
       styleRangeWidget_srm->setMarkerBrush(grad);
    }
+}
 
+void MainWindow::setupTables()
+{
    // Set equipment combo box model.
    equipmentListModel = new EquipmentListModel(equipmentComboBox);
    equipmentComboBox->setModel(equipmentListModel);
@@ -302,88 +383,10 @@ MainWindow::MainWindow(QWidget* parent)
    yeastTable->horizontalHeader()->setSortIndicator( YEASTNAMECOL, Qt::DescendingOrder );
    yeastTable->setSortingEnabled(true);
    yeastTableProxy->setDynamicSortFilter(true);
+}
 
-   // Create the keyboard shortcuts
-   setupShortCuts();
-
-   // Set up the printer
-   printer = new QPrinter;
-   printer->setPageSize(QPrinter::Letter);
-
-   // Set up the fileOpener dialog.
-   fileOpener = new QFileDialog(this, tr("Open"), QDir::homePath(), tr("BeerXML files (*.xml)"));
-   fileOpener->setAcceptMode(QFileDialog::AcceptOpen);
-   fileOpener->setFileMode(QFileDialog::ExistingFiles);
-   fileOpener->setViewMode(QFileDialog::List);
-
-   // Set up the fileSaver dialog.
-   fileSaver = new QFileDialog(this, tr("Save"), QDir::homePath(), tr("BeerXML files (*.xml)") );
-   fileSaver->setAcceptMode(QFileDialog::AcceptSave);
-   fileSaver->setFileMode(QFileDialog::AnyFile);
-   fileSaver->setViewMode(QFileDialog::List);
-   fileSaver->setDefaultSuffix(QString("xml"));
-
-   // Do some magic on the splitter widget to keep the tree from expanding
-   splitter_vertical->setStretchFactor(0,0);
-   splitter_vertical->setStretchFactor(1,1);
-
-   // Once more with the context menus too
-   setupContextMenu();
-
-   // If we saved a size the last time we ran, use it
-   if ( Brewtarget::hasOption("geometry"))
-   {
-      restoreGeometry(Brewtarget::option("geometry").toByteArray());
-      restoreState(Brewtarget::option("windowState").toByteArray());
-   }
-   else
-   {
-      // otherwise, guess a reasonable size at 1/4 of the screen.
-      int width = desktop->width();
-      int height = desktop->height();
-
-      this->resize(width/2,height/2);
-   }
-
-   // If we saved the selected recipe name the last time we ran, select it and show it.
-   if (Brewtarget::hasOption("recipeKey"))
-   {
-      int key = Brewtarget::option("recipeKey").toInt();
-      recipeObs = Database::instance().recipe( key );
-      QModelIndex rIdx = treeView_recipe->findElement(recipeObs);
-
-      setRecipe(recipeObs);
-      setTreeSelection(rIdx);
-   }
-   else
-   {
-      QList<Recipe*> recs = Database::instance().recipes();
-      if( recs.size() > 0 )
-         setRecipe( recs[0] );
-   }
-
-   //UI restore state
-   if (Brewtarget::hasOption("MainWindow/splitter_vertical_State"))
-      splitter_vertical->restoreState(Brewtarget::option("MainWindow/splitter_vertical_State").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/splitter_horizontal_State"))
-      splitter_horizontal->restoreState(Brewtarget::option("MainWindow/splitter_horizontal_State").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_recipe_headerState"))
-      treeView_recipe->header()->restoreState(Brewtarget::option("MainWindow/treeView_recipe_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_style_headerState"))
-      treeView_style->header()->restoreState(Brewtarget::option("MainWindow/treeView_style_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_equip_headerState"))
-      treeView_equip->header()->restoreState(Brewtarget::option("MainWindow/treeView_equip_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_ferm_headerState"))
-      treeView_ferm->header()->restoreState(Brewtarget::option("MainWindow/treeView_ferm_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_hops_headerState"))
-      treeView_hops->header()->restoreState(Brewtarget::option("MainWindow/treeView_hops_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_misc_headerState"))
-      treeView_misc->header()->restoreState(Brewtarget::option("MainWindow/treeView_misc_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/treeView_yeast_headerState"))
-      treeView_yeast->header()->restoreState(Brewtarget::option("MainWindow/treeView_yeast_headerState").toByteArray());
-   if (Brewtarget::hasOption("MainWindow/mashStepTableWidget_headerState"))
-      mashStepTableWidget->horizontalHeader()->restoreState(Brewtarget::option("MainWindow/mashStepTableWidget_headerState").toByteArray());
-
+void MainWindow::setupActions()
+{
    // Connect signals.
    // actions
    connect( actionExit, SIGNAL( triggered() ), this, SLOT( close() ) );
@@ -435,10 +438,10 @@ MainWindow::MainWindow(QWidget* parent)
    connect( actionBrewdayPrint, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionBrewdayPreview, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionBrewdayHTML, SIGNAL(triggered()), this, SLOT(print()));
+}
 
-   // Connect up all the labels. I really need to find a better way.
-   // BWAHAHAHAHAHAHAHA. I did, I did find a better way to do it.
-
+void MainWindow::setupSignals()
+{
    // These are the sliders. I need to consider these harder, but small steps
    connect(oGLabel, SIGNAL(labelChanged(Unit::unitDisplay,Unit::unitScale)), this, SLOT(redisplayLabel(Unit::unitDisplay,Unit::unitScale)));
    connect(fGLabel, SIGNAL(labelChanged(Unit::unitDisplay,Unit::unitScale)), this, SLOT(redisplayLabel(Unit::unitDisplay,Unit::unitScale)));
@@ -494,6 +497,94 @@ MainWindow::MainWindow(QWidget* parent)
    // doing it wrong again.
    connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
    connect( &(Database::instance()), SIGNAL( isUnsavedChanged(bool)), this, SLOT( updateUnsavedStatus(bool)));
+}
+
+void MainWindow::setupWindowState()
+{
+   QDesktopWidget *desktop = QApplication::desktop();
+
+   //UI restore state
+   if (Brewtarget::hasOption("MainWindow/splitter_vertical_State"))
+      splitter_vertical->restoreState(Brewtarget::option("MainWindow/splitter_vertical_State").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/splitter_horizontal_State"))
+      splitter_horizontal->restoreState(Brewtarget::option("MainWindow/splitter_horizontal_State").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_recipe_headerState"))
+      treeView_recipe->header()->restoreState(Brewtarget::option("MainWindow/treeView_recipe_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_style_headerState"))
+      treeView_style->header()->restoreState(Brewtarget::option("MainWindow/treeView_style_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_equip_headerState"))
+      treeView_equip->header()->restoreState(Brewtarget::option("MainWindow/treeView_equip_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_ferm_headerState"))
+      treeView_ferm->header()->restoreState(Brewtarget::option("MainWindow/treeView_ferm_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_hops_headerState"))
+      treeView_hops->header()->restoreState(Brewtarget::option("MainWindow/treeView_hops_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_misc_headerState"))
+      treeView_misc->header()->restoreState(Brewtarget::option("MainWindow/treeView_misc_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_yeast_headerState"))
+      treeView_yeast->header()->restoreState(Brewtarget::option("MainWindow/treeView_yeast_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/mashStepTableWidget_headerState"))
+      mashStepTableWidget->horizontalHeader()->restoreState(Brewtarget::option("MainWindow/mashStepTableWidget_headerState").toByteArray());
+
+   // If we saved a size the last time we ran, use it
+   if ( Brewtarget::hasOption("geometry"))
+   {
+      restoreGeometry(Brewtarget::option("geometry").toByteArray());
+      restoreState(Brewtarget::option("windowState").toByteArray());
+   }
+   else
+   {
+      // otherwise, guess a reasonable size at 1/4 of the screen.
+      int width = desktop->width();
+      int height = desktop->height();
+
+      this->resize(width/2,height/2);
+   }
+
+   // If we saved the selected recipe name the last time we ran, select it and show it.
+   if (Brewtarget::hasOption("recipeKey"))
+   {
+      int key = Brewtarget::option("recipeKey").toInt();
+      recipeObs = Database::instance().recipe( key );
+      QModelIndex rIdx = treeView_recipe->findElement(recipeObs);
+
+      setRecipe(recipeObs);
+      setTreeSelection(rIdx);
+   }
+   else
+   {
+      QList<Recipe*> recs = Database::instance().recipes();
+      if( recs.size() > 0 )
+         setRecipe( recs[0] );
+   }
+
+}
+
+void MainWindow::setupFileDialogs()
+{
+   // Set up the fileOpener dialog.
+   fileOpener = new QFileDialog(this, tr("Open"), QDir::homePath(), tr("BeerXML files (*.xml)"));
+   fileOpener->setAcceptMode(QFileDialog::AcceptOpen);
+   fileOpener->setFileMode(QFileDialog::ExistingFiles);
+   fileOpener->setViewMode(QFileDialog::List);
+
+   // Set up the fileSaver dialog.
+   fileSaver = new QFileDialog(this, tr("Save"), QDir::homePath(), tr("BeerXML files (*.xml)") );
+   fileSaver->setAcceptMode(QFileDialog::AcceptSave);
+   fileSaver->setFileMode(QFileDialog::AnyFile);
+   fileSaver->setViewMode(QFileDialog::List);
+   fileSaver->setDefaultSuffix(QString("xml"));
+}
+
+void MainWindow::swapTabs(Qt::DockWidgetArea area)
+{
+   qDebug() << Q_FUNC_INFO << "called";
+   if ( area == Qt::LeftDockWidgetArea ||
+        area == Qt::NoDockWidgetArea ) {
+      tabWidget_Trees->setTabPosition(QTabWidget::West);
+   }
+   else {
+      tabWidget_Trees->setTabPosition(QTabWidget::East);
+   }
 }
 
 void MainWindow::setupShortCuts()
@@ -1235,7 +1326,6 @@ Yeast* MainWindow::selectedYeast()
    return y;
 }
 
-
 void MainWindow::removeSelectedFermentable()
 {
     QModelIndexList selected = fermentableTable->selectionModel()->selectedIndexes();
@@ -1262,7 +1352,6 @@ void MainWindow::removeSelectedFermentable()
         recipeObs->remove(itemsToRemove.at(i));
     }
 }
-
 
 void MainWindow::editSelectedFermentable()
 {
@@ -1331,7 +1420,6 @@ void MainWindow::removeSelectedHop()
     }
 
 }
-
 
 void MainWindow::removeSelectedMisc()
 {

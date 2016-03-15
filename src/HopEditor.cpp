@@ -30,8 +30,9 @@
 #include "brewtarget.h"
 
 HopEditor::HopEditor( QWidget* parent )
-   : QDialog(parent), obsHop(0)
+   : QDialog(parent), obsHop(0), isEmbedded(false)
 {
+
    setupUi(this);
    
    connect( buttonBox, SIGNAL( accepted() ), this, SLOT( save() ));

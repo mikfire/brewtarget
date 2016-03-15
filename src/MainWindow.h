@@ -260,6 +260,10 @@ public slots:
    void droppedRecipeMisc(QList<Misc*>miscs);
    void droppedRecipeYeast(QList<Yeast*>yeasts);
 
+
+   //! \brief playing with docks
+   void crossTableDancing( const QModelIndex& proxyIndex);
+
 protected:
    virtual void closeEvent(QCloseEvent* event);
 
@@ -273,6 +277,7 @@ private slots:
     * \param prop Not yet used. Will indicate which Recipe property has changed.
     */
    void showChanges(QMetaProperty* prop = 0);
+   void swapTabs(Qt::DockWidgetArea area);
 
 private:
    Recipe* recipeObs;
@@ -289,8 +294,10 @@ private:
    EquipmentEditor* singleEquipEditor;
    FermentableDialog* fermDialog;
    FermentableEditor* fermEditor;
+   FermentableEditor* embedFerm;
    HopDialog* hopDialog;
    HopEditor* hopEditor;
+   HopEditor* embedHop;
    MashEditor* mashEditor;
    MashStepEditor* mashStepEditor;
    MashWizard* mashWizard;
@@ -333,6 +340,14 @@ private:
 
    BtDatePopup* btDatePopup;
    int confirmDelete;
+
+   void setupTables();
+   void setupWindowState();
+   void setupActions();
+   void setupEditors();
+   void setupSignals();
+   void setupSliders();
+   void setupFileDialogs();
 
    //! \brief Currently highlighted fermentable in the fermentable table.
    Fermentable* selectedFermentable();

@@ -56,6 +56,7 @@ public slots:
 
 private:
    Hop* obsHop;
+   bool isEmbedded;
 
    /*! Updates the UI elements based on \b prop.
     *  If null, updates all UI elements.
