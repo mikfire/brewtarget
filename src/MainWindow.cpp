@@ -182,7 +182,7 @@ MainWindow::MainWindow(QWidget* parent)
 
    // playing around now.
    QDockWidget *toolDock = new QDockWidget(tr("Hops"),this);
-   toolDock->setObjectName("embeddedHopEditor");
+   toolDock->setObjectName("embedHopEditor");
    toolDock->setWidget(embedHop);
    addDockWidget(Qt::RightDockWidgetArea, toolDock);
 
@@ -195,7 +195,7 @@ MainWindow::MainWindow(QWidget* parent)
 
    // playing about with docks
    connect( dockWidget_trees, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(swapTabs(Qt::DockWidgetArea)));
-   connect( hopTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
+   connect( hopTable, SIGNAL(clicked(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
    // connect( fermentableTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
 
 }
@@ -236,7 +236,8 @@ void MainWindow::setupEditors()
    hopDialog = new HopDialog(this);
    hopEditor = new HopEditor(this);
 
-   embedHop = new HopEditor(this);
+   // hork the layout about
+   embedHop = new HopEditor(this,true);
 
    mashEditor = new MashEditor(this);
    mashStepEditor = new MashStepEditor(this);

@@ -29,12 +29,31 @@
 #include "unit.h"
 #include "brewtarget.h"
 
-HopEditor::HopEditor( QWidget* parent )
+HopEditor::HopEditor( QWidget* parent, bool embed )
    : QDialog(parent), obsHop(0), isEmbedded(false)
 {
 
    setupUi(this);
-   
+ 
+   // this is about to get funky
+   if ( embed ) {
+      isEmbedded = true;
+
+      QVBoxLayout* vbox = new QVBoxLayout;
+      QLayout* box = layout();
+
+      box->removeItem( verticalLayout_required );
+      box->removeItem( verticalLayout_extras );
+
+      vbox->addLayout( verticalLayout_required );
+      vbox->addLayout( verticalLayout_extras );
+
+      qDeleteAll( box->children() );
+      delete box;
+      setLayout(vbox);
+   }
+      
+
    connect( buttonBox, SIGNAL( accepted() ), this, SLOT( save() ));
    connect( buttonBox, SIGNAL( rejected() ), this, SLOT( clearAndClose() ));
 }

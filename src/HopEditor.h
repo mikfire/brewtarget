@@ -42,7 +42,7 @@ class HopEditor : public QDialog, private Ui::hopEditor
    Q_OBJECT
 
 public:
-   HopEditor( QWidget *parent=0 );
+   HopEditor( QWidget *parent=0, bool embed=false );
    virtual ~HopEditor() {}
    //! Edit the given hop.
    void setHop( Hop* h );
