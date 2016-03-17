@@ -28,10 +28,26 @@
 #include "unit.h"
 #include "brewtarget.h"
 
-FermentableEditor::FermentableEditor( QWidget* parent )
-        : QDialog(parent), obsFerm(0)
+FermentableEditor::FermentableEditor( QWidget* parent, bool embed )
+        : QDialog(parent), obsFerm(0), isEmbedded(false)
 {
    setupUi(this);
+
+   if ( embed ) {
+      isEmbedded = true;
+      QVBoxLayout *vbox = new QVBoxLayout;
+      QLayout *box = layout();
+
+      box->removeItem( verticalLayout_required );
+      box->removeItem( verticalLayout_extras );
+
+      vbox->addLayout( verticalLayout_required );
+      vbox->addLayout( verticalLayout_extras );
+
+      qDeleteAll( box->children() );
+      delete box;
+      setLayout(vbox);
+   }
 
    connect( this, SIGNAL( accepted() ), this, SLOT( save() ));
    connect( this, SIGNAL( rejected() ), this, SLOT( clearAndClose() ));

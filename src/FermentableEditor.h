@@ -43,7 +43,7 @@ class FermentableEditor : public QDialog, private Ui::fermentableEditor
    Q_OBJECT
 
 public:
-   FermentableEditor( QWidget *parent=0 );
+   FermentableEditor( QWidget *parent=0, bool embed=false );
    virtual ~FermentableEditor() {}
    void setFermentable( Fermentable* f );
 
@@ -54,6 +54,7 @@ public slots:
 
 private:
    Fermentable* obsFerm;
+   bool isEmbedded;
    /*! Updates the UI elements effected by the \b metaProp of
     *  the fermentable we are watching. If \b metaProp is null,
     *  then update all the UI elements at once.

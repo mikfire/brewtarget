@@ -186,17 +186,15 @@ MainWindow::MainWindow(QWidget* parent)
    toolDock->setWidget(embedHop);
    addDockWidget(Qt::RightDockWidgetArea, toolDock);
 
-   /*
    toolDock = new QDockWidget(tr("Fermentable"),this);
    toolDock->setObjectName("embeddedFermentableEditor");
    toolDock->setWidget(embedFerm);
    addDockWidget(Qt::RightDockWidgetArea, toolDock);
-   */
 
    // playing about with docks
    connect( dockWidget_trees, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(swapTabs(Qt::DockWidgetArea)));
    connect( hopTable, SIGNAL(clicked(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
-   // connect( fermentableTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
+   connect( fermentableTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
 
 }
 
@@ -232,11 +230,11 @@ void MainWindow::setupEditors()
    singleEquipEditor = new EquipmentEditor(this, true);
    fermDialog = new FermentableDialog(this);
    fermEditor = new FermentableEditor(this);
-   embedFerm = new FermentableEditor(this);
    hopDialog = new HopDialog(this);
    hopEditor = new HopEditor(this);
 
    // hork the layout about
+   embedFerm = new FermentableEditor(this,true);
    embedHop = new HopEditor(this,true);
 
    mashEditor = new MashEditor(this);

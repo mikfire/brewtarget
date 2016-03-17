@@ -36,7 +36,7 @@
    <bool>true</bool>
   </property>
   <property name="dockOptions">
-   <set>QMainWindow::AllowNestedDocks|QMainWindow::AnimatedDocks</set>
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::VerticalTabs</set>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1626,6 +1626,9 @@
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
+   <property name="windowTitle">
+    <string>Trees</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
@@ -2417,7 +2420,7 @@
  </tabstops>
  <resources>
   <include location="../brewtarget.qrc"/>
-  <include location="../../../.designer/brewtarget.qrc"/>
+  <include location="../brewtarget.qrc"/>
  </resources>
  <connections>
   <connection>
