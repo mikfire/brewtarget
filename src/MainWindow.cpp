@@ -66,6 +66,8 @@
 #include "FermentableEditor.h"
 #include "MiscEditor.h"
 #include "HopEditor.h"
+#include "HopDock.h"
+#include "EquipmentDock.h"
 #include "YeastEditor.h"
 #include "YeastTableModel.h"
 #include "MiscTableModel.h"
@@ -143,6 +145,9 @@ MainWindow::MainWindow(QWidget* parent)
    // Null out the recipe
    recipeObs = 0;
 
+   equipDock = new EquipmentDock(this);
+   addDockWidget( Qt::LeftDockWidgetArea, equipDock);
+
    setupEditors();
 
    setupSliders();
@@ -180,6 +185,7 @@ MainWindow::MainWindow(QWidget* parent)
    // The bold style sheet doesn't change, so set it here once.
    lineEdit_boilSg->setStyleSheet(boldSS);
 
+   /*
    // playing around now.
    QDockWidget *toolDock = new QDockWidget(tr("Hops"),this);
    toolDock->setObjectName("embedHopEditor");
@@ -192,9 +198,13 @@ MainWindow::MainWindow(QWidget* parent)
    addDockWidget(Qt::RightDockWidgetArea, toolDock);
 
    // playing about with docks
-   connect( dockWidget_trees, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(swapTabs(Qt::DockWidgetArea)));
    connect( hopTable, SIGNAL(clicked(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
    connect( fermentableTable, SIGNAL(activated(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
+   */
+   connect( dockWidget_trees, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)), this, SLOT(swapTabs(Qt::DockWidgetArea)));
+   hopDock = new HopDock(this);
+   addDockWidget(Qt::RightDockWidgetArea, hopDock);
+   connect( hopTable, SIGNAL(clicked(const QModelIndex&)), this, SLOT(crossTableDancing(const QModelIndex&)));
 
 }
 
@@ -210,15 +220,7 @@ void MainWindow::crossTableDancing( const QModelIndex& proxyIndex)
       ndx = hopTableProxy->mapToSource(proxyIndex);
       load = hopTableModel->getHop(ndx.row());
 
-      embedHop->setHop(load);
-   }
-   else if ( active == fermentableTable ) {
-      Fermentable* load;
-
-      ndx = fermTableProxy->mapToSource(proxyIndex);
-      load = fermTableModel->getFermentable(ndx.row());
-
-      embedFerm->setFermentable(load);
+      hopDock->setHop(load);
    }
 
 }
@@ -234,8 +236,8 @@ void MainWindow::setupEditors()
    hopEditor = new HopEditor(this);
 
    // hork the layout about
-   embedFerm = new FermentableEditor(this,true);
-   embedHop = new HopEditor(this,true);
+   // embedFerm = new FermentableEditor(this,true);
+   // embedHop = new HopEditor(this,true);
 
    mashEditor = new MashEditor(this);
    mashStepEditor = new MashStepEditor(this);
@@ -839,6 +841,7 @@ void MainWindow::setRecipe(Recipe* recipe)
    styleButton->setRecipe(recipe);
    singleStyleEditor->setStyle(recStyle);
 
+   equipDock->setEquipment(recEquip);
    mashEditor->setMash(recipeObs->mash());
    mashEditor->setEquipment(recEquip);
 
@@ -862,6 +865,8 @@ void MainWindow::changed(QMetaProperty prop, QVariant value)
       recEquip = newRecEquip;
 
       singleEquipEditor->setEquipment(recEquip);
+      equipDock->setEquipment(recEquip);
+
    }
    else if( propName == "style" )
    {
@@ -1063,6 +1068,7 @@ void MainWindow::droppedRecipeEquipment(Equipment *kit)
       recipeObs->setBoilTime_min( kit->boilTime_min() );
       mashEditor->setEquipment(kit);
    }
+   equipDock->setEquipment(kit);
 }
 
 void MainWindow::droppedRecipeStyle(Style* style)

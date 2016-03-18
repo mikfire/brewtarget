@@ -86,6 +86,7 @@ SET( brewtarget_SRCS
     ${SRCDIR}/EquipmentButton.cpp
     ${SRCDIR}/EquipmentListModel.cpp
     ${SRCDIR}/EquipmentEditor.cpp
+    ${SRCDIR}/EquipmentDock.cpp
     ${SRCDIR}/FahrenheitTempUnitSystem.cpp
     ${SRCDIR}/fermentable.cpp
     ${SRCDIR}/FermentableEditor.cpp
@@ -96,6 +97,7 @@ SET( brewtarget_SRCS
     ${SRCDIR}/hop.cpp
     ${SRCDIR}/HopDialog.cpp
     ${SRCDIR}/HopEditor.cpp
+    ${SRCDIR}/HopDock.cpp
     ${SRCDIR}/HopSortFilterProxyModel.cpp
     ${SRCDIR}/HopTableModel.cpp
     ${SRCDIR}/instruction.cpp
@@ -177,8 +179,10 @@ SET( brewtarget_UIS
     ${UIDIR}/mainWindow.ui
     ${UIDIR}/mashStepEditor.ui
     ${UIDIR}/miscEditor.ui
+    ${UIDIR}/equipmentDock.ui
     ${UIDIR}/fermentableEditor.ui
     ${UIDIR}/hopEditor.ui
+    ${UIDIR}/hopDock.ui
     ${UIDIR}/instructionWidget.ui
     ${UIDIR}/mashEditor.ui
     ${UIDIR}/namedMashEditor.ui
@@ -229,12 +233,14 @@ SET( brewtarget_MOC_HEADERS
     ${SRCDIR}/EquipmentButton.h
     ${SRCDIR}/EquipmentListModel.h
     ${SRCDIR}/EquipmentEditor.h
+    ${SRCDIR}/EquipmentDock.h
     ${SRCDIR}/FermentableEditor.h
     ${SRCDIR}/FermentableDialog.h
     ${SRCDIR}/FermentableSortFilterProxyModel.h
     ${SRCDIR}/FermentableTableModel.h
     ${SRCDIR}/HopDialog.h
     ${SRCDIR}/HopEditor.h
+    ${SRCDIR}/HopDock.h
     ${SRCDIR}/HopSortFilterProxyModel.h
     ${SRCDIR}/HopTableModel.h
     ${SRCDIR}/IbuGuSlider.h

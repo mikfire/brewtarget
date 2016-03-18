@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>equipmentDock</class>
+ <widget class="QDockWidget" name="equipmentDock">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>271</width>
+    <height>392</height>
+   </rect>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../brewtarget.qrc">
+    <normaloff>:/images/smallKettle.svg</normaloff>:/images/smallKettle.svg</iconset>
+  </property>
+  <property name="windowTitle">
+   <string>E&amp;quipment Dock</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Boiling &amp;&amp; Water</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout">
+       <property name="horizontalSpacing">
+        <number>16</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="BtVolumeLabel" name="label_evaporationRate">
+         <property name="text">
+          <string>Evaporation Rate</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_evaporationRate</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="BtVolumeLabel" name="label_topUpKettle">
+         <property name="text">
+          <string>Kettle top-up</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_topUpKettle</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="BtVolumeLabel" name="label_topUpWater">
+         <property name="text">
+          <string>Final top-up</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_topUpWater</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_evaporationRate">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">evapRate_lHr</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_topUpKettle">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">topUpKettle_l</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_topUpWater">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">topUpWater_l</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+      <zorder>label_evaporationRate</zorder>
+      <zorder>label_topUpWater</zorder>
+      <zorder>lineEdit_evaporationRate</zorder>
+      <zorder>lineEdit_topUpKettle</zorder>
+      <zorder>lineEdit_topUpWater</zorder>
+      <zorder>label_topUpKettle</zorder>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>Mash Tun</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout_2">
+       <property name="horizontalSpacing">
+        <number>43</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="BtVolumeLabel" name="label_tunVolume">
+         <property name="text">
+          <string>Volume</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_tunVolume</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="BtMassLabel" name="label_tunWeight">
+         <property name="text">
+          <string>Mass</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_tunWeight</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_tunSpecificHeat">
+         <property name="text">
+          <string>Specific Heat</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_tunSpecificHeat</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_tunVolume">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">tunVolume_l</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="BtMassEdit" name="lineEdit_tunWeight">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">tunWeight_kg</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="BtGenericEdit" name="lineEdit_tunSpecificHeat">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">tunSpecificHeat_calGC</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="title">
+       <string>Losses</string>
+      </property>
+      <layout class="QFormLayout" name="formLayout_3">
+       <item row="0" column="0">
+        <widget class="BtVolumeLabel" name="label_trubChillerLoss">
+         <property name="text">
+          <string>Kettle to fermenter</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_trubChillerLoss</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="BtVolumeLabel" name="label_lauterDeadspace">
+         <property name="text">
+          <string>Lauter deadspace</string>
+         </property>
+         <property name="buddy">
+          <cstring>lineEdit_lauterDeadspace</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_trubChillerLoss">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">trubChillerLoss_l</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="BtVolumeEdit" name="lineEdit_lauterDeadspace">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="editField" stdset="0">
+          <string notr="true">lauterDeadspace_l</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BtVolumeLabel</class>
+   <extends>QLabel</extends>
+   <header>BtLabel.h</header>
+   <slots>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>BtVolumeEdit</class>
+   <extends>QLineEdit</extends>
+   <header>BtLineEdit.h</header>
+   <slots>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>BtGenericEdit</class>
+   <extends>QLineEdit</extends>
+   <header>BtLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>BtMassEdit</class>
+   <extends>QLineEdit</extends>
+   <header>BtLineEdit.h</header>
+   <slots>
+    <signal>textModified()</signal>
+    <slot>lineChanged()</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>BtMassLabel</class>
+   <extends>QLabel</extends>
+   <header>BtLabel.h</header>
+   <slots>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
+    <slot>popContextMenu(QPoint)</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../brewtarget.qrc"/>
+ </resources>
+ <connections/>
+</ui>
