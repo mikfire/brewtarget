@@ -2,6 +2,7 @@
  * TimerListDialog.h is part of Brewtarget, and is Copyright the following
  * authors 2009-2014
  * - Philip Greggory Lee <rocketman768@gmail.com>
+ * - Aidan Roberts <aidanr67@gmail.com>
  *
  * Brewtarget is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,29 +22,36 @@
 
 class TimerListDialog;
 
-#include "ui_timerListDialog.h"
 #include <QDialog>
 #include <QWidget>
 #include "TimerWidget.h"
+#include <QDebug>
+#include "MainWindow.h"
 
 /*!
  * \class TimerListDialog
- * \author Philip G. Lee
+ * \author Aidan Roberts
  *
- * \brief A whole panel of timers.
+ * \brief Dialog to hold addition timers
  */
-class TimerListDialog : public QDialog, public Ui::timerListDialog
+class TimerListDialog : public QDialog
 {
    Q_OBJECT
    
-   public:
-      TimerListDialog(QWidget* parent=0);
+public:
+      TimerListDialog(QWidget* parent, QList<TimerWidget*> * timers);
       ~TimerListDialog();
-      
-   private:
-      TimerWidget* timer1;
-      TimerWidget* timer2;
-      TimerWidget* timer3;
+      void setTimerVisible(TimerWidget* t);
+
+private slots:
+      void hideTimers();
+
+private:
+      QScrollArea* scrollArea;
+      QWidget* scrollWidget;
+      QVBoxLayout* layout;
+
+      void setTimers(QList<TimerWidget*>* timers);
 };
 
 #endif

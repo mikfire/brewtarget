@@ -241,123 +241,31 @@ void Style::setExamples( const QString& var )
 }
 
 //============================="GET" METHODS====================================
-QString Style::name() const
-{
-   return get("name").toString();
-}
+QString Style::name() const { return get("name").toString(); }
+QString Style::category() const { return get("category").toString(); }
+QString Style::categoryNumber() const { return get("category_number").toString(); }
+QString Style::styleLetter() const { return get("style_letter").toString(); }
+QString Style::styleGuide() const { return get("style_guide").toString(); }
+QString Style::notes() const { return get("notes").toString(); }
+QString Style::profile() const { return get("profile").toString(); }
+QString Style::ingredients() const { return get("ingredients").toString(); }
+QString Style::examples() const { return get("examples").toString(); }
 
-QString Style::category() const
-{
-   return get("category").toString();
-}
+const Style::Type Style::type() const { return static_cast<Style::Type>(types.indexOf(get("s_type").toString())); }
+const QString Style::typeString() const { return types.at(type()); }
 
-QString Style::categoryNumber() const
-{
-   return get("category_number").toString();
-}
+double Style::ogMin()        const { return get("og_min").toDouble(); }
+double Style::ogMax()        const { return get("og_max").toDouble(); }
+double Style::fgMin()        const { return get("fg_min").toDouble(); }
+double Style::fgMax()        const { return get("fg_max").toDouble(); }
+double Style::ibuMin()       const { return get("ibu_min").toDouble(); }
+double Style::ibuMax()       const { return get("ibu_max").toDouble(); }
+double Style::colorMin_srm() const { return get("color_min").toDouble(); }
+double Style::colorMax_srm() const { return get("color_max").toDouble(); }
+double Style::carbMin_vol()  const { return get("carb_min").toDouble(); }
+double Style::carbMax_vol()  const { return get("carb_max").toDouble(); }
+double Style::abvMin_pct()   const { return get("abv_min").toDouble(); }
+double Style::abvMax_pct()   const { return get("abv_max").toDouble(); }
 
-QString Style::styleLetter() const
-{
-   return get("style_letter").toString();
-}
-
-QString Style::styleGuide() const
-{
-   return get("style_guide").toString();
-}
-
-const Style::Type Style::type() const
-{
-   return static_cast<Style::Type>(types.indexOf(get("s_type").toString()));
-}
-
-const QString Style::typeString() const
-{
-   return types.at(type());
-}
-
-double Style::ogMin() const
-{
-   return get("og_min").toDouble();
-}
-
-double Style::ogMax() const
-{
-   return get("og_max").toDouble();
-}
-
-double Style::fgMin() const
-{
-   return get("fg_min").toDouble();
-}
-
-double Style::fgMax() const
-{
-   return get("fg_max").toDouble();
-}
-
-double Style::ibuMin() const
-{
-   return get("ibu_min").toDouble();
-}
-
-double Style::ibuMax() const
-{
-   return get("ibu_max").toDouble();
-}
-
-double Style::colorMin_srm() const
-{
-   return get("color_min").toDouble();
-}
-
-double Style::colorMax_srm() const
-{
-   return get("color_max").toDouble();
-}
-
-double Style::carbMin_vol() const
-{
-   return get("carb_min").toDouble();
-}
-
-double Style::carbMax_vol() const
-{
-   return get("carb_max").toDouble();
-}
-
-double Style::abvMin_pct() const
-{
-   return get("abv_min").toDouble();
-}
-
-double Style::abvMax_pct() const
-{
-   return get("abv_max").toDouble();
-}
-
-QString Style::notes() const
-{
-   return get("notes").toString();
-}
-
-QString Style::profile() const
-{
-   return get("profile").toString();
-}
-
-QString Style::ingredients() const
-{
-   return get("ingredients").toString();
-}
-
-QString Style::examples() const
-{
-   return get("examples").toString();
-}
-
-bool Style::isValidType( const QString &str )
-{
-   return types.contains( str );
-}
+bool Style::isValidType( const QString &str ) { return types.contains( str ); }
 

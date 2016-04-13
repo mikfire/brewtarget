@@ -1,6 +1,6 @@
 /*
  * CelsiusTempUnitSystem.cpp is part of Brewtarget, and is Copyright the following
- * authors 2009-2014
+ * authors 2009-2015
  * - Mik Firestone <mikfire@gmail.com>
  * - Philip Greggory Lee <rocketman768@gmail.com>
  *
@@ -22,22 +22,34 @@
 #include "unit.h"
 #include <QStringList>
 
-CelsiusTempUnitSystem::CelsiusTempUnitSystem()
-   : UnitSystem()
+CelsiusTempUnitSystem::CelsiusTempUnitSystem() :
+   UnitSystem()
 {
-   _type = Temp;
+   _type = Unit::Temp;
 }
 
-void CelsiusTempUnitSystem::loadMap()
+QMap<Unit::unitScale, Unit*> const& CelsiusTempUnitSystem::scaleToUnit()
 {
-   scaleToUnit.insert(scaleWithout,Units::celsius);
+   static QMap<Unit::unitScale, Unit*> _scaleToUnit;
+   if( _scaleToUnit.empty() )
+   {
+      _scaleToUnit.insert(Unit::scaleWithout,Units::celsius);
+   }
+
+   return _scaleToUnit;
 }
 
-void CelsiusTempUnitSystem::loadUnitmap()
+QMap<QString, Unit*> const& CelsiusTempUnitSystem::qstringToUnit()
 {
-   qstringToUnit.insert("C",Units::celsius);
+   static QMap<QString, Unit*> _qstringToUnit;
+   if( _qstringToUnit.empty() )
+   {
+      _qstringToUnit.insert("C",Units::celsius);
+   }
+
+   return _qstringToUnit;
 }
 
-Unit* CelsiusTempUnitSystem::unit() { return Units::celsius; };
+Unit* CelsiusTempUnitSystem::unit() { return Units::celsius; }
 
 QString CelsiusTempUnitSystem::unitType() { return "SI"; }

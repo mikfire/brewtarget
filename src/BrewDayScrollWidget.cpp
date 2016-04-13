@@ -74,6 +74,9 @@ void BrewDayScrollWidget::generateInstructions()
    if( recObs == 0 )
       return;
 
+   if(!btTextEdit->isEnabled())
+      btTextEdit->setEnabled(true);
+
    recObs->generateInstructions();
 }
 
@@ -90,7 +93,13 @@ void BrewDayScrollWidget::removeSelectedInstruction()
    int row = listWidget->currentRow();
    if( row < 0 )
       return;
-   Database::instance().removeFromRecipe(recObs, recIns[row]);
+   recObs->remove(recIns[row]);
+
+   if(recIns.isEmpty())
+   {
+      btTextEdit->clear();
+      btTextEdit->setEnabled(false);
+   }
 }
 
 void BrewDayScrollWidget::pushInstructionUp()
@@ -113,7 +122,7 @@ void BrewDayScrollWidget::pushInstructionDown()
    
    int row = listWidget->currentRow();
 
-   if( row >= listWidget->count() || row < 0 )
+   if( row >= listWidget->count() - 1 || row < 0 )
       return;
    
    recObs->swapInstructions(recIns[row], recIns[row+1]);
@@ -154,7 +163,7 @@ void BrewDayScrollWidget::print(QPrinter *mainPrinter, QPrintDialog* dialog,
 
    pDoc += tr("<h2>Notes</h2>");
    if ( recObs->notes() != "" )
-      pDoc += QString("%1").arg(recObs->notes());
+      pDoc += QString("<div id=\"customNote\">%1</div>\n").arg(recObs->notes());
 
    pDoc += "</body></html>";
 
@@ -182,6 +191,12 @@ void BrewDayScrollWidget::setRecipe(Recipe* rec)
    foreach( Instruction* ins, recIns )
          connect( ins, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(acceptInsChanges(QMetaProperty,QVariant)) );
    
+   btTextEdit->clear();
+   if(recIns.isEmpty())
+      btTextEdit->setEnabled(false);
+   else
+      btTextEdit->setEnabled(true);
+
    showChanges();
 }
 
@@ -190,12 +205,23 @@ void BrewDayScrollWidget::insertInstruction()
    if( recObs == 0 )
       return;
 
-   int pos = lineEdit_step->text().toInt();
+   if(!btTextEdit->isEnabled())
+      btTextEdit->setEnabled(true);
+
+   int pos = 0;
+   if(lineEdit_step->text().isEmpty())
+      pos = listWidget->count() + 1;
+   else
+   {
+      pos = lineEdit_step->text().toInt();
+      lineEdit_step->clear();
+   }
    Instruction* ins = Database::instance().newInstruction(recObs);
 
    pos = qBound(1, pos, recIns.size());
 
    ins->setName(lineEdit_name->text());
+   lineEdit_name->clear();
 
    recObs->insertInstruction( ins, pos );
    listWidget->setCurrentRow(pos-1);
@@ -314,37 +340,38 @@ QString BrewDayScrollWidget::buildTitleTable(bool includeImage)
    // second row:  boil time and efficiency.  
    body += QString("<tr><td class=\"left\">%1</td><td class=\"value\">%2</td><td class=\"right\">%3</td><td class=\"value\">%4</td></tr>")
             .arg(tr("Boil Time"))
-            .arg(Brewtarget::displayAmount(recObs->equipment()->boilTime_min(),Units::minutes))
+            .arg(Brewtarget::displayAmount(recObs->equipment()->boilTime_min(), "tab_recipe", "boilTime_min", Units::minutes))
             .arg(tr("Efficiency"))
             .arg(Brewtarget::displayAmount(recObs->efficiency_pct(),0,0));
 
    // third row: pre-Boil Volume and Preboil Gravity
    body += QString("<tr><td class=\"left\">%1</td><td class=\"value\">%2</td><td class=\"right\">%3</td><td class=\"value\">%4</td></tr>")
             .arg(tr("Boil Volume"))
-            .arg(Brewtarget::displayAmount(recObs->boilVolume_l(),Units::liters,2))
+            .arg(Brewtarget::displayAmount(recObs->boilVolume_l(), "tab_recipe", "boilVolume_l", Units::liters,2))
             .arg(tr("Preboil Gravity"))
-            .arg(Brewtarget::displayAmount(recObs->boilGrav(),Units::sp_grav,0));
+            .arg(Brewtarget::displayAmount(recObs->boilGrav(), "tab_recipe", "og", Units::sp_grav, 3));
 
    // fourth row: Final volume and starting gravity
    body += QString("<tr><td class=\"left\">%1</td><td class=\"value\">%2</td><td class=\"right\">%3</td><td class=\"value\">%4</td></tr>")
             .arg(tr("Final Volume"))
-            .arg(Brewtarget::displayAmount(recObs->finalVolume_l(), Units::liters,2))
+            .arg(Brewtarget::displayAmount(recObs->finalVolume_l(), "tab_recipe", "finalVolume_l", Units::liters,2))
             .arg(tr("Starting Gravity"))
-            .arg(Brewtarget::displayAmount(recObs->og(), Units::sp_grav, 0));
+            .arg(Brewtarget::displayAmount(recObs->og(), "tab_recipe", "og", Units::sp_grav, 3));
 
    // fifth row: IBU and Final gravity
    body += QString("<tr><td class=\"left\">%1</td><td class=\"value\">%2</td><td class=\"right\">%3</td><td class=\"value\">%4</tr>")
             .arg(tr("IBU"))
             .arg( Brewtarget::displayAmount(recObs->IBU(),0,1))
             .arg(tr("Final Gravity"))
-            .arg(Brewtarget::displayAmount(recObs->fg(), Units::sp_grav, 0));
+            .arg(Brewtarget::displayAmount(recObs->fg(), "tab_recipe", "fg", Units::sp_grav, 3));
 
    // sixth row: ABV and estimate calories
    body += QString("<tr><td class=\"left\">%1</td><td class=\"value\">%2%</td><td class=\"right\">%3</td><td class=\"value\">%4</tr>")
             .arg(tr("ABV"))
             .arg( Brewtarget::displayAmount(recObs->ABV_pct(),0,1) )
-            .arg(tr("Estimated calories(per 12 oz)"))
-            .arg( Brewtarget::displayAmount(recObs->calories(),0,0) );
+            .arg( Brewtarget::getVolumeUnitSystem() == SI ? tr("Estimated calories (per 33 cl)") : tr("Estimated calories (per 12 oz)"))
+            .arg( Brewtarget::displayAmount(Brewtarget::getVolumeUnitSystem() == SI ? recObs->calories33cl() : recObs->calories12oz(),0,0) );
+
    body += "</table>";
 
    return header + body;

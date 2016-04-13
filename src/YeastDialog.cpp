@@ -1,6 +1,6 @@
 /*
  * YeastDialog.cpp is part of Brewtarget, and is Copyright the following
- * authors 2009-2014
+ * authors 2009-2015
  * - Mik Firestone <mikfire@gmail.com>
  * - Philip Greggory Lee <rocketman768@gmail.com>
  *
@@ -35,30 +35,89 @@
 YeastDialog::YeastDialog(MainWindow* parent)
         : QDialog(parent), mainWindow(parent), yeastEditor(new YeastEditor(this)), numYeasts(0)
 {
-   setupUi(this);
+   doLayout();
 
-   yeastTableModel = new YeastTableModel(yeastTableWidget, false);
+   yeastTableModel = new YeastTableModel(tableWidget, false);
    yeastTableModel->setInventoryEditable(true);
-   yeastTableProxy = new YeastSortFilterProxyModel(yeastTableWidget);
+   yeastTableProxy = new YeastSortFilterProxyModel(tableWidget);
    yeastTableProxy->setSourceModel(yeastTableModel);
-   yeastTableWidget->setModel(yeastTableProxy);
-   yeastTableWidget->setSortingEnabled(true);
-   yeastTableWidget->sortByColumn( YEASTNAMECOL, Qt::AscendingOrder );
+   tableWidget->setModel(yeastTableProxy);
+   tableWidget->setSortingEnabled(true);
+   tableWidget->sortByColumn( YEASTNAMECOL, Qt::AscendingOrder );
    yeastTableProxy->setDynamicSortFilter(true);
-   
+   yeastTableProxy->setFilterKeyColumn(1);
+
    connect( pushButton_addToRecipe, SIGNAL( clicked() ), this, SLOT( addYeast() ) );
    connect( pushButton_edit, SIGNAL( clicked() ), this, SLOT( editSelected() ) );
    connect( pushButton_new, SIGNAL( clicked() ), this, SLOT( newYeast() ) );
    connect( pushButton_remove, SIGNAL(clicked()), this, SLOT( removeYeast() ) );
-   connect( yeastTableWidget, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT( addYeast(const QModelIndex&) ) );
+   connect( tableWidget, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT( addYeast(const QModelIndex&) ) );
+   connect( qLineEdit_searchBox, SIGNAL(textEdited(QString)), this, SLOT(filterYeasts(QString)));
 
    yeastTableModel->observeDatabase(true);
 
 }
 
+void YeastDialog::doLayout()
+{
+   resize(800, 300);
+   verticalLayout = new QVBoxLayout(this);
+      tableWidget = new QTableView(this);
+      horizontalLayout = new QHBoxLayout();
+         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+         qLineEdit_searchBox = new QLineEdit();
+         qLineEdit_searchBox->setMaxLength(30);
+         qLineEdit_searchBox->setPlaceholderText("Enter filter");
+         pushButton_addToRecipe = new QPushButton(this);
+            pushButton_addToRecipe->setObjectName(QStringLiteral("pushButton_addToRecipe"));
+            pushButton_addToRecipe->setAutoDefault(false);
+            pushButton_addToRecipe->setDefault(true);
+         pushButton_new = new QPushButton(this);
+            pushButton_new->setObjectName(QStringLiteral("pushButton_new"));
+            pushButton_new->setAutoDefault(false);
+         pushButton_edit = new QPushButton(this);
+            pushButton_edit->setObjectName(QStringLiteral("pushButton_edit"));
+            QIcon icon;
+            icon.addFile(QStringLiteral(":/images/edit.svg"), QSize(), QIcon::Normal, QIcon::Off);
+            pushButton_edit->setIcon(icon);
+            pushButton_edit->setAutoDefault(false);
+         pushButton_remove = new QPushButton(this);
+            pushButton_remove->setObjectName(QStringLiteral("pushButton_remove"));
+            QIcon icon1;
+            icon1.addFile(QStringLiteral(":/images/smallMinus.svg"), QSize(), QIcon::Normal, QIcon::Off);
+            pushButton_remove->setIcon(icon1);
+            pushButton_remove->setAutoDefault(false);
+         horizontalLayout->addWidget(qLineEdit_searchBox);
+         horizontalLayout->addItem(horizontalSpacer);
+         horizontalLayout->addWidget(pushButton_addToRecipe);
+         horizontalLayout->addWidget(pushButton_new);
+         horizontalLayout->addWidget(pushButton_edit);
+         horizontalLayout->addWidget(pushButton_remove);
+      verticalLayout->addWidget(tableWidget);
+      verticalLayout->addLayout(horizontalLayout);
+
+   retranslateUi();
+   QMetaObject::connectSlotsByName(this);
+}
+
+void YeastDialog::retranslateUi()
+{
+   setWindowTitle(tr("Yeast Database"));
+   pushButton_addToRecipe->setText(tr("Add to Recipe"));
+   pushButton_new->setText(tr("New"));
+   pushButton_edit->setText(QString());
+   pushButton_remove->setText(QString());
+#ifndef QT_NO_TOOLTIP
+   pushButton_addToRecipe->setToolTip(tr("Add selected ingredient to recipe"));
+   pushButton_new->setToolTip(tr("Create new ingredient"));
+   pushButton_edit->setToolTip(tr("Edit selected ingredient"));
+   pushButton_remove->setToolTip(tr("Remove selected ingredient"));
+#endif // QT_NO_TOOLTIP
+}
+
 void YeastDialog::removeYeast()
 {
-   QModelIndexList selected = yeastTableWidget->selectionModel()->selectedIndexes();
+   QModelIndexList selected = tableWidget->selectionModel()->selectedIndexes();
    QModelIndex translated;
    int row, size, i;
 
@@ -87,7 +146,7 @@ void YeastDialog::addYeast(const QModelIndex& index)
    
    if( !index.isValid() )
    {
-      QModelIndexList selected = yeastTableWidget->selectionModel()->selectedIndexes();
+      QModelIndexList selected = tableWidget->selectionModel()->selectedIndexes();
       int row, size, i;
 
       size = selected.size();
@@ -123,7 +182,7 @@ void YeastDialog::addYeast(const QModelIndex& index)
 
 void YeastDialog::editSelected()
 {
-   QModelIndexList selected = yeastTableWidget->selectionModel()->selectedIndexes();
+   QModelIndexList selected = tableWidget->selectionModel()->selectedIndexes();
    QModelIndex translated; 
 
    int row, size, i;
@@ -148,6 +207,11 @@ void YeastDialog::editSelected()
 
 void YeastDialog::newYeast()
 {
+   newYeast(QString());
+}
+
+void YeastDialog::newYeast(QString folder)
+{
    QString name = QInputDialog::getText(this, tr("Yeast name"),
                                               tr("Yeast name:"));
    if( name.isEmpty() )
@@ -155,7 +219,16 @@ void YeastDialog::newYeast()
 
    Yeast* y = Database::instance().newYeast();
    y->setName(name);
+   if ( ! folder.isEmpty() )
+      y->setFolder(folder);
+
    yeastEditor->setYeast(y);
    yeastEditor->show();
    y->setDisplay(true);
+}
+
+void YeastDialog::filterYeasts(QString searchExpression)
+{
+    yeastTableProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    yeastTableProxy->setFilterFixedString(searchExpression);
 }

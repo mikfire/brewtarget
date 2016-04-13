@@ -1,6 +1,6 @@
 /*
  * recipe.cpp is part of Brewtarget, and is Copyright the following
- * authors 2009-2014
+ * authors 2009-2015
  * - Kregg K <gigatropolis@yahoo.com>
  * - Mik Firestone <mikfire@gmail.com>
  * - Philip Greggory Lee <rocketman768@gmail.com>
@@ -227,26 +227,26 @@ QVector<PreInstruction> Recipe::mashInstructions(double timeRemaining, double to
    {
       mstep = msteps[i];
 
-      if( mstep->type() == MashStep::Infusion )
+      if( mstep->isInfusion() )
       {
          str = tr("Add %1 water at %2 to mash to bring it to %3.")
-               .arg(Brewtarget::displayAmount(mstep->infuseAmount_l(), Units::liters))
-               .arg(Brewtarget::displayAmount(mstep->infuseTemp_c(), Units::celsius))
-               .arg(Brewtarget::displayAmount(mstep->stepTemp_c(), Units::celsius));
+               .arg(Brewtarget::displayAmount(mstep->infuseAmount_l(), "mashStepTableModel", "infuseAmount_l", Units::liters))
+               .arg(Brewtarget::displayAmount(mstep->infuseTemp_c(), "mashStepTableModel", "infuseTemp_c", Units::celsius))
+               .arg(Brewtarget::displayAmount(mstep->stepTemp_c(), "mashStepTableModel", "stepTemp_c", Units::celsius));
          totalWaterAdded_l += mstep->infuseAmount_l();
       }
-      else if( mstep->type() == MashStep::Temperature )
+      else if( mstep->isTemperature() )
       {
-         str = tr("Heat mash to %1.").arg(Brewtarget::displayAmount(mstep->stepTemp_c(), Units::celsius));
+         str = tr("Heat mash to %1.").arg(Brewtarget::displayAmount(mstep->stepTemp_c(), "mashStepTableModel", "stepTemp_c", Units::celsius));
       }
-      else if( mstep->type() == MashStep::Decoction )
+      else if( mstep->isDecoction() )
       {
          str = tr("Bring %1 of the mash to a boil and return to the mash tun to bring it to %2.")
-               .arg(Brewtarget::displayAmount(mstep->decoctionAmount_l(), Units::liters))
-               .arg(Brewtarget::displayAmount(mstep->stepTemp_c(), Units::celsius));
+               .arg(Brewtarget::displayAmount(mstep->decoctionAmount_l(), "mashStepTableModel", "decoctionAmount_l", Units::liters))
+               .arg(Brewtarget::displayAmount(mstep->stepTemp_c(), "mashStepTableModel", "stepTemp_c", Units::celsius));
       }
 
-      str += tr(" Hold for %1.").arg(Brewtarget::displayAmount(mstep->stepTime_min(), Units::minutes));
+      str += tr(" Hold for %1.").arg(Brewtarget::displayAmount(mstep->stepTime_min(), "mashStepTableModel", "stepTime_min", Units::minutes));
 
       preins.push_back(PreInstruction(str, QString("%1 - %2").arg(mstep->typeStringTr()).arg(mstep->name()),
                   timeRemaining));
@@ -286,9 +286,9 @@ QVector<PreInstruction> Recipe::hopSteps(Hop::Use type)
             str = tr("Use %1 %2 for %3");
          }
 
-         str = str.arg(Brewtarget::displayAmount(hop->amount_kg(), Units::kilograms))
+         str = str.arg(Brewtarget::displayAmount(hop->amount_kg(), "hopTable", "amount_kg", Units::kilograms))
                   .arg(hop->name())
-                  .arg(Brewtarget::displayAmount(hop->time_min(), Units::minutes));
+                  .arg(Brewtarget::displayAmount(hop->time_min(),"hopTable", "time",  Units::minutes));
 
          preins.push_back(PreInstruction(str, tr("Hop addition"), hop->time_min()));
       }
@@ -300,6 +300,7 @@ QVector<PreInstruction> Recipe::miscSteps(Misc::Use type)
 {
    QVector<PreInstruction> preins;
    QString str;
+   Unit* kindOf;
    unsigned int i;
    int size;
 
@@ -326,9 +327,10 @@ QVector<PreInstruction> Recipe::miscSteps(Misc::Use type)
             str = tr("Use %1 %2 for %3.");
          }
 
-         str = str .arg(Brewtarget::displayAmount(misc->amount(), ((misc->amountIsWeight()) ? (Unit*)(Units::kilograms) : (Unit*)(Units::liters) )))
+         kindOf = misc->amountIsWeight() ? (Unit*)Units::kilograms : (Unit*)Units::liters;
+         str = str .arg(Brewtarget::displayAmount(misc->amount(), "miscTableModel", "amount", kindOf))
                    .arg(misc->name())
-                   .arg(Brewtarget::displayAmount(misc->time(), Units::minutes));
+                   .arg(Brewtarget::displayAmount(misc->time(), "miscTableModel", "time", Units::minutes));
 
          preins.push_back(PreInstruction(str, tr("Misc addition"), misc->time()));
       }
@@ -371,13 +373,13 @@ Instruction* Recipe::topOffIns()
    {
       wortInBoil_l = wortFromMash_l() - e->lauterDeadspace_l();
       str = tr("You should now have %1 wort.")
-         .arg(Brewtarget::displayAmount( wortInBoil_l, Units::liters));
+         .arg(Brewtarget::displayAmount( wortInBoil_l, "tab_recipe", "boilSize_l", Units::liters));
       if ( e->topUpKettle_l() != 0 )
       {
          wortInBoil_l += e->topUpKettle_l();
          tmp = tr(" Add %1 water to the kettle, bringing pre-boil volume to %2.")
-            .arg(Brewtarget::displayAmount(e->topUpKettle_l(), Units::liters))
-            .arg(Brewtarget::displayAmount(wortInBoil_l, Units::liters));
+            .arg(Brewtarget::displayAmount(e->topUpKettle_l(), "tab_recipe", "boilSize_l",  Units::liters))
+            .arg(Brewtarget::displayAmount(wortInBoil_l, "tab_recipe", "boilSize_l",  Units::liters));
 
          str += tmp;
 
@@ -435,7 +437,7 @@ PreInstruction Recipe::boilFermentablesPre(double timeRemaining)
        continue;
 
      str += QString("%1 %2, ")
-          .arg(Brewtarget::displayAmount(ferm->amount_kg(), Units::kilograms))
+          .arg(Brewtarget::displayAmount(ferm->amount_kg(), "fermentableTable", "amount_kg", Units::kilograms))
           .arg(ferm->name());
    }
    str += ".";
@@ -466,7 +468,7 @@ PreInstruction Recipe::addExtracts(double timeRemaining)
       if ( ferm->isExtract() )
       {
          str += QString("%1 %2, ")
-            .arg(Brewtarget::displayAmount(ferm->amount_kg(), Units::kilograms))
+            .arg(Brewtarget::displayAmount(ferm->amount_kg(), "fermentableTable", "amount_kg", Units::kilograms))
             .arg(ferm->name());
       }
    }
@@ -494,7 +496,7 @@ Instruction* Recipe::postboilFermentablesIns()
 
       hasFerms = true;
       tmp = QString("%1 %2, ")
-             .arg(Brewtarget::displayAmount(ferm->amount_kg(), Units::kilograms))
+             .arg(Brewtarget::displayAmount(ferm->amount_kg(), "fermentableTable", "amount_kg", Units::kilograms))
              .arg(ferm->name());
       str += tmp;
    }
@@ -530,16 +532,16 @@ Instruction* Recipe::postboilIns()
 
       wort_l = e->wortEndOfBoil_l(wortInBoil_l);
       str = tr("You should have %1 wort post-boil.")
-            .arg(Brewtarget::displayAmount( wort_l, Units::liters));
+            .arg(Brewtarget::displayAmount( wort_l, "tab_recipe", "batchSize_l", Units::liters));
       str += tr("\nYou anticipate losing %1 to trub and chiller loss.")
-            .arg(Brewtarget::displayAmount( e->trubChillerLoss_l(), Units::liters));
+            .arg(Brewtarget::displayAmount( e->trubChillerLoss_l(),"tab_recipe", "batchSize_l",  Units::liters));
       wort_l -= e->trubChillerLoss_l();
       if( e->topUpWater_l() > 0.0 )
           str += tr("\nAdd %1 top up water into primary.")
-               .arg(Brewtarget::displayAmount( e->topUpWater_l(), Units::liters));
+               .arg(Brewtarget::displayAmount( e->topUpWater_l(),"tab_recipe", "batchSize_l",  Units::liters));
       wort_l += e->topUpWater_l();
       str += tr("\nThe final volume in the primary is %1.")
-             .arg(Brewtarget::displayAmount(wort_l, Units::liters));
+             .arg(Brewtarget::displayAmount(wort_l,"tab_recipe", "batchSize_l",  Units::liters));
 
       ins = Database::instance().newInstruction(this);
       ins->setName(tr("Post boil"));
@@ -629,7 +631,7 @@ void Recipe::generateInstructions()
                                         Units::minutes);
    }
    
-   str = tr("Bring the wort to a boil and hold for %1.").arg(Brewtarget::displayAmount( timeRemaining, Units::minutes));
+   str = tr("Bring the wort to a boil and hold for %1.").arg(Brewtarget::displayAmount( timeRemaining, "tab_recipe", "boilTime_min", Units::minutes));
    ins = Database::instance().newInstruction(this);
    ins->setName(tr("Start boil"));
    ins->setInterval(timeRemaining);
@@ -692,7 +694,7 @@ void Recipe::generateInstructions()
    addPreinstructions(miscSteps(Misc::Primary));
 
    str = tr("Let ferment until FG is %1.")
-         .arg(Brewtarget::displayAmount(fg()));
+         .arg(Brewtarget::displayAmount(fg(), "tab_recipe", "fg", Units::sp_grav, 3));
    ins = Database::instance().newInstruction(this);
    ins->setName(tr("Ferment"));
    ins->setDirections(str);
@@ -734,9 +736,9 @@ QString Recipe::nextAddToBoil(double& time)
       if( h->time_min() < time && h->time_min() > max )
       {
          ret = tr("Add %1 %2 to boil at %3.")
-               .arg(Brewtarget::displayAmount(h->amount_kg(), Units::kilograms))
+               .arg(Brewtarget::displayAmount(h->amount_kg(), "hopTable", "amount_kg", Units::kilograms))
                .arg(h->name())
-               .arg(Brewtarget::displayAmount(h->time_min(), Units::minutes));
+               .arg(Brewtarget::displayAmount(h->time_min(),"hopTable", "time",  Units::minutes));
 
          max = h->time_min();
          foundSomething = true;
@@ -754,12 +756,12 @@ QString Recipe::nextAddToBoil(double& time)
       {
          ret = tr("Add %1 %2 to boil at %3.");
          if( m->amountIsWeight() )
-            ret = ret.arg(Brewtarget::displayAmount(m->amount(), Units::kilograms));
+            ret = ret.arg(Brewtarget::displayAmount(m->amount(), "miscTableModel", "amount", Units::kilograms));
          else
-            ret = ret.arg(Brewtarget::displayAmount(m->amount(), Units::liters));
+            ret = ret.arg(Brewtarget::displayAmount(m->amount(), "miscTableModel", "amount",  Units::liters));
 
          ret = ret.arg(m->name());
-         ret = ret.arg(Brewtarget::displayAmount(m->time(), Units::minutes));
+         ret = ret.arg(Brewtarget::displayAmount(m->time(), "miscTableModel", "time", Units::minutes));
          max = m->time();
          foundSomething = true;
       }
@@ -879,7 +881,7 @@ void Recipe::setBoilTime_min( double var )
       tmp = var;
    }
 
-   set( "boilTime_min", "boil_time", tmp );
+   set( "boilTime_min", "boil_time", tmp);
 }
 
 void Recipe::setEfficiency_pct( double var )
@@ -1187,11 +1189,18 @@ double Recipe::boilGrav()
    return _boilGrav;
 }
 
-double Recipe::calories()
+double Recipe::calories12oz()
 {
    if( _uninitializedCalcs )
       recalcAll();
    return _calories;
+}
+
+double Recipe::calories33cl()
+{
+   if( _uninitializedCalcs )
+      recalcAll();
+   return _calories*3.3/3.55;
 }
 
 double Recipe::wortFromMash_l()
@@ -1303,172 +1312,47 @@ QList<Water*> Recipe::waters() const
 }
 
 //==============================Getters===================================
-QString Recipe::name() const
-{
-   return get("name").toString();
-}
+QString Recipe::name()             const { return get("name").toString(); }
+QString Recipe::type()             const { return get("type").toString(); }
+QString Recipe::brewer()           const { return get("brewer").toString(); }
+QString Recipe::asstBrewer()       const { return get("assistant_brewer").toString(); }
+QString Recipe::notes()            const { return get("notes").toString(); }
+QString Recipe::tasteNotes()       const { return get("taste_notes").toString(); }
+QString Recipe::primingSugarName() const { return get("priming_sugar_name").toString(); }
 
-QString Recipe::type() const
-{
-   return get("type").toString();
-}
+bool Recipe::forcedCarbonation()   const { return get("forced_carb").toBool(); }
 
-QString Recipe::brewer() const
-{
-   return get("brewer").toString();
-}
+double Recipe::batchSize_l()       const { return get("batch_size").toDouble(); }
+double Recipe::boilSize_l()        const { return get("boil_size").toDouble(); }
+double Recipe::boilTime_min()      const { return get("boil_time").toDouble(); }
+double Recipe::efficiency_pct()    const { return get("efficiency").toDouble(); }
+double Recipe::tasteRating()       const { return get("taste_rating").toDouble(); }
+double Recipe::primaryAge_days()   const { return get("primary_age").toDouble(); }
+double Recipe::primaryTemp_c()     const { return get("primary_temp").toDouble(); }
+double Recipe::secondaryAge_days() const { return get("secondary_age").toDouble(); }
+double Recipe::secondaryTemp_c()   const { return get("secondary_temp").toDouble(); }
+double Recipe::tertiaryAge_days()  const { return get("tertiary_age").toDouble(); }
+double Recipe::tertiaryTemp_c()    const { return get("tertiary_temp").toDouble(); }
+double Recipe::age_days()          const { return get("age").toDouble(); }
+double Recipe::ageTemp_c()         const { return get("age_temp").toDouble(); }
+double Recipe::carbonation_vols()  const { return get("carb_volume").toDouble(); }
+double Recipe::carbonationTemp_c() const { return get("carbonationTemp_c").toDouble(); }
+double Recipe::primingSugarEquiv() const { return get("priming_sugar_equiv").toDouble(); }
+double Recipe::kegPrimingFactor()  const { return get("keg_priming_factor").toDouble(); }
 
-double Recipe::batchSize_l() const
-{
-   return get("batch_size").toDouble();
-}
-
-double Recipe::boilSize_l() const
-{
-   return get("boil_size").toDouble();
-}
-
-double Recipe::boilTime_min() const
-{
-   return get("boil_time").toDouble();
-}
-
-double Recipe::efficiency_pct() const
-{
-   return get("efficiency").toDouble();
-}
-
-QString Recipe::asstBrewer() const
-{
-   return get("assistant_brewer").toString();
-}
-
-QString Recipe::notes() const
-{
-   return get("notes").toString();
-}
-
-QString Recipe::tasteNotes() const
-{
-   return get("taste_notes").toString();
-}
-
-double Recipe::tasteRating() const
-{
-   return get("taste_rating").toDouble();
-}
-
-int Recipe::fermentationStages() const
-{
-   return get("fermentation_stages").toInt();
-}
-
-double Recipe::primaryAge_days() const
-{
-   return get("primary_age").toDouble();
-}
-
-double Recipe::primaryTemp_c() const
-{
-   return get("primary_temp").toDouble();
-}
-
-double Recipe::secondaryAge_days() const
-{
-   return get("secondary_age").toDouble();
-}
-
-double Recipe::secondaryTemp_c() const
-{
-   return get("secondary_temp").toDouble();
-}
-
-double Recipe::tertiaryAge_days() const
-{
-   return get("tertiary_age").toDouble();
-}
-
-double Recipe::tertiaryTemp_c() const
-{
-   return get("tertiary_temp").toDouble();
-}
-
-double Recipe::age_days() const
-{
-   return get("age").toDouble();
-}
-
-double Recipe::ageTemp_c() const
-{
-   return get("age_temp").toDouble();
-}
-
-QDate Recipe::date() const
-{
-   return QDate::fromString( get("date").toString(), "d/M/yyyy");
-}
-
-double Recipe::carbonation_vols() const
-{
-   return get("carb_volume").toDouble();
-}
-
-bool Recipe::forcedCarbonation() const
-{
-   return get("forced_carb").toBool();
-}
-
-QString Recipe::primingSugarName() const
-{
-   return get("priming_sugar_name").toString();
-}
-
-double Recipe::carbonationTemp_c() const
-{
-   return get("carbonationTemp_c").toDouble();
-}
-
-double Recipe::primingSugarEquiv() const
-{
-   return get("priming_sugar_equiv").toDouble();
-}
-
-double Recipe::kegPrimingFactor() const
-{
-   return get("keg_priming_factor").toDouble();
-}
-
+int Recipe::fermentationStages()   const { return get("fermentation_stages").toInt(); }
+QDate Recipe::date()               const { return QDate::fromString( get("date").toString(), "d/M/yyyy"); }
 //=============================Removers========================================
 
 // Returns true if var is found and removed.
-void Recipe::removeHop( Hop *var )
+void Recipe::remove( BeerXMLElement *var )
 {
-   Database::instance().removeFromRecipe( this, var );
-}
-
-void Recipe::removeFermentable(Fermentable* var)
-{
-   Database::instance().removeFromRecipe( this, var );
-}
-
-void Recipe::removeMisc(Misc* var)
-{
-   Database::instance().removeFromRecipe( this, var );
-}
-
-void Recipe::removeWater(Water* var)
-{
-   Database::instance().removeFromRecipe( this, var );
-}
-
-void Recipe::removeYeast(Yeast* var)
-{
-   Database::instance().removeFromRecipe( this, var );
-}
-
-void Recipe::removeBrewNote(BrewNote* var)
-{
-   Database::instance().removeFromRecipe(this, var);
+   // brewnotes a bit odd
+   if ( var->metaObject()->className() == QString("BrewNote") )
+      // the cast is required to force the template to gets it thing right
+      Database::instance().remove(qobject_cast<BrewNote*>(var));
+   else
+      Database::instance().removeIngredientFromRecipe( this, var );
 }
 
 double Recipe::batchSizeNoLosses_l()
@@ -1515,10 +1399,9 @@ void Recipe::recalcABV_pct()
 {
    double ret;
 
-   // George Fix: Brewing Science and Practice, page 686.
-   // The multiplicative factor actually varies from
-   // 125 for weak beers to 135 for strong beers.
-   ret = 130*(_og_fermentable - _fg_fermentable);
+   // The complex formula, and variations comes from Ritchie Products Ltd, (Zymurgy, Summer 1995, vol. 18, no. 2)
+   // Michael L. Hall’s article Brew by the Numbers: Add Up What’s in Your Beer, and Designing Great Beers by Daniels.
+   ret = (76.08 * (_og_fermentable - _fg_fermentable) / (1.775 - _og_fermentable)) * (_fg_fermentable / 0.794);
   
    if ( ret != _ABV_pct ) 
    {
@@ -1600,7 +1483,6 @@ void Recipe::recalcVolumeEstimates()
       _wortFromMash_l = 0.0;
    else
    {
-   
       waterAdded_l = mash()->totalMashWater_l();
       if( equipment() != 0 )
          absorption_lKg = equipment()->grainAbsorption_LKg();
@@ -1833,7 +1715,7 @@ void Recipe::recalcBoilGrav()
    sugars = calcTotalPoints();
    sugar_kg = sugars.value("sugar_kg");
    sugar_kg_ignoreEfficiency = sugars.value("sugar_kg_ignoreEfficiency");
-   lateAddition_kg = sugars.value("ateAddition_kg");
+   lateAddition_kg = sugars.value("lateAddition_kg");
    lateAddition_kg_ignoreEff = sugars.value("lateAddition_kg_ignoreEff");
    
    // Since the efficiency refers to how much sugar we get into the fermenter,
@@ -1873,8 +1755,8 @@ void Recipe::recalcOgFg()
    // if if we aren't initialized yet.
    if ( _uninitializedCalcs )
    {
-      _og = get("og").toDouble();
-      _fg = get("fg").toDouble();
+      _og = Brewtarget::toDouble(this,"og","Recipe::recalcOgFg()");
+      _fg = Brewtarget::toDouble(this,"fg","Recipe::recalcOgFg()");
    }
 
    // Find out how much sugar we have.
@@ -1976,8 +1858,8 @@ double Recipe::ibuFromHop(Hop const* hop)
 {
    Equipment* equip = equipment();
    double ibus = 0.0;
-   double fwhAdjust = Brewtarget::option("firstWortHopAdjustment", 1.1).toDouble();
-   double mashHopAdjust = Brewtarget::option("mashHopAdjustment", 0).toDouble();
+   double fwhAdjust = Brewtarget::toDouble(Brewtarget::option("firstWortHopAdjustment", 1.1).toString(), "Recipe::ibmFromHop()");
+   double mashHopAdjust = Brewtarget::toDouble(Brewtarget::option("mashHopAdjustment", 0).toString(), "Recipe::ibmFromHop()");
    
    if( hop == 0 )
       return 0.0;
@@ -2009,11 +1891,23 @@ double Recipe::ibuFromHop(Hop const* hop)
    else if( hop->use() == Hop::Mash && mashHopAdjust > 0.0 )
       ibus = mashHopAdjust * IbuMethods::getIbus( AArating, grams, _finalVolumeNoLosses_l, _og, boilTime );
 
-   // Adjust for hop form.
-   if( hop->form() == Hop::Leaf )
-      ibus *= 0.90;
-   else if( hop->form() == Hop::Plug )
-      ibus *= 0.92;
+   // Adjust for hop form. Tinseth's table was created from whole cone data,
+   // and it seems other formulae are optimized that way as well. So, the
+   // utilization is considered unadjusted for whole cones, and adjusted
+   // up for plugs and pellets.
+   //
+   // - http://www.realbeer.com/hops/FAQ.html
+   // - https://groups.google.com/forum/#!topic/brewtarget-help/mv2qvWBC4sU
+   switch( hop->form() ) {
+   case Hop::Plug:
+      hopUtilization *= 1.02;
+      break;
+   case Hop::Pellet:
+      hopUtilization *= 1.10;
+      break;
+   default:
+      break;
+   }
 
    // Adjust for hop utilization. 
    ibus *= hopUtilization;
@@ -2046,13 +1940,13 @@ QList<QString> Recipe::getReagents( QList<Fermentable*> ferms )
          if ( i+1 < ferms.size() )
          {
             tmp = QString("%1 %2, ")
-                  .arg(Brewtarget::displayAmount(ferms[i]->amount_kg(), Units::kilograms))
+                  .arg(Brewtarget::displayAmount(ferms[i]->amount_kg(), "fermentableTable", "amount_kg", Units::kilograms))
                   .arg(ferms[i]->name());
          }
          else
          {
             tmp = QString("%1 %2 ")
-                  .arg(Brewtarget::displayAmount(ferms[i]->amount_kg(), Units::kilograms))
+                  .arg(Brewtarget::displayAmount(ferms[i]->amount_kg(),"fermentableTable", "amount_kg",  Units::kilograms))
                   .arg(ferms[i]->name());
          }
          reagents.append(tmp);
@@ -2072,7 +1966,7 @@ QList<QString> Recipe::getReagents(QList<Hop*> hops, bool firstWort)
          (hops[i]->use() == Hop::First_Wort) )
       {
          tmp = QString("%1 %2,")
-               .arg(Brewtarget::displayAmount(hops[i]->amount_kg(), Units::kilograms))
+               .arg(Brewtarget::displayAmount(hops[i]->amount_kg(), "hopTable", "amount_kg",  Units::kilograms))
                .arg(hops[i]->name());
          reagents.append(tmp);
       }
@@ -2087,20 +1981,20 @@ QList<QString> Recipe::getReagents( QList<MashStep*> msteps )
 
    for ( int i = 0; i < msteps.size(); ++i )
    {
-      if( msteps[i]->type() != MashStep::Infusion )
+      if( ! msteps[i]->isInfusion() )
          continue;
 
       if ( i+1 < msteps.size() ) 
       {
          tmp = tr("%1 water to %2, ")
-                .arg(Brewtarget::displayAmount(msteps[i]->infuseAmount_l(), Units::liters))
-                .arg(Brewtarget::displayAmount(msteps[i]->infuseTemp_c(), Units::celsius));
+                .arg(Brewtarget::displayAmount(msteps[i]->infuseAmount_l(), "mashStepTableModel", "infuseAmount_l", Units::liters))
+                .arg(Brewtarget::displayAmount(msteps[i]->infuseTemp_c(),"mashStepTableModel", "infuseTemp_c",  Units::celsius));
       }
       else 
       {
          tmp = tr("%1 water to %2 ")
-                .arg(Brewtarget::displayAmount(msteps[i]->infuseAmount_l(), Units::liters))
-                .arg(Brewtarget::displayAmount(msteps[i]->infuseTemp_c(), Units::celsius));
+                .arg(Brewtarget::displayAmount(msteps[i]->infuseAmount_l(), "mashStepTableModel", "infuseAmount_l", Units::liters))
+                .arg(Brewtarget::displayAmount(msteps[i]->infuseTemp_c(), "mashStepTableModel", "infuseTemp_c", Units::celsius));
       }
       reagents.append(tmp);
    }
@@ -2132,6 +2026,18 @@ void Recipe::acceptHopChange(QMetaProperty prop, QVariant val)
 void Recipe::acceptHopChange(Hop* hop) 
 {
    recalcIBU();
+}
+
+void Recipe::acceptYeastChange(QMetaProperty prop, QVariant val)
+{
+   recalcOgFg();
+   recalcABV_pct();
+}
+
+void Recipe::acceptYeastChange(Yeast* yeast)
+{
+   recalcOgFg();
+   recalcABV_pct();
 }
 
 void Recipe::acceptMashChange(QMetaProperty prop, QVariant val)

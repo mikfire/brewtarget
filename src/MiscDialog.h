@@ -1,6 +1,6 @@
 /*
  * MiscDialog.h is part of Brewtarget, and is Copyright the following
- * authors 2009-2014
+ * authors 2009-2015
  * - Jeff Bailey <skydvr38@verizon.net>
  * - Philip Greggory Lee <rocketman768@gmail.com>
  *
@@ -19,15 +19,16 @@
  */
 
 #ifndef _MISCDIALOG_H
-#define   _MISCDIALOG_H
-
-class MiscDialog;
+#define _MISCDIALOG_H
 
 #include <QWidget>
 #include <QDialog>
-#include <QVariant>
-#include "ui_miscDialog.h"
-#include "database.h"
+#include <QEvent>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QTableView>
+#include <QSpacerItem>
+#include <QPushButton>
 
 // Forward declarations.
 class MainWindow;
@@ -41,7 +42,7 @@ class MiscSortFilterProxyModel;
  *
  * \brief View/controller dialog for the miscs in the database.
  */
-class MiscDialog : public QDialog, public Ui::miscDialog
+class MiscDialog : public QDialog
 {
    Q_OBJECT
 
@@ -49,6 +50,20 @@ public:
    MiscDialog(MainWindow* parent);
    virtual ~MiscDialog() {}
 
+   //! \name Public UI Variables
+   //! @{
+   QVBoxLayout *verticalLayout;
+   QTableView *tableWidget;
+   QHBoxLayout *horizontalLayout;
+   QLineEdit *qLineEdit_searchBox;
+   QSpacerItem *horizontalSpacer;
+   QPushButton *pushButton_addToRecipe;
+   QPushButton *pushButton_new;
+   QPushButton *pushButton_edit;
+   QPushButton *pushButton_remove;
+   //! @}
+
+   void newMisc(QString folder);
 public slots:
    //! Add the selected misc to the current recipe.
    void addMisc(const QModelIndex& = QModelIndex());
@@ -58,7 +73,18 @@ public slots:
    void editSelected();
    //! Add a new misc to the database.
    void newMisc();
-   
+   //! Filter out the matching miscs.
+   void filterMisc(QString searchExpression);
+
+protected:
+
+   virtual void changeEvent(QEvent* event)
+   {
+      if(event->type() == QEvent::LanguageChange)
+         retranslateUi();
+      QDialog::changeEvent(event);
+   }
+
 private:
    MainWindow* mainWindow;
    MiscTableModel* miscTableModel;
@@ -66,6 +92,8 @@ private:
    int numMiscs;
    MiscEditor* miscEdit;
 
+   void doLayout();
+   void retranslateUi();
 };
 
 #endif   /* _MISCDIALOG_H */

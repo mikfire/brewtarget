@@ -53,9 +53,11 @@ ENDMACRO(ADD_PCH_RULE _src_list _header_filename)
 
 # Variable that contains all the .cpp files in this project.
 SET( brewtarget_SRCS
+    ${SRCDIR}/AboutDialog.cpp
     ${SRCDIR}/Algorithms.cpp
     ${SRCDIR}/BeerXMLElement.cpp
     ${SRCDIR}/BeerXMLSortProxyModel.cpp
+    ${SRCDIR}/boiltime.cpp
     ${SRCDIR}/BrewDayWidget.cpp
     ${SRCDIR}/BrewDayScrollWidget.cpp
     ${SRCDIR}/brewnote.cpp
@@ -101,6 +103,7 @@ SET( brewtarget_SRCS
     ${SRCDIR}/IbuMethods.cpp
     ${SRCDIR}/ImperialVolumeUnitSystem.cpp
     ${SRCDIR}/InstructionWidget.cpp
+    ${SRCDIR}/Log.cpp
     ${SRCDIR}/MainWindow.cpp
     ${SRCDIR}/mash.cpp
     ${SRCDIR}/MashButton.cpp
@@ -130,8 +133,6 @@ SET( brewtarget_SRCS
     ${SRCDIR}/RefractoDialog.cpp
     ${SRCDIR}/ScaleRecipeTool.cpp
     ${SRCDIR}/SgDensityUnitSystem.cpp
-    ${SRCDIR}/SetterCommand.cpp
-    ${SRCDIR}/SetterCommandStack.cpp
     ${SRCDIR}/SIVolumeUnitSystem.cpp
     ${SRCDIR}/SIWeightUnitSystem.cpp
     ${SRCDIR}/SrmColorUnitSystem.cpp
@@ -143,6 +144,7 @@ SET( brewtarget_SRCS
     ${SRCDIR}/StyleRangeWidget.cpp
     ${SRCDIR}/StyleSortFilterProxyModel.cpp
     ${SRCDIR}/TimerListDialog.cpp
+    ${SRCDIR}/TimerMainDialog.cpp
     ${SRCDIR}/TimerWidget.cpp
     ${SRCDIR}/TimeUnitSystem.cpp
     ${SRCDIR}/unit.cpp
@@ -172,31 +174,24 @@ SET( brewtarget_UIS
     ${UIDIR}/brewDayWidget.ui
     ${UIDIR}/brewDayScrollWidget.ui
     ${UIDIR}/brewNoteWidget.ui
-    ${UIDIR}/btSplashScreen.ui
-    ${UIDIR}/converterTool.ui
     ${UIDIR}/mainWindow.ui
     ${UIDIR}/mashStepEditor.ui
     ${UIDIR}/miscEditor.ui
     ${UIDIR}/fermentableEditor.ui
-    ${UIDIR}/fermentableDialog.ui
-    ${UIDIR}/equipmentEditor.ui
-    ${UIDIR}/hopDialog.ui
     ${UIDIR}/hopEditor.ui
     ${UIDIR}/instructionWidget.ui
     ${UIDIR}/mashEditor.ui
     ${UIDIR}/namedMashEditor.ui
     ${UIDIR}/mashWizard.ui
-    ${UIDIR}/miscDialog.ui
     ${UIDIR}/ogAdjuster.ui
     ${UIDIR}/optionsDialog.ui
     ${UIDIR}/primingDialog.ui
     ${UIDIR}/refractoDialog.ui
-    ${UIDIR}/scaleRecipeTool.ui
     ${UIDIR}/strikeWaterDialog.ui
     ${UIDIR}/styleEditor.ui
-    ${UIDIR}/timerListDialog.ui
+    ${UIDIR}/timerMainDialog.ui
+    ${UIDIR}/timerWidget.ui
     ${UIDIR}/waterEditor.ui
-    ${UIDIR}/yeastDialog.ui
     ${UIDIR}/yeastEditor.ui
     ${UIDIR}/mashDesigner.ui
     ${UIDIR}/pitchDialog.ui
@@ -207,9 +202,11 @@ SET( brewtarget_UIS
 # The list of files that need to be moc'd.
 # In other words, classes that have Q_OBJECT declarations and stuff.
 SET( brewtarget_MOC_HEADERS
+    ${SRCDIR}/AboutDialog.h
     ${SRCDIR}/BeerColorWidget.h
     ${SRCDIR}/BeerXMLElement.h
     ${SRCDIR}/BeerXMLSortProxyModel.h
+    ${SRCDIR}/boiltime.h
     ${SRCDIR}/BrewDayWidget.h
     ${SRCDIR}/BrewDayScrollWidget.h
     ${SRCDIR}/brewnote.h
@@ -242,6 +239,7 @@ SET( brewtarget_MOC_HEADERS
     ${SRCDIR}/HopTableModel.h
     ${SRCDIR}/IbuGuSlider.h
     ${SRCDIR}/InstructionWidget.h
+    ${SRCDIR}/Log.h
     ${SRCDIR}/MainWindow.h
     ${SRCDIR}/MashButton.h
     ${SRCDIR}/MashDesigner.h
@@ -266,7 +264,6 @@ SET( brewtarget_MOC_HEADERS
     ${SRCDIR}/RecipeFormatter.h
     ${SRCDIR}/RefractoDialog.h
     ${SRCDIR}/ScaleRecipeTool.h
-    ${SRCDIR}/SetterCommandStack.h
     ${SRCDIR}/StrikeWaterDialog.h
     ${SRCDIR}/StyleButton.h
     ${SRCDIR}/StyleListModel.h
@@ -274,6 +271,7 @@ SET( brewtarget_MOC_HEADERS
     ${SRCDIR}/StyleRangeWidget.h
     ${SRCDIR}/StyleSortFilterProxyModel.h
     ${SRCDIR}/TimerListDialog.h
+    ${SRCDIR}/TimerMainDialog.h
     ${SRCDIR}/TimerWidget.h
     ${SRCDIR}/unit.h
     ${SRCDIR}/WaterTableModel.h
@@ -317,19 +315,10 @@ QT5_WRAP_UI(brewtarget_UIS_H ${brewtarget_UIS})
 QT5_ADD_RESOURCES(brewtarget_QRC_CPP ${brewtarget_QRC})
 QT5_ADD_RESOURCES(brewtarget_cfg_QRC_CPP ${brewtarget_cfg_QRC})
 
-# Translations
-# Creates the .qm files.
-QT5_CREATE_TRANSLATION(${TRANSLATIONS_FILES} ${FILES_TO_TRANSLATE})
-
-
-# Create the moc sources from the headers.
-#QT4_WRAP_CPP(brewtarget_MOC_SRCS ${brewtarget_MOC_HEADERS})
-# Create the ui_*.h files from the *.ui files.
-#QT4_WRAP_UI(brewtarget_UIS_H ${brewtarget_UIS})
-# Generate the resource .cpp from the .qrc file.
-#QT4_ADD_RESOURCES(brewtarget_QRC_CPP ${brewtarget_QRC})
-# Creates the .qm files.
-#QT4_ADD_TRANSLATION(QM_FILES ${TRANSLATIONS_FILES})
+# Translations. CREATE_TRANSLATION will update the .ts files (do not want)
+#QT5_CREATE_TRANSLATION(${TRANSLATIONS_FILES} ${FILES_TO_TRANSLATE})
+# Creates the .qm files from the .ts files
+QT5_ADD_TRANSLATION(QM_FILES ${TRANSLATIONS_FILES})
 
 # Add a target for the QM_FILES so that we can add
 # the translations as a dependency for the executable later.
@@ -364,6 +353,7 @@ ADD_LIBRARY(
    ${brewtarget_UIS_H}
 )
 
+<<<<<<< HEAD
 IF( ANDROID )
    ADD_LIBRARY(
       ${brewtarget_EXECUTABLE}
@@ -374,6 +364,46 @@ IF( ANDROID )
       )
    QT5_USE_MODULES( ${brewtarget_EXECUTABLE} Gui Core Multimedia Network PrintSupport Qml Sql Svg Xml AndroidExtras )
    target_link_libraries(${brewtarget_EXECUTABLE} ${QT_LIBRARIES})
+=======
+IF( APPLE )
+   # It seems I have to set these properties in this file, or things don't
+   # get installed
+   SET_SOURCE_FILES_PROPERTIES(
+      ${brewtarget_MAC_ICNS}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources"
+   )
+   SET_SOURCE_FILES_PROPERTIES(
+      ${brewtarget_DATA}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources"
+   )
+   SET_SOURCE_FILES_PROPERTIES(
+      ${brewtarget_DOCS}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/en.lproj"
+   )
+   SET_SOURCE_FILES_PROPERTIES(
+      ${brewtarget_SOUNDS}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/sounds"
+   )
+   SET_SOURCE_FILES_PROPERTIES(
+      ${QM_FILES}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/translations_qm"
+   )
+   ADD_EXECUTABLE(
+      ${brewtarget_EXECUTABLE}
+      MACOSX_BUNDLE
+      ${SRCDIR}/main.cpp
+      ${brewtarget_MAC_ICNS}
+      ${brewtarget_DATA}
+      ${brewtarget_DOCS}
+      ${brewtarget_SOUNDS}
+      ${QM_FILES}
+      $<TARGET_OBJECTS:btobjlib>
+   )
 ELSE()
    ADD_EXECUTABLE(
       ${brewtarget_EXECUTABLE}
@@ -381,7 +411,6 @@ ELSE()
       ${brewtarget_ICON}
       $<TARGET_OBJECTS:btobjlib>
    )
-   QT5_USE_MODULES( ${brewtarget_EXECUTABLE} Widgets Multimedia Network PrintSupport Qml Sql Xml WebKit WebKitWidgets )
 ENDIF()
 
 ADD_DEPENDENCIES( ${brewtarget_EXECUTABLE} translations )
@@ -399,6 +428,65 @@ IF( WIN32 AND MINGW )
    SET_TARGET_PROPERTIES( ${brewtarget_EXECUTABLE} PROPERTIES LINK_FLAGS "-Wl,-enable-stdcall-fixup -Wl,-enable-auto-import -Wl,-enable-runtime-pseudo-reloc -mthreads -Wl,-subsystem,windows")
 ENDIF()
 
+SET( QT5_USE_MODULES_LIST
+   ${brewtarget_EXECUTABLE}
+   Widgets
+   Network
+   PrintSupport
+   Qml
+   Quick
+   Sql
+   Svg
+   Xml
+   )
+
+IF( NOT ${NO_QTMULTIMEDIA})
+   SET( QT5_USE_MODULES_LIST ${QT5_USE_MODULES_LIST} Multimedia)
+ENDIF()
+
+QT5_USE_MODULES( ${QT5_USE_MODULES_LIST})
+
+#=================================Tests========================================
+
+#QT4_WRAP_CPP( testing_MOC_SRCS ${SRCDIR}/Testing.h )
+ADD_EXECUTABLE(
+   brewtarget_tests
+   ${SRCDIR}/Testing.cpp
+   ${testing_MOC_SRCS}
+   $<TARGET_OBJECTS:btobjlib>
+)
+
+SET( QT5_USE_MODULES_LIST
+   brewtarget_tests
+   Widgets
+   Network
+   PrintSupport
+   Qml
+   Quick
+   Sql
+   Svg
+   Xml
+   Test
+   )
+
+IF( NOT ${NO_QTMULTIMEDIA})
+SET( QT5_USE_MODULES_LIST ${QT5_USE_MODULES_LIST} Multimedia)
+ENDIF()
+
+QT5_USE_MODULES(${QT5_USE_MODULES_LIST})
+
+ADD_TEST(
+   NAME pstdintTest
+   COMMAND brewtarget_tests pstdintTest
+)
+ADD_TEST(
+   NAME recipeCalcTest_allGrain
+   COMMAND brewtarget_tests recipeCalcTest_allGrain
+)
+ADD_TEST(
+   NAME postBoilLossOgTest
+   COMMAND brewtarget_tests postBoilLossOgTest
+)
 #=================================Installs=====================================
 
 # Install library for Android, executables for everybody else.
@@ -407,18 +495,26 @@ IF( ANDROID )
    INSTALL( TARGETS ${brewtarget_EXECUTABLE}
       LIBRARY DESTINATION ${TARGETPATH} )
 ELSE()
+   # Install executable.
    INSTALL( TARGETS ${brewtarget_EXECUTABLE}
-            RUNTIME DESTINATION ${TARGETPATH} )
+            BUNDLE DESTINATION .
+            RUNTIME DESTINATION ${TARGETPATH}
+            COMPONENT ${RUNTIME_INSTALL_COMPONENT} )
 
-# Install the translations.
+   # Install the translations.
    INSTALL(FILES ${QM_FILES}
-         DESTINATION "${DATAPATH}/translations_qm")
+         DESTINATION "${DATAPATH}/translations_qm"
+         COMPONENT ${DATA_INSTALL_COMPONENT} )
 
+   # http://pmarinc-tidylib.googlecode.com/hg/src/Sigil/CMakeLists.txt?r=8276c61e05bc385d5ffbcc58e1f007f84b0c52df
    IF( APPLE )
-      # This SHOULD run macdeployqt on the app bundle at install time.
-      # Don't know if it works. Could someone try?
-      # May have to add a WORKING_DIRECTORY.
-      INSTALL( CODE
-               "EXECUTE_PROCESS( COMMAND ${QT_BINARY_DIR}/macdeployqt ${BT_BUNDLE_DIR} )" )
+      # make addframeworks should copy the Qt libraries to the app.
+      SET(QT_BINARY_DIR "${_qt5Core_install_prefix}/bin")
+      ADD_CUSTOM_TARGET(
+         addframeworks ALL
+         COMMAND ${QT_BINARY_DIR}/macdeployqt "Brewtarget.app" -dmg
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         DEPENDS ${brewtarget_EXECUTABLE}
+      )
    ENDIF()
 ENDIF()

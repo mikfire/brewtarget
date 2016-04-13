@@ -2,3 +2,9 @@
 build/*
 !build/dummyfile
 android-build/*
+
+# Kate project
+.kateproject.d/
+.idea
+
+.vagrant

@@ -39,12 +39,28 @@ bool HopSortFilterProxyModel::lessThan(const QModelIndex &left,
     QStringList uses = QStringList() << "Dry Hop" << "Aroma" << "Boil" << "First Wort" << "Mash";
     QModelIndex lSibling, rSibling;
     int lUse, rUse;
+    double lAlpha, rAlpha;
+    bool ok = false;
     Unit* unit = Units::kilograms;
 
    switch( left.column() )
    {
       case HOPALPHACOL:
-         return leftHop.toDouble() < rightHop.toDouble();
+         lAlpha = Brewtarget::toDouble(leftHop.toString(), &ok );
+         if ( ! ok )
+            Brewtarget::logW( QString("HopSortFilterProxyModel::lessThan() could not convert %1 to double").arg(leftHop.toString()));
+
+         rAlpha = Brewtarget::toDouble(rightHop.toString(), &ok );
+         if ( ! ok )
+            Brewtarget::logW( QString("HopSortFilterProxyModel::lessThan() could not convert %1 to double").arg(rightHop.toString()));
+
+         return lAlpha < rAlpha;
+
+      case HOPINVENTORYCOL:
+         if (Brewtarget::qStringToSI(leftHop.toString(), unit) == 0.0 && this->sortOrder() == Qt::AscendingOrder)
+            return false;
+         else
+            return Brewtarget::qStringToSI(leftHop.toString(),unit) < Brewtarget::qStringToSI(rightHop.toString(),unit);
       case HOPAMOUNTCOL:
          return Brewtarget::qStringToSI(leftHop.toString(),unit) < Brewtarget::qStringToSI(rightHop.toString(),unit);
       case HOPTIMECOL:
@@ -57,6 +73,7 @@ bool HopSortFilterProxyModel::lessThan(const QModelIndex &left,
         lUse = uses.indexOf( (sourceModel()->data(lSibling)).toString() );
         rUse = uses.indexOf( (sourceModel()->data(rSibling)).toString() );
 
+        unit = Units::minutes; // not Units::kilogram
         if ( lUse == rUse )
             return Brewtarget::qStringToSI(leftHop.toString(),unit) < Brewtarget::qStringToSI(rightHop.toString(),unit);
 
@@ -69,6 +86,11 @@ bool HopSortFilterProxyModel::lessThan(const QModelIndex &left,
 bool HopSortFilterProxyModel::filterAcceptsRow( int source_row, const QModelIndex &source_parent) const
 {
    HopTableModel* model = qobject_cast<HopTableModel*>(sourceModel());
-   //! return true if we don't want to filter or if the hop is set to display
-   return !filter || model->getHop(source_row)->display();
+   QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+
+   return !filter
+          ||
+           ( sourceModel()->data(index).toString().contains(filterRegExp())
+             && model->getHop(source_row)->display()
+           );
 }

@@ -142,50 +142,18 @@ void Mash::removeAllMashSteps()
 }
 
 //============================="GET" METHODS====================================
-QString Mash::name() const
-{
-   return get("name").toString();
-}
 
-double Mash::grainTemp_c() const
-{
-   return get("grain_temp").toDouble();
-}
+QString Mash::name()                 const { return get("name").toString(); }
+QString Mash::notes()                const { return get("notes").toString(); }
 
-QString Mash::notes() const
-{
-   return get("notes").toString();
-}
+double Mash::grainTemp_c()           const { return get("grain_temp").toDouble(); }
+double Mash::tunTemp_c()             const { return get("tun_temp").toDouble(); }
+double Mash::spargeTemp_c()          const { return get("sparge_temp").toDouble(); }
+double Mash::ph()                    const { return get("ph").toDouble(); }
+double Mash::tunWeight_kg()          const { return get("tun_weight").toDouble(); }
+double Mash::tunSpecificHeat_calGC() const { return get("tun_specific_heat").toDouble(); }
 
-double Mash::tunTemp_c() const
-{
-   return get("tun_temp").toDouble();
-}
-
-double Mash::spargeTemp_c() const
-{
-   return get("sparge_temp").toDouble();
-}
-
-double Mash::ph() const
-{
-   return get("ph").toDouble();
-}
-
-double Mash::tunWeight_kg() const
-{
-   return get("tun_weight").toDouble();
-}
-
-double Mash::tunSpecificHeat_calGC() const
-{
-   return get("tun_specific_heat").toDouble();
-}
-
-bool Mash::equipAdjust() const
-{
-   return get("equip_adjust").toBool();
-}
+bool Mash::equipAdjust()             const { return get("equip_adjust").toBool(); }
 
 // === other methods ===
 double Mash::totalMashWater_l()
@@ -200,8 +168,8 @@ double Mash::totalMashWater_l()
    {
       step = steps[i];
       
-      if( step->type() == MashStep::Infusion )
-      waterAdded_l += step->infuseAmount_l();
+      if( step->isInfusion() )
+         waterAdded_l += step->infuseAmount_l();
    }
    
    return waterAdded_l;

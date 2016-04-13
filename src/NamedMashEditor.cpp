@@ -95,12 +95,14 @@ void NamedMashEditor::saveAndClose()
    if( mashObs == 0 )
       return;
 
-   mashObs->setEquipAdjust( true ); // BeerXML won't like me, but it's just stupid not to adjust for the equipment when you're able.
+   // using toSI aon the spargePh is something of a cheat, but the btLineEdit
+   // class will do the right thing. That is how a plan comes together.
 
+   mashObs->setEquipAdjust( true ); // BeerXML won't like me, but it's just stupid not to adjust for the equipment when you're able.
    mashObs->setName( lineEdit_name->text() );
    mashObs->setGrainTemp_c(lineEdit_grainTemp->toSI());
    mashObs->setSpargeTemp_c(lineEdit_spargeTemp->toSI());
-   mashObs->setPh(lineEdit_spargePh->text().toDouble());
+   mashObs->setPh(lineEdit_spargePh->toSI()); 
    mashObs->setTunTemp_c(lineEdit_tunTemp->toSI());
    mashObs->setTunWeight_kg(lineEdit_tunMass->toSI());
    mashObs->setTunSpecificHeat_calGC(lineEdit_tunSpHeat->toSI());
@@ -244,6 +246,11 @@ void NamedMashEditor::removeMashStep()
 void NamedMashEditor::moveMashStepUp()
 {
    QModelIndexList selected = mashStepTableWidget->selectionModel()->selectedIndexes();
+   if (selected.isEmpty())
+   {  //nothing selected
+      return;
+   }
+
    int row = selected[0].row();
 
    if ( ! justOne(selected) || row < 1)
@@ -257,6 +264,11 @@ void NamedMashEditor::moveMashStepUp()
 void NamedMashEditor::moveMashStepDown()
 {
    QModelIndexList selected = mashStepTableWidget->selectionModel()->selectedIndexes();
+   if (selected.isEmpty())
+   {  //nothing selected
+      return;
+   }
+
    int row = selected[0].row();
 
    if ( ! justOne(selected) || row >= mashStepTableModel->rowCount()-1 )

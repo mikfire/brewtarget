@@ -1,6 +1,6 @@
 /*
  * SIWeightUnitSystem.cpp is part of Brewtarget, and is Copyright the following
- * authors 2009-2014
+ * authors 2009-2015
  * - Mik Firestone <mikfire@gmail.com>
  * - Philip Greggory Lee <rocketman768@gmail.com>
  *
@@ -26,26 +26,39 @@
 SIWeightUnitSystem::SIWeightUnitSystem()
    : UnitSystem()
 {
-   _type = Mass;
+   _type = Unit::Mass;
 }
 
-void SIWeightUnitSystem::loadMap()
+QMap<Unit::unitScale, Unit*> const& SIWeightUnitSystem::scaleToUnit()
 {
-   scaleToUnit.insert(scaleExtraSmall,Units::milligrams);
-   scaleToUnit.insert(scaleSmall, Units::grams);
-   scaleToUnit.insert(scaleMedium, Units::kilograms);
+   static QMap<Unit::unitScale, Unit*> _scaleToUnit;
+   if( _scaleToUnit.empty() )
+   {
+      _scaleToUnit.insert(Unit::scaleExtraSmall,Units::milligrams);
+      _scaleToUnit.insert(Unit::scaleSmall, Units::grams);
+      _scaleToUnit.insert(Unit::scaleMedium, Units::kilograms);
+   }
+
+   return _scaleToUnit;
 }
 
-void SIWeightUnitSystem::loadUnitmap()
+QMap<QString, Unit*> const& SIWeightUnitSystem::qstringToUnit()
 {
-   qstringToUnit.insert("mg", Units::milligrams);
-   qstringToUnit.insert( "g", Units::grams);
-   qstringToUnit.insert("kg", Units::kilograms);
+   static QMap<QString, Unit*> _qstringToUnit;
+   if( _qstringToUnit.empty() )
+   {
+      _qstringToUnit.insert("mg", Units::milligrams);
+      _qstringToUnit.insert( "g", Units::grams);
+      _qstringToUnit.insert("kg", Units::kilograms);
+   }
+
+   return _qstringToUnit;
 }
+
 Unit* SIWeightUnitSystem::thicknessUnit()
 {
    return Units::kilograms;
 }
 
-Unit* SIWeightUnitSystem::unit() { return Units::grams; };
+Unit* SIWeightUnitSystem::unit() { return Units::kilograms; }
 QString SIWeightUnitSystem::unitType() { return "SI"; }

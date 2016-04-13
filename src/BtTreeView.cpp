@@ -25,6 +25,8 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QInputDialog>
+
 #include "BtTreeView.h"
 #include "BtTreeModel.h"
 #include "BtTreeFilterProxyModel.h"
@@ -37,6 +39,12 @@
 #include "yeast.h"
 #include "brewnote.h"
 #include "style.h"
+#include "FermentableDialog.h"
+#include "EquipmentEditor.h"
+#include "HopDialog.h"
+#include "MiscDialog.h"
+#include "StyleEditor.h"
+#include "YeastDialog.h"
 
 BtTreeView::BtTreeView(QWidget *parent, BtTreeModel::TypeMasks type) :
    QTreeView(parent)
@@ -323,16 +331,54 @@ bool BtTreeView::multiSelected()
    return hasRecipe && hasSomethingElse;
 }
 
+void BtTreeView::newIngredient() {
+
+   QString folder;
+   QModelIndexList indexes = selectionModel()->selectedRows();
+   // This is a little weird. There is an edge case where nothing is
+   // selected and you click the big blue + button.
+   if ( indexes.size() > 0 )
+      folder = folderName(indexes.at(0));
+
+   switch(_type) {
+      case BtTreeModel::EQUIPMASK:
+         qobject_cast<EquipmentEditor*>(_editor)->newEquipment(folder);
+         break;
+      case BtTreeModel::FERMENTMASK:
+         qobject_cast<FermentableDialog*>(_editor)->newFermentable(folder);
+         break;
+      case BtTreeModel::HOPMASK:
+         qobject_cast<HopDialog*>(_editor)->newHop(folder);
+         break;
+      case BtTreeModel::MISCMASK:
+         qobject_cast<MiscDialog*>(_editor)->newMisc(folder);
+         break;
+      case BtTreeModel::STYLEMASK:
+         qobject_cast<StyleEditor*>(_editor)->newStyle(folder);
+         break;
+      case BtTreeModel::YEASTMASK:
+         qobject_cast<YeastDialog*>(_editor)->newYeast(folder);
+         break;
+      default:
+         Brewtarget::logW(QString("BtTreeView::setupContextMenu unrecognized mask %1").arg(_type));
+   }
+
+}
+
 void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 {
-   QMenu*_newMenu = new QMenu(this);
+   QMenu* _newMenu = new QMenu(this);
+   QMenu* _exportMenu = new QMenu(this);
 
    _contextMenu = new QMenu(this);
    subMenu = new QMenu(this);
 
+   _editor = editor;
+
    _newMenu->setTitle(tr("New"));
    _contextMenu->addMenu(_newMenu);
    _contextMenu->addSeparator();
+
    switch(_type) 
    {
       // the recipe case is a bit more complex, because we need to handle the brewnotes too
@@ -349,22 +395,22 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 
          break;
       case BtTreeModel::EQUIPMASK:
-         _newMenu->addAction(tr("Equipment"), editor, SLOT(newEquipment()));
+         _newMenu->addAction(tr("Equipment"), this, SLOT(newIngredient()));
          break;
       case BtTreeModel::FERMENTMASK:
-         _newMenu->addAction(tr("Fermentable"), editor, SLOT(newFermentable()));
+         _newMenu->addAction(tr("Fermentable"), this, SLOT(newIngredient()));
          break;
       case BtTreeModel::HOPMASK:
-         _newMenu->addAction(tr("Hop"), editor, SLOT(newHop()));
+         _newMenu->addAction(tr("Hop"), this, SLOT(newIngredient()));
          break;
       case BtTreeModel::MISCMASK:
-         _newMenu->addAction(tr("Misc"), editor, SLOT(newMisc()));
+         _newMenu->addAction(tr("Misc"), this, SLOT(newIngredient()));
          break;
       case BtTreeModel::STYLEMASK:
-         _newMenu->addAction(tr("Style"), editor, SLOT(newStyle()));
+         _newMenu->addAction(tr("Style"), this, SLOT(newIngredient()));
          break;
       case BtTreeModel::YEASTMASK:
-         _newMenu->addAction(tr("Yeast"), editor, SLOT(newYeast()));
+         _newMenu->addAction(tr("Yeast"), this, SLOT(newIngredient()));
          break;
       default:
          Brewtarget::logW(QString("BtTreeView::setupContextMenu unrecognized mask %1").arg(_type));
@@ -377,7 +423,10 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
    _contextMenu->addAction(tr("Delete"), top, SLOT(deleteSelected()));
    // export and import
    _contextMenu->addSeparator();
-   _contextMenu->addAction(tr("Export"), top, SLOT(exportSelected()));
+   _exportMenu->setTitle(tr("Export"));
+   _exportMenu->addAction(tr("To XML"), top, SLOT(exportSelected()));
+   _exportMenu->addAction(tr("To HTML"), top, SLOT(exportSelectedHtml()));
+   _contextMenu->addMenu(_exportMenu);
    _contextMenu->addAction(tr("Import"), top, SLOT(importFiles()));
    
 }
@@ -388,6 +437,87 @@ QMenu* BtTreeView::contextMenu(QModelIndex selected)
       return subMenu;
 
    return _contextMenu;
+}
+
+QString BtTreeView::verifyCopy(QString tag, QString name, bool *abort)
+{
+   QInputDialog askEm;
+
+   // Gotta build this hard, so we can say "cancel all"
+   askEm.setCancelButtonText( tr("Cancel All") );
+   askEm.setWindowTitle( tr("Copy %1").arg(tag) );
+   askEm.setLabelText(tr("Enter a unique name for the copy of %1.").arg(name));
+   askEm.setToolTip(tr("An empty name will skip copying this %1.").arg(tag));
+
+   if ( askEm.exec() == QDialog::Accepted )
+   {
+      if ( abort )
+         *abort = false;
+
+      name = askEm.textValue();
+   }
+   else 
+   {
+      if ( abort )
+         *abort = true;
+   }
+
+   return name;
+}
+
+void BtTreeView::copySelected(QModelIndexList selected)
+{
+   QList< QPair<QModelIndex, QString> > names;
+   QString newName;
+   QModelIndexList translated;
+   bool abort = false;
+
+   // Time to lay down the boogie 
+   foreach( QModelIndex at, selected )
+   {
+      // If somebody said cancel, bug out
+      if ( abort == true )
+         return;
+
+      // First, we should translate from proxy to model, because I need this index a lot.
+      QModelIndex trans = filter->mapToSource(at);
+
+      // You can't delete the root element
+      if ( trans == findElement(0) )
+         continue;
+
+      // Otherwise prompt
+      switch(_model->type(trans))
+      {
+         case BtTreeItem::EQUIPMENT:
+            newName = verifyCopy(tr("Equipment"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::FERMENTABLE:
+            newName = verifyCopy(tr("Fermentable"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::HOP:
+            newName = verifyCopy(tr("Hop"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::MISC:
+            newName = verifyCopy(tr("Misc"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::RECIPE:
+            newName = verifyCopy(tr("Recipe"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::STYLE:
+            newName = verifyCopy(tr("Style"),_model->name(trans), &abort);
+            break;
+         case BtTreeItem::YEAST:
+            newName = verifyCopy(tr("Yeast"),_model->name(trans), &abort);
+            break;
+         default:
+            Brewtarget::logW( QString("BtTreeView::copySelected Unknown type: %1").arg(_model->type(trans)));
+      }
+      if ( !abort && !newName.isEmpty() )
+         names.append(qMakePair(trans,newName));
+   }
+   // If we get here, call the model to do the copy
+   _model->copySelected(names);
 }
 
 int BtTreeView::verifyDelete(int confirmDelete, QString tag, QString name)
@@ -463,7 +593,7 @@ void BtTreeView::deleteSelected(QModelIndexList selected)
             confirmDelete = verifyDelete(confirmDelete,tr("Folder"),_model->name(trans));
             break;
          default:
-            Brewtarget::logW( QString("MainWindow::deleteSelected Unknown type: %1").arg(_model->type(trans)));
+            Brewtarget::logW( QString("BtTreeView::deleteSelected Unknown type: %1").arg(_model->type(trans)));
       }
       // If they selected "Yes" or "Yes To All", push and loop
       if ( confirmDelete == QMessageBox::Yes || confirmDelete == QMessageBox::YesToAll )

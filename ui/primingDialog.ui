@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>443</width>
-    <height>250</height>
+    <width>569</width>
+    <height>260</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>80</width>
+            <width>128</width>
             <height>16777215</height>
            </size>
           </property>
@@ -80,7 +80,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>80</width>
+            <width>128</width>
             <height>16777215</height>
            </size>
           </property>
@@ -112,7 +112,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>80</width>
+            <width>128</width>
             <height>16777215</height>
            </size>
           </property>
@@ -124,28 +124,28 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_glucMono">
+       <widget class="QRadioButton" name="radioButton_glucMono">
         <property name="text">
          <string>Glucose Monohydrate (corn sugar)</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_gluc">
+       <widget class="QRadioButton" name="radioButton_gluc">
         <property name="text">
          <string>Anhydrous Glucose</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_sucrose">
+       <widget class="QRadioButton" name="radioButton_sucrose">
         <property name="text">
          <string>Sucrose (table sugar)</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_dme">
+       <widget class="QRadioButton" name="radioButton_dme">
         <property name="text">
          <string>Dry Malt Extract</string>
         </property>
@@ -201,7 +201,7 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>120</width>
+            <width>128</width>
             <height>16777215</height>
            </size>
           </property>
@@ -254,11 +254,16 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>BtGenericEdit</class>
+   <extends>QLineEdit</extends>
+   <header>BtLineEdit.h</header>
+  </customwidget>
+  <customwidget>
    <class>BtTemperatureEdit</class>
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
    <slots>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -266,7 +271,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -274,7 +279,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -282,7 +287,7 @@
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
    <slots>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -290,7 +295,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
     <slot>popContextMenu(QPoint)</slot>
    </slots>
   </customwidget>
@@ -301,23 +306,18 @@
    <slots>
     <signal>textModified()</signal>
     <slot>lineChanged()</slot>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>BtGenericEdit</class>
-   <extends>QLineEdit</extends>
-   <header>BtLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>lineEdit_beerVol</tabstop>
   <tabstop>lineEdit_temp</tabstop>
   <tabstop>lineEdit_vols</tabstop>
-  <tabstop>checkBox_glucMono</tabstop>
-  <tabstop>checkBox_gluc</tabstop>
-  <tabstop>checkBox_sucrose</tabstop>
-  <tabstop>checkBox_dme</tabstop>
+  <tabstop>radioButton_glucMono</tabstop>
+  <tabstop>radioButton_gluc</tabstop>
+  <tabstop>radioButton_sucrose</tabstop>
+  <tabstop>radioButton_dme</tabstop>
   <tabstop>lineEdit_output</tabstop>
   <tabstop>pushButton_calculate</tabstop>
  </tabstops>
@@ -325,9 +325,9 @@
  <connections>
   <connection>
    <sender>label_beerVol</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_beerVol</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>68</x>
@@ -341,9 +341,9 @@
   </connection>
   <connection>
    <sender>label_temp</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_temp</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>80</x>
@@ -357,9 +357,9 @@
   </connection>
   <connection>
    <sender>label_output</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_output</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>258</x>

@@ -117,6 +117,7 @@ public:
    void setupContextMenu(QWidget* top, QWidget* editor );
 
    void deleteSelected(QModelIndexList selected);
+   void copySelected(QModelIndexList selected);
    // Friend classes. For the most part, the children don't do much beyond
    // contructors and context menus. So far :/
    friend class RecipeTreeView;
@@ -127,6 +128,9 @@ public:
    friend class YeastTreeView;
    friend class StyleTreeView;
 
+public slots:
+   void newIngredient();
+
 private slots:
    void expandFolder(BtTreeModel::TypeMasks kindaThing, QModelIndex fIdx);
 
@@ -136,10 +140,12 @@ private:
    BtTreeModel::TypeMasks _type;
    QMenu* _contextMenu, *subMenu;
    QPoint dragStart;
+   QWidget* _editor;
 
    bool doubleClick;
 
    int verifyDelete(int confirmDelete, QString tag, QString name);
+   QString verifyCopy(QString tag, QString name, bool *abort);
    QMimeData *mimeData(QModelIndexList indexes);
 };
 

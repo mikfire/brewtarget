@@ -45,6 +45,7 @@ extern void qt_set_sequence_auto_mnemonic(bool b);
 #include <QMetaProperty>
 #include <QList>
 #include "UnitSystem.h"
+#include "Log.h"
 
 class BeerXMLElement;
 class MainWindow;
@@ -61,6 +62,7 @@ Q_DECLARE_METATYPE( QMetaProperty )
 class Brewtarget : public QObject
 {
    Q_OBJECT
+   Q_ENUMS(DBTypes)
 
    friend class OptionDialog;
    friend class IbuMethods;
@@ -74,13 +76,6 @@ class Brewtarget : public QObject
 public:
    Brewtarget();
 
-   //! \brief The log level of a message.
-   enum LogType{
-          //! Just a warning.
-          LogType_WARNING,
-          //! Full-blown error.
-          LogType_ERROR
-   };
    //! \brief The formula used to get beer color.
    enum ColorType {MOSHER, DANIEL, MOREY};
    //! \brief The units to display color in.
@@ -88,7 +83,7 @@ public:
    //! \brief Units for density
    enum DensityUnitType {SG,PLATO};
    //! \brief The formula used to get IBUs.
-   enum IbuType {TINSETH, RAGER};
+   enum IbuType {TINSETH, RAGER, NOONAN};
    //! \brief Controls how units and scales are stored in the options file
    enum iUnitOps {
       NOOP = -1 ,
@@ -102,66 +97,92 @@ public:
    };
 
    //! \brief The database tables.
+   //! \brief You know. I need all the db tables, and I need them in a
+   //  specific order. I need these constants defined in the EXACT order the
+   //  tables are created by DatabaseSchemaHelper::create. Do not modify this
+   //  unless you understand the relationship and fix all sides
    enum DBTable{
       //! None of the tables. 0
       NOTABLE,
-      //! In the BrewNote table. 1
-      BREWNOTETABLE,
-      //! In the Equipment table. 2
+      // Meta tables first
+      BTALLTABLE,
+      SETTINGTABLE,
+
+      // BeerXML tables next
       EQUIPTABLE,
-      //! In the Fermentable table. 3
       FERMTABLE,
-      //! In the Hop table. 4
       HOPTABLE,
-      //! In the Instruction table. 5
-      INSTRUCTIONTABLE,
-      //! In the MashStep table. 6
-      MASHSTEPTABLE,
-      //! In the Mash table. 7
-      MASHTABLE,
-      //! In the Misc table. 8
       MISCTABLE,
-      //! In the Recipe table. 9
-      RECTABLE,
-      //! In the Style table. 10
       STYLETABLE,
-      //! In the Water table. 11
-      WATERTABLE,
-      //! In the Yeast table. 12
       YEASTTABLE,
+      WATERTABLE,
+      MASHTABLE,
+      MASHSTEPTABLE,
+      RECTABLE,
+      BREWNOTETABLE,
+      INSTRUCTIONTABLE,
 
-     //! In the Fermentable Inventory table. 13
-      FERMINVTABLE,
-      //! In the Hop Inventory table. 14
-      HOPINVTABLE,
-      //! In the Misc Inventory table. 15
-      MISCINVTABLE,
-     //! In the Yeast Inventory table. 16
-      YEASTINVTABLE,
+      // then the bt_* tables
+      BT_EQUIPTABLE,
+      BT_FERMTABLE,
+      BT_HOPTABLE,
+      BT_MISCTABLE,
+      BT_STYLETABLE,
+      BT_YEASTTABLE,
+      BT_WATERTABLE,
 
-      //! In the Fermentable Parent Child Relationship table. 17
+      // then the *_in_recipe tables
+      FERMINRECTABLE,
+      HOPINRECTABLE,
+      MISCINRECTABLE,
+      WATERINRECTABLE,
+      YEASTINRECTABLE,
+      INSTINRECTABLE,
+
+      // then the child tables
+      EQUIPCHILDTABLE,
       FERMCHILDTABLE,
-      //! In the Hop Parent Child Relationship table. 18
       HOPCHILDTABLE,
-      //! In the Misc Parent Child Relationship table. 19
       MISCCHILDTABLE,
-     //! In the Yeast Parent Child Relationship table. 20
-      YEASTCHILDTABLE
+      RECIPECHILDTABLE,
+      STYLECHILDTABLE,
+      WATERCHILDTABLE,
+      YEASTCHILDTABLE,
 
+      // finally the inventory tables
+      FERMINVTABLE,
+      HOPINVTABLE,
+      MISCINVTABLE,
+      YEASTINVTABLE
+   };
+
+   //! \brief Supported databases. I am not 100% sure I'm digging this
+   //  solution, but this is more extensible than what I was doing previously
+   enum DBTypes {
+      NODB = -1,  // seems a popular choice with the cool enums
+      SQLITE,     // compact, fast and a little loose
+      PGSQL       // big, powerful, uptight and a little stodgy
    };
 
    //! \return the data directory
-   static QString getDataDir();
+   static QDir getDataDir();
    //! \return the doc directory
-   static QString getDocDir();
+   static QDir getDocDir();
    //! \return the config directory
-   static QString getConfigDir(bool* success = 0);
+   static const QDir getConfigDir();
    //! \return user-specified directory where the database files reside.
-   static QString getUserDataDir();
-   //! \brief Blocking call that starts the application.
-   static int run();
-   //! \brief Log a message.
-   static void log( LogType lt, QString message );
+   static QDir getUserDataDir();
+   /*!
+    * \brief Blocking call that executes the application.
+    * \param userDirectory If !isEmpty, overwrites the current settings.
+    * \return Exit code from the application.
+    */
+   static int run(const QString &userDirectory = QString());
+
+   static double toDouble(QString text, bool* ok = 0);
+   static double toDouble(const BeerXMLElement* element, QString attribute, QString caller);
+   static double toDouble(QString text, QString caller);
+
    //! \brief Log an error message.
    static void logE( QString message );
    //! \brief Log a warning message.
@@ -173,17 +194,32 @@ public:
     *  \param amount the amount to display
     *  \param units the units that \c amount is in
     *  \param precision how many decimal places
+    *  \param unitDisplay which unit system to use, defaulting to "noUnit" which means use the system default
+    *  \param Unit::unitScale which scale to use, defaulting to Unit::noScale which means use the largest scale that generates a value > 1
     */
    static QString displayAmount( double amount, Unit* units=0, int precision=3,
-                                 unitDisplay displayUnit = noUnit, unitScale displayScale = noScale );
+                                 Unit::unitDisplay displayUnit = Unit::noUnit, Unit::unitScale displayScale = Unit::noScale );
    /*!
     * \brief Displays an amount in the appropriate units.
     *
     * \param element Element whose amount we wish to display
-    * \param attribute the \c QObject::property of \c element that returns the
-    *        amount we wish to display
+    * \param object the GUI object doing the display, used to access configured unit&scale
+    * \param attribute the name of the attribute to display
+    * \param units which unit system it is in
+    * \param precision how many decimal places to use, defaulting to 3
     */
    static QString displayAmount( BeerXMLElement* element, QObject* object, QString attribute, Unit* units=0, int precision=3 );
+
+   /*!
+    * \brief Displays an amount in the appropriate units.
+    *
+    * \param amount the amount to display
+    * \param section the name of the object to reference to get units&scales from the config file
+    * \param attribute the attribute name to complete the lookup for units&scales
+    * \param units which unit system it is in
+    * \param precision how many decimal places to use, defaulting to 3
+    */
+   static QString displayAmount( double amount, QString section, QString attribute, Unit* units=0, int precision = 3);
 
    /*!
     *  \brief Displays an amount in the appropriate units.
@@ -193,7 +229,7 @@ public:
     *  \param precision how many decimal places
     */
    static double amountDisplay( double amount, Unit* units=0, int precision=3,
-                                 unitDisplay displayUnit = noUnit, unitScale displayScale = noScale );
+                                 Unit::unitDisplay displayUnit = Unit::noUnit, Unit::unitScale displayScale = Unit::noScale );
    /*!
     * \brief Displays an amount in the appropriate units.
     *
@@ -205,6 +241,8 @@ public:
 
    //! \brief Display date formatted for the locale.
    static QString displayDate( QDate const& date );
+   //! \brief Display date formatted based on the user defined options.
+   static QString displayDateUserFormated(QDate const &date);
    //! \brief Displays thickness in appropriate units from standard thickness in L/kg.
    static QString displayThickness( double thick_lkg, bool showUnits=true );
    //! \brief Appropriate thickness units will be placed in \c *volumeUnit and \c *weightUnit.
@@ -214,7 +252,8 @@ public:
    static QPair<double,double> displayRange(QObject *object, QString attribute, double min, double max, RangeType _type = DENSITY);
 
    //! \return SI amount for the string
-   static double qStringToSI( QString qstr, Unit* unit, unitDisplay dispUnit = noUnit, bool force = false);
+   static double qStringToSI( QString qstr, Unit* unit, 
+         Unit::unitDisplay dispUnit = Unit::noUnit, Unit::unitScale dispScale = Unit::noScale);
 
    //! \brief return the bitterness formula's name
    static QString ibuFormulaName();
@@ -222,17 +261,19 @@ public:
    static QString colorFormulaName();
 
    // One method to rule them all, and in darkness bind them
-   static UnitSystem* findUnitSystem(Unit* unit, unitDisplay display);
-   static QString colorUnitName(unitDisplay display);
+   static UnitSystem* findUnitSystem(Unit* unit, Unit::unitDisplay display);
+   static QString colorUnitName(Unit::unitDisplay display);
 
    //! \return true iff the string has a valid unit substring at the end.
    static bool hasUnits(QString qstr);
 
    // You do know I will have to kill these too?
    //! \return the density units
-   static unitDisplay getDensityUnit();
+   static Unit::unitDisplay getDensityUnit();
    //! \return the date format
-   static unitDisplay getDateFormat();
+   static Unit::unitDisplay getDateFormat();
+   //! \return the volume system
+   static iUnitSystem getVolumeUnitSystem();
 
    //! \brief Read options from file. This is deprecated, but we need it
    // around for the conversion
@@ -271,14 +312,28 @@ public:
    static QString generateName(QString attribute, const QString section, iUnitOps ops);
 
    // Grr. Shortcuts never, ever pay  off
-   static QMenu* setupColorMenu(QWidget* parent, unitDisplay unit);
-   static QMenu* setupDateMenu(QWidget* parent, unitDisplay unit);
-   static QMenu* setupDensityMenu(QWidget* parent, unitDisplay unit);
-   static QMenu* setupMassMenu(QWidget* parent, unitDisplay unit, unitScale scale = noScale, bool generateScale = true);
-   static QMenu* setupTemperatureMenu(QWidget* parent, unitDisplay unit);
-   static QMenu* setupVolumeMenu(QWidget* parent, unitDisplay unit, unitScale scale = noScale, bool generateScale = true);
-   static QMenu* setupTimeMenu(QWidget* parent, unitScale scale);
+   static QMenu* setupColorMenu(QWidget* parent, Unit::unitDisplay unit);
+   static QMenu* setupDateMenu(QWidget* parent, Unit::unitDisplay unit);
+   static QMenu* setupDensityMenu(QWidget* parent, Unit::unitDisplay unit);
+   static QMenu* setupMassMenu(QWidget* parent, Unit::unitDisplay unit, Unit::unitScale scale = Unit::noScale, bool generateScale = true);
+   static QMenu* setupTemperatureMenu(QWidget* parent, Unit::unitDisplay unit);
+   static QMenu* setupVolumeMenu(QWidget* parent, Unit::unitDisplay unit, Unit::unitScale scale = Unit::noScale, bool generateScale = true);
+   static QMenu* setupTimeMenu(QWidget* parent, Unit::unitScale scale);
    static void generateAction(QMenu* menu, QString text, QVariant data, QVariant currentVal, QActionGroup* qgrp = 0);
+
+   /*! 
+    * \brief If we are supporting multiple databases, we need some way to
+    * figure out which database we are using. I still don't know that this
+    * will be the final implementation -- I can't help but think I should be
+    * subclassing something
+    */
+   static Brewtarget::DBTypes dbType();
+   /*!
+    * \brief Different databases use different values for true and false.
+    * These two methods handle that difference, in a marginally extensible way
+    */
+   static QString dbTrue(Brewtarget::DBTypes whichDb = Brewtarget::NODB);
+   static QString dbFalse(Brewtarget::DBTypes whichDb = Brewtarget::NODB);
 
    //! \return the main window.
    static MainWindow* mainWindow();
@@ -288,12 +343,14 @@ private:
    static QDomDocument* optionsDoc;
    static QTranslator* defaultTrans;
    static QTranslator* btTrans;
-   static QFile* logFile;
-   static QTextStream* logStream;
+   //! \brief OS-Agnostic RAII style Thread-safe Log file.
+   static Log log;
    static QString currentLanguage;
    static QSettings btSettings;
    static bool userDatabaseDidNotExist;
    static QFile pidFile;
+
+   static DBTypes _dbType;
 
    //! \brief If this option is false, do not bother the user about new versions.
    static bool checkVersion;
@@ -304,11 +361,10 @@ private:
    static QDateTime lastDbMergeRequest;
 
    //! \brief Where the user says the database files are
-   static QString userDataDir;
+   static QDir userDataDir;
 
    // Options to be edited ONLY by the OptionDialog============================
    // Whether or not to display plato instead of SG.
-//   static bool usePlato;
 
    static iUnitSystem weightUnitSystem;
    static iUnitSystem volumeUnitSystem;
@@ -322,7 +378,7 @@ private:
    static ColorUnitType colorUnit;
    static DensityUnitType densityUnit;
    static IbuType ibuFormula;
-   static unitDisplay dateFormat;
+   static Unit::unitDisplay dateFormat;
    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
    /*!
@@ -334,11 +390,19 @@ private:
     *
     * \returns false if anything goes awry, true if it's ok to start MainWindow
     */
-   static bool initialize();
+   static bool initialize(const QString &userDirectory = QString());
    /*!
     * \brief Run after QApplication exits to clean up shit, close database, etc.
     */
    static void cleanup();
+
+
+   /*!
+    * \brief Checks if another instance is already running.
+    *
+    * Currently only works on Unix systems.
+    */
+   static bool instanceRunning();
 
    /*!
     *  \brief Helper to get option values from XML.
@@ -354,12 +418,13 @@ private:
     *  \brief Copies the user xml files to another directory.
     *  \returns false iff the copy is unsuccessful.
     */
-   static bool copyDataFiles(QString newPath);
+   static bool copyDataFiles(const QDir newPath);
 
    //! \brief Ensure our directories exist.
    static bool ensureDirectoriesExist();
-   //! \brief Ensure the datafiles exist.
-   static bool ensureDataFilesExist();
+   //! \brief Create a directory if it doesn't exist, popping a error dialog if creation fails
+   static bool createDir(QDir dir, QString errText = NULL);
+
    //! \brief Load translation files.
    static void loadTranslations();
    //! \brief Checks for a newer version and prompts user to download.
@@ -369,12 +434,10 @@ private:
 
    //! \return the weight system
    static iUnitSystem getWeightUnitSystem();
-   //! \return the volume system
-   static iUnitSystem getVolumeUnitSystem();
    //! \return the temperature scale
    static TempScale getTemperatureScale();
    //! \return the color units
-   static unitDisplay getColorUnit();
+   static Unit::unitDisplay getColorUnit();
 };
 
 Q_DECLARE_METATYPE( Brewtarget::DBTable )

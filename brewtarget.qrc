@@ -15,6 +15,7 @@
         <file alias="images/edit-copy.png">images/edit-copy.png</file>
         <file alias="images/exit.svg">images/exit.svg</file>
         <file alias="images/filesave.svg">images/filesave.svg</file>
+        <file alias="images/filesavedirty.svg">images/filesavedirty.svg</file>
         <file alias="images/flagBrazil.svg">images/flagBrazil.svg</file>
         <file alias="images/flagCatalonia.svg">images/flagCatalonia.svg</file>
         <file alias="images/flagChina.svg">images/flagChina.svg</file>
@@ -61,5 +62,7 @@
         <file alias="css/brewday.css">css/brewday.css</file>
         <file alias="css/recipe.css">css/recipe.css</file>
         <file alias="css/tooltip.css">css/tooltip.css</file>
+        <file>images/alarm_stop.png</file>
+        <file>images/sound.png</file>
     </qresource>
 </RCC>

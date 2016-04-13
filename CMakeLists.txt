@@ -13,11 +13,38 @@ ELSE()
 ENDIF()
 
 # Where the binary goes.
-SET(brewtarget_EXECUTABLE "brewtarget")
+IF( APPLE )
+   # Use capital letters. Don't question the APPLE.
+   SET(brewtarget_EXECUTABLE "Brewtarget")
+ELSE()
+   SET(brewtarget_EXECUTABLE "brewtarget")
+ENDIF()
+
+#=============================Installation Components==========================
+
+# For architecture-independent data
+SET( DATA_INSTALL_COMPONENT "Data" )
+# For architecture-dependent binaries
+SET( RUNTIME_INSTALL_COMPONENT "Runtime" )
+
+# `make install-data` or `make install-runtime`
+ADD_CUSTOM_TARGET(
+   install-data
+   COMMAND "${CMAKE_COMMAND}"
+           -DCOMPONENT=${DATA_INSTALL_COMPONENT}
+           -P "${CMAKE_BINARY_DIR}/cmake_install.cmake"
+)
+ADD_CUSTOM_TARGET(
+   install-runtime
+   DEPENDS ${brewtarget_EXECUTABLE}
+   COMMAND "${CMAKE_COMMAND}"
+           -DCOMPONENT=${RUNTIME_INSTALL_COMPONENT}
+           -P "${CMAKE_BINARY_DIR}/cmake_install.cmake"
+)
 
 #=================================Version======================================
 SET( brewtarget_VERSION_MAJOR 2 )
-SET( brewtarget_VERSION_MINOR 2 )
+SET( brewtarget_VERSION_MINOR 4 )
 SET( brewtarget_VERSION_PATCH 0 )
 SET( brewtarget_VERSION_STRING "${brewtarget_VERSION_MAJOR}.${brewtarget_VERSION_MINOR}.${brewtarget_VERSION_PATCH}" )
 
@@ -31,9 +58,22 @@ OPTION( DO_RELEASE_BUILD
 OPTION( NO_MESSING_WITH_FLAGS
         "On means do not add any build flags whatsoever. May override other options."
         OFF )
+OPTION( NO_QTMULTIMEDIA
+        "On means QtMultimedia won't be linked to the final binary and related functionalities will be disabled."
+        OFF )
 
 # Do this right off the bat
 ENABLE_TESTING()
+
+#==============================Bundle Settings================================
+SET( MACOSX_BUNDLE_BUNDLE_NAME "Brewtarget" )
+#SET( MACOSX_BUNDLE_GUI_IDENTIFIER )
+#SET( MACOSX_BUNDLE_INFO_STRING )
+#SET( MACOSX_BUNDLE_BUNDLE_VERSION )
+#SET( MACOSX_BUNDLE_SHORT_VERSION_STRING )
+SET( MACOSX_BUNDLE_LONG_VERSION_STRING ${brewtarget_VERSION_STRING} )
+SET( MACOSX_BUNDLE_ICON_FILE "BrewtargetIcon.icns" )
+SET( MACOSX_BUNDLE_COPYRIGHT "GPLv3" )
 
 #==============================Compile flags===================================
 IF( NOT ${NO_MESSING_WITH_FLAGS} )
@@ -47,6 +87,10 @@ IF( NOT ${NO_MESSING_WITH_FLAGS} )
       SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -pipe" )
       SET( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pipe" )
    ENDIF()
+ENDIF()
+
+IF( ${NO_QTMULTIMEDIA} )
+   ADD_DEFINITIONS( -DNO_QTMULTIMEDIA )
 ENDIF()
 
 IF( ${DO_RELEASE_BUILD} )
@@ -87,69 +131,52 @@ ENDIF()
 
 #==================================Find Qt5====================================
 
+# The minimum QT5 version we need. Keep as low as necessary.
+SET(QT5_MIN_VERSION 5.3)
+
 # Automatically run moc on source files when necessary
 SET(CMAKE_AUTOMOC ON)
 # As moc files are generated in the binary dir, tell CMake
 # to always look for includes there:
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-FIND_PACKAGE(Qt5Core REQUIRED)
+FIND_PACKAGE(Qt5Core ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5Widgets REQUIRED)
+FIND_PACKAGE(Qt5Widgets ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5Network REQUIRED)
+FIND_PACKAGE(Qt5Network ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Network_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5PrintSupport REQUIRED)
+FIND_PACKAGE(Qt5PrintSupport ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5PrintSupport_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5Qml REQUIRED)
-INCLUDE_DIRECTORIES(${Qt5Qml_INCLUDE_DIRS})
-
-FIND_PACKAGE(Qt5Sql REQUIRED)
+FIND_PACKAGE(Qt5Sql ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Sql_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5WebKit REQUIRED)
-INCLUDE_DIRECTORIES(${Qt5WebKit_INCLUDE_DIRS})
+# This is required to make the deploy scripts pick up the svg plugins
+FIND_PACKAGE(Qt5Svg ${QT5_MIN_VERSION} REQUIRED)
+INCLUDE_DIRECTORIES(${Qt5Svg_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5WebKitWidgets REQUIRED)
-INCLUDE_DIRECTORIES(${Qt5WebKitWidgets_INCLUDE_DIRS})
-
-FIND_PACKAGE(Qt5Xml REQUIRED)
+FIND_PACKAGE(Qt5Xml ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Xml_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5Multimedia REQUIRED)
-INCLUDE_DIRECTORIES(${Qt5Multimedia_INCLUDE_DIRS})
+IF( NOT ${NO_QTMULTIMEDIA} )
+   FIND_PACKAGE(Qt5Multimedia ${QT5_MIN_VERSION} REQUIRED)
+   INCLUDE_DIRECTORIES(${Qt5Multimedia_INCLUDE_DIRS})
+ENDIF()
 
-FIND_PACKAGE(Qt5Test REQUIRED)
+FIND_PACKAGE(Qt5Test ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5Test_INCLUDE_DIRS})
 
-FIND_PACKAGE(Qt5LinguistTools REQUIRED)
+FIND_PACKAGE(Qt5LinguistTools ${QT5_MIN_VERSION} REQUIRED)
 INCLUDE_DIRECTORIES(${Qt5LinguistTools_INCLUDE_DIRS})
-
-# Need to find SVG component to locate svg dlls later
-IF(WIN32)
-   FIND_PACKAGE(Qt5Svg REQUIRED)
-ENDIF()
 
 # Fuckin Qt5 requires -fPIC if Qt5 itself was built with -fPIC
 IF(Qt5_POSITION_INDEPENDENT_CODE)
    SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
-
-#IF( ${BUILD_DESIGNER_PLUGINS} )
-#   FIND_PACKAGE(Qt4 4.6.0 COMPONENTS QtCore QtGui QtNetwork QtSql QtWebKit QtXml QtDesigner REQUIRED)
-#ELSE()
-#   # This is a major kludge, but linking with QtSvg is the easiest way to get
-#   # an app that includes the svg image format plugin that works.
-#   IF( APPLE )
-#      FIND_PACKAGE(Qt4 4.6.0 COMPONENTS QtCore QtGui QtNetwork QtSql QtWebkit QtXml QtSvg REQUIRED)
-#   ELSE()
-#      FIND_PACKAGE(Qt4 4.6.0 COMPONENTS QtCore QtGui QtNetwork QtSql QtWebkit QtXml REQUIRED)
-#   ENDIF()
-#ENDIF()
 
 MESSAGE( STATUS "CMAKE_SYSTEM_INCLUDE_PATH: ${CMAKE_SYSTEM_INCLUDE_PATH}" )
 
@@ -176,6 +203,20 @@ IF( DOXYGEN_CMD )
                      COMMAND ${DOXYGEN_CMD} ${DOXYFILE}
                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/doc"
                    )
+ENDIF()
+
+#=========================Changelog custom target==============================
+FIND_PROGRAM( GZIP_CMD gzip )
+IF( GZIP_CMD )
+   SET( CHANGELOG_UNCOMPRESSED "${CMAKE_CURRENT_SOURCE_DIR}/CHANGES.markdown" )
+   SET( CHANGELOG "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz" )
+   ADD_CUSTOM_COMMAND(
+      OUTPUT ${CHANGELOG}
+      COMMAND ${GZIP_CMD} -9 -n -c ${CHANGELOG_UNCOMPRESSED} > ${CHANGELOG}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      MAIN_DEPENDENCY ${CHANGELOG_UNCOMPRESSED}
+   )
+   ADD_CUSTOM_TARGET(changelog ALL DEPENDS ${CHANGELOG})
 ENDIF()
 
 #=========================Detect Debian======================================== 
@@ -225,14 +266,12 @@ ELSEIF( WIN32 )
   # the prefix needs to be empty. Also, seems that the .exe
   # needs to be in bin/. Fucking piece of shit CPack...
   # Can anybody shed some light on this situation?
-  SET( CMAKE_INSTALL_PREFIX "" )
+  #SET( CMAKE_INSTALL_PREFIX "" )
+  SET( CPACK_INSTALL_PREFIX "" )
   SET( DATAPATH "data" )
   SET( TARGETPATH "bin" )
   SET( DOCPATH "doc" )
 ELSEIF( APPLE )
-  SET( CMAKE_INSTALL_PREFIX "/" )
-  SET( BT_BUNDLE "brewtarget.app" )
-  SET( BT_BUNDLE_DIR "/Applications/${BT_BUNDLE}" )
   SET( DATAPATH "${BT_BUNDLE_DIR}/Contents/Resources" )
   SET( TARGETPATH "${BT_BUNDLE_DIR}/Contents/MacOS" )
   SET( DOCPATH  "${BT_BUNDLE_DIR}/Contents/Resources/en.lproj" )
@@ -274,7 +313,7 @@ SET( brewtarget_DATA
      ${DATADIR}/default_db.sqlite
 # Yes, I know this is 'documentation', but Debian policy suggests it should be
 # with the data (see section 12.3 of the policy manual).
-     ${ROOTDIR}/doc/brewtarget-manual.html
+     ${ROOTDIR}/doc/manual-en.pdf
 )
 
 # Desktop files to install.
@@ -294,15 +333,21 @@ SET( TRANSLATIONS_FILES
      ${TRANSLATIONSDIR}/bt_en.ts # English
      ${TRANSLATIONSDIR}/bt_el.ts # Greek
      ${TRANSLATIONSDIR}/bt_es.ts # Spanish
+     ${TRANSLATIONSDIR}/bt_et.ts # Estonian
+     ${TRANSLATIONSDIR}/bt_eu.ts # Basque
      ${TRANSLATIONSDIR}/bt_fr.ts # French
+     ${TRANSLATIONSDIR}/bt_gl.ts # Galician
      ${TRANSLATIONSDIR}/bt_nb.ts # Norwegian Bokmal
      ${TRANSLATIONSDIR}/bt_it.ts # Italian
+     ${TRANSLATIONSDIR}/bt_lv.ts # Latvian
      ${TRANSLATIONSDIR}/bt_nl.ts # Dutch
      ${TRANSLATIONSDIR}/bt_pl.ts # Polish
      ${TRANSLATIONSDIR}/bt_pt.ts # Portuguese
      ${TRANSLATIONSDIR}/bt_hu.ts # Hungarian
      ${TRANSLATIONSDIR}/bt_ru.ts # Russian
+     ${TRANSLATIONSDIR}/bt_sr.ts # Serbian
      ${TRANSLATIONSDIR}/bt_sv.ts # Swedish
+     ${TRANSLATIONSDIR}/bt_tr.ts # Turkish
      ${TRANSLATIONSDIR}/bt_zh.ts # Chinese
 )
 
@@ -348,36 +393,59 @@ SET( brewtarget_MAC_ICNS "${ROOTDIR}/mac/BrewtargetIcon.icns" )
 #==========================Find dlls for Win32=================================
 
 IF( WIN32 )
-   GET_TARGET_PROPERTY(QtCore_location Qt5::Core LOCATION)
-   GET_TARGET_PROPERTY(QtWidgets_location Qt5::Widgets LOCATION)
-   GET_TARGET_PROPERTY(QtNetwork_location Qt5::Network LOCATION)
-   GET_TARGET_PROPERTY(QtPrintSupport_location Qt5::PrintSupport LOCATION)
-   GET_TARGET_PROPERTY(QtQml_location Qt5::Qml LOCATION)
-   GET_TARGET_PROPERTY(QtSql_location Qt5::Sql LOCATION)
-   GET_TARGET_PROPERTY(QtXml_location Qt5::Xml LOCATION)
-   GET_TARGET_PROPERTY(QtWebKit_location Qt5::WebKit LOCATION)
+   IF( NOT ${NO_QTMULTIMEDIA} )
+   FIND_PACKAGE(Qt5MultimediaWidgets REQUIRED)
+   ENDIF()
+   FIND_PACKAGE(Qt5OpenGL REQUIRED)
 
-   GET_TARGET_PROPERTY(QtSqliteDriver_location Qt5::QSQLiteDriverPlugin LOCATION)
+   GET_TARGET_PROPERTY(QtCore_location Qt5::Core LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtGui_location Qt5::Gui LOCATION_${CMAKE_BUILD_TYPE})
+   IF( NOT ${NO_QTMULTIMEDIA} )
+   GET_TARGET_PROPERTY(QtMultimedia_location Qt5::Multimedia LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtMultimediaWidgets_location Qt5::MultimediaWidgets LOCATION_${CMAKE_BUILD_TYPE})
+   ENDIF()
+   GET_TARGET_PROPERTY(QtNetwork_location Qt5::Network LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtOpenGL_location Qt5::OpenGL LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtPrintSupport_location Qt5::PrintSupport LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtSql_location Qt5::Sql LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtSvg_location Qt5::Svg LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtWebKit_location Qt5::WebKit LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtWebKitWidgets_location Qt5::WebKitWidgets LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtWidgets_location Qt5::Widgets LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtXml_location Qt5::Xml LOCATION_${CMAKE_BUILD_TYPE})
 
-   GET_TARGET_PROPERTY(QtQgif_location Qt5::QGifPlugin LOCATION)
-   GET_TARGET_PROPERTY(QtQico_location Qt5::QICOPlugin LOCATION)
-   GET_TARGET_PROPERTY(QtQjpeg_location Qt5::QJpegPlugin LOCATION)
-   GET_TARGET_PROPERTY(QtQmng_location Qt5::QMngPlugin LOCATION)
-   GET_TARGET_PROPERTY(QtQsvg_location Qt5::QSvgPlugin LOCATION)
-   GET_TARGET_PROPERTY(QtQtiff_location Qt5::QTiffPlugin LOCATION)
+   GET_TARGET_PROPERTY(QtSqliteDriver_location Qt5::QSQLiteDriverPlugin LOCATION_${CMAKE_BUILD_TYPE})
 
-   GET_TARGET_PROPERTY(QtQsvgIcon_location Qt5::QSvgIconPlugin LOCATION)
+   GET_TARGET_PROPERTY(QtQgif_location Qt5::QGifPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQico_location Qt5::QICOPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQjpeg_location Qt5::QJpegPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQmng_location Qt5::QMngPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQsvg_location Qt5::QSvgPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQtiff_location Qt5::QTiffPlugin LOCATION_${CMAKE_BUILD_TYPE})
+   GET_TARGET_PROPERTY(QtQWindows_location Qt5::QWindowsIntegrationPlugin LOCATION_${CMAKE_BUILD_TYPE})
+
+   GET_TARGET_PROPERTY(QtQsvgIcon_location Qt5::QSvgIconPlugin LOCATION_${CMAKE_BUILD_TYPE})
 
    SET( Qt_DLLs
         ${QtCore_location}
         ${QtWidgets_location}
         ${QtNetwork_location}
         ${QtPrintSupport_location}
-        ${QtQml_location}
         ${QtSql_location}
+        ${QtSvg_location}
         ${QtXml_location}
         ${QtWebKit_location}
+        ${QtGui_location}
+        ${QtWebKitWidgets_location}
+        ${QtOpenGL_location}
    )
+   IF( NOT ${NO_QTMULTIMEDIA})
+      SET( Qt_DLLs
+        ${Qt_DLLs}
+        ${QtMultimedia_location}
+        ${QtMultimediaWidgets_location}
+   )
+   ENDIF()
    SET( SQL_Drivers_DLLs
         ${QtSqliteDriver_location}
    )
@@ -392,17 +460,27 @@ IF( WIN32 )
    SET( Icon_Engines_DLLs
         ${QtQsvgIcon_location}
    )
+   SET( Platform_DLLs
+      ${QtQWindows_location}
+   )
+
+   # This is ugly. UGLY.
+   FIND_PATH(QT5_BIN_DIR "qmake.exe")
+   FILE( GLOB IcuDlls
+        "${QT5_BIN_DIR}/ic*.dll"
+   )
+
    # Find extra MinGW-specific dlls.
    IF( MINGW )
       IF( NOT MINGW_BIN_DIR )
          FIND_PATH(MINGW_BIN_DIR "mingw32-make.exe")
       ENDIF()
-     
      IF( NOT EXISTS ${MINGW_BIN_DIR} )
-        MESSAGE( FATAL_ERROR "MinGW bin dir not found. Run cmake again with the option -DMINGW_BIN_DIR=c:/path/to/mingw" )
+        MESSAGE( FATAL_ERROR "MinGW bin dir not found. Run cmake again with the option -DMINGW_BIN_DIR=c:/path/to/mingw/bin" )
      ELSE()
         SET( Qt_DLLs
              ${Qt_DLLs}
+             ${IcuDlls}
              ${MINGW_BIN_DIR}/libgcc_s_dw2-1.dll
              ${MINGW_BIN_DIR}/libstdc++-6.dll
              ${MINGW_BIN_DIR}/libwinpthread-1.dll
@@ -505,8 +583,8 @@ IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
   #  SET( CPACK_BUNDLE_STARTUP_COMMAND "${brewtarget_EXECUTABLE}")
   #
   ELSEIF(APPLE)
-    SET( CPACK_GENERATOR "DragNDrop" )
-    SET( CPACK_DMG_FORMAT "UDBZ" )
+    #SET( CPACK_GENERATOR "DragNDrop" )
+    #SET( CPACK_DMG_FORMAT "UDBZ" )
   ENDIF()
 
  INCLUDE(CPack)
@@ -518,56 +596,55 @@ IF( NOT ${BUILD_DESIGNER_PLUGINS} )
 
    # Install the data.
    INSTALL( FILES ${brewtarget_DATA}
-            DESTINATION ${DATAPATH} )
-   INSTALL( DIRECTORY ${ROOTDIR}/doc/images
-            DESTINATION ${DATAPATH} )
+            DESTINATION ${DATAPATH}
+            COMPONENT ${DATA_INSTALL_COMPONENT} )
 
    # Install the documentation.
    INSTALL( FILES ${brewtarget_DOCS}
-            DESTINATION ${DOCPATH} )
+            DESTINATION ${DOCPATH}
+            COMPONENT ${DATA_INSTALL_COMPONENT} )
 
    # Install sounds.
    INSTALL( FILES ${brewtarget_SOUNDS}
-            DESTINATION "${DATAPATH}/sounds" )
+            DESTINATION "${DATAPATH}/sounds"
+            COMPONENT ${DATA_INSTALL_COMPONENT} )
 
    #-----------Unix-----------
    IF( UNIX AND NOT APPLE )
       # Install the icons.
       INSTALL( FILES ${brewtarget_ICONS}
-               DESTINATION "${DATAROOTDIR}/icons/hicolor/scalable/apps/" )
+               DESTINATION "${DATAROOTDIR}/icons/hicolor/scalable/apps/"
+               COMPONENT ${DATA_INSTALL_COMPONENT} )
 
       # Install the .desktop file.
       INSTALL( FILES ${brewtarget_DESKTOP}
-               DESTINATION "${DATAROOTDIR}/applications" )
+               DESTINATION "${DATAROOTDIR}/applications"
+               COMPONENT ${DATA_INSTALL_COMPONENT} )
+
+      # Install changelog
+      INSTALL( FILES ${CHANGELOG}
+               DESTINATION ${DOCPATH}
+               COMPONENT ${DATA_INSTALL_COMPONENT} )
    ENDIF()
 
    #--------Windows--------
    IF( WIN32 )
       INSTALL( FILES ${Qt_DLLs}
-               DESTINATION "bin" )
+               DESTINATION "bin"
+               COMPONENT ${RUNTIME_INSTALL_COMPONENT} )
       INSTALL( FILES ${SQL_Drivers_DLLs}
-               DESTINATION "bin/sqldrivers" )
+               DESTINATION "bin/sqldrivers"
+               COMPONENT ${RUNTIME_INSTALL_COMPONENT} )
       INSTALL( FILES ${Image_Formats_DLLs}
-               DESTINATION "bin/imageformats" )
+               DESTINATION "bin/imageformats"
+               COMPONENT ${RUNTIME_INSTALL_COMPONENT} )
       INSTALL( FILES ${Icon_Engines_DLLs}
-               DESTINATION "bin/iconengines" )
+               DESTINATION "bin/iconengines"
+               COMPONENT ${RUNTIME_INSTALL_COMPONENT} )
+      INSTALL( FILES ${Platform_DLLs}
+               DESTINATION "bin/platforms"
+               COMPONENT ${RUNTIME_INSTALL_COMPONENT})
    ENDIF()
-ENDIF()
-
-#---------Mac--------
-# http://pmarinc-tidylib.googlecode.com/hg/src/Sigil/CMakeLists.txt?r=8276c61e05bc385d5ffbcc58e1f007f84b0c52df
-IF( APPLE )
-   # Info.plist
-   INSTALL( FILES ${brewtarget_INFO_PLIST}
-            DESTINATION "${BT_BUNDLE_DIR}/Contents" )
-   # Icons
-   INSTALL( FILES ${brewtarget_MAC_ICNS}
-            DESTINATION ${DATAPATH} )
-
-   # make addframeworks should copy the Qt libraries to the app.
-   # May have to add a WORKING_DIRECTORY.
-   ADD_CUSTOM_TARGET( addframeworks ALL
-                      COMMAND ${QT_BINARY_DIR}/macdeployqt ${BT_BUNDLE_DIR} )
 ENDIF()
 
 # =====================Process other CMakeList.txt's===========================

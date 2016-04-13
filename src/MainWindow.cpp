@@ -91,7 +91,7 @@
 #include "OptionDialog.h"
 #include "OgAdjuster.h"
 #include "ConverterTool.h"
-#include "TimerListDialog.h"
+#include "TimerMainDialog.h"
 #include "RecipeFormatter.h"
 #include "PrimingDialog.h"
 #include "StrikeWaterDialog.h"
@@ -124,6 +124,15 @@ MainWindow::MainWindow(QWidget* parent)
 {
    // Need to call this to get all the widgets added (I think).
    setupUi(this);
+
+   /* PLEASE DO NOT REMOVE. 
+    This code is left here, commented out, intentionally. The only way I can
+    test internationalization is by forcing the locale manually. I am tired
+    of having to figure this out every time I need to test. 
+    PLEASE DO NOT REMOVE.
+   QLocale german(QLocale::German,QLocale::Germany);
+   QLocale::setDefault(german);
+   */
 
    // Ensure database initializes.
    Database::instance();
@@ -168,7 +177,7 @@ MainWindow::MainWindow(QWidget* parent)
    recipeFormatter = new RecipeFormatter(this);
    ogAdjuster = new OgAdjuster(this);
    converterTool = new ConverterTool(this);
-   timerListDialog = new TimerListDialog(this);
+   timerMainDialog = new TimerMainDialog(this);
    primingDialog = new PrimingDialog(this);
    strikeWaterDialog = new StrikeWaterDialog(this);
    refractoDialog = new RefractoDialog(this);
@@ -327,7 +336,7 @@ MainWindow::MainWindow(QWidget* parent)
    // Once more with the context menus too
    setupContextMenu();
 
-   // If we are on android, just maximaze the winder. Otherwise, try to find
+   // If we are on android, just maximize the winder. Otherwise, try to find
    // something useful.
 #if !defined(Q_OS_ANDROID)
    QDesktopWidget *desktop = QApplication::desktop();
@@ -364,6 +373,28 @@ MainWindow::MainWindow(QWidget* parent)
          setRecipe( recs[0] );
    }
 
+   //UI restore state
+   if (Brewtarget::hasOption("MainWindow/splitter_vertical_State"))
+      splitter_vertical->restoreState(Brewtarget::option("MainWindow/splitter_vertical_State").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/splitter_horizontal_State"))
+      splitter_horizontal->restoreState(Brewtarget::option("MainWindow/splitter_horizontal_State").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_recipe_headerState"))
+      treeView_recipe->header()->restoreState(Brewtarget::option("MainWindow/treeView_recipe_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_style_headerState"))
+      treeView_style->header()->restoreState(Brewtarget::option("MainWindow/treeView_style_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_equip_headerState"))
+      treeView_equip->header()->restoreState(Brewtarget::option("MainWindow/treeView_equip_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_ferm_headerState"))
+      treeView_ferm->header()->restoreState(Brewtarget::option("MainWindow/treeView_ferm_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_hops_headerState"))
+      treeView_hops->header()->restoreState(Brewtarget::option("MainWindow/treeView_hops_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_misc_headerState"))
+      treeView_misc->header()->restoreState(Brewtarget::option("MainWindow/treeView_misc_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/treeView_yeast_headerState"))
+      treeView_yeast->header()->restoreState(Brewtarget::option("MainWindow/treeView_yeast_headerState").toByteArray());
+   if (Brewtarget::hasOption("MainWindow/mashStepTableWidget_headerState"))
+      mashStepTableWidget->horizontalHeader()->restoreState(Brewtarget::option("MainWindow/mashStepTableWidget_headerState").toByteArray());
+
    // Connect signals.
    // actions
    connect( actionExit, SIGNAL( triggered() ), this, SLOT( close() ) );
@@ -384,25 +415,35 @@ MainWindow::MainWindow(QWidget* parent)
    connect( action_recipeToTextClipboard, SIGNAL( triggered() ), recipeFormatter, SLOT( toTextClipboard() ) );
    connect( actionConvert_Units, SIGNAL( triggered() ), converterTool, SLOT( show() ) );
    connect( actionOG_Correction_Help, SIGNAL( triggered() ), ogAdjuster, SLOT( show() ) );
-   connect( actionBackup_Database, SIGNAL( triggered() ), this, SLOT( backup() ) );
-   connect( actionRestore_Database, SIGNAL( triggered() ), this, SLOT( restoreFromBackup() ) );
    connect( actionCopy_Recipe, SIGNAL( triggered() ), this, SLOT( copyRecipe() ) );
    connect( actionPriming_Calculator, SIGNAL( triggered() ), primingDialog, SLOT( show() ) );
    connect( actionStrikeWater_Calculator, SIGNAL( triggered() ), strikeWaterDialog, SLOT( show() ) );
    connect( actionRefractometer_Tools, SIGNAL( triggered() ), refractoDialog, SLOT( show() ) );
    connect( actionPitch_Rate_Calculator, SIGNAL(triggered()), this, SLOT(showPitchDialog()));
    connect( actionMergeDatabases, SIGNAL(triggered()), this, SLOT(updateDatabase()) );
-   connect( actionTimers, SIGNAL(triggered()), timerListDialog, SLOT(show()) );
+   connect( actionTimers, SIGNAL(triggered()), timerMainDialog, SLOT(show()) );
    connect( actionDeleteSelected, SIGNAL(triggered()), this, SLOT(deleteSelected()) );
-   connect( actionSave, SIGNAL(triggered()), this, SLOT(save()) );
-   connect( actionDonate, SIGNAL( triggered() ), this, SLOT( openDonateLink() ) );
    connect( actionBrewIt, SIGNAL( triggered() ), this, SLOT( brewItHelper() ));
 
+   // postgresql cannot backup or restore yet. I would like to find some way
+   // around this, but for now just disable
+   if ( Brewtarget::dbType() == Brewtarget::PGSQL ) {
+      actionBackup_Database->setEnabled(false);
+      actionRestore_Database->setEnabled(false);
+      actionSave->setEnabled(false);
+      label_Brewtarget->setToolTip( recipeFormatter->getLabelToolTip());
+   }
+   else {
+      connect( actionBackup_Database, SIGNAL( triggered() ), this, SLOT( backup() ) );
+      connect( actionRestore_Database, SIGNAL( triggered() ), this, SLOT( restoreFromBackup() ) );
+      connect( actionSave, SIGNAL(triggered()), this, SLOT(save()) );
+   }
    // Printing signals/slots.
    // Refactoring is good.  It's like a rye saison fermenting away
    connect( actionRecipePrint, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionRecipePreview, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionRecipeHTML, SIGNAL(triggered()), this, SLOT(print()));
+   connect( actionRecipeBBCode, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionBrewdayPrint, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionBrewdayPreview, SIGNAL(triggered()), this, SLOT(print()));
    connect( actionBrewdayHTML, SIGNAL(triggered()), this, SLOT(print()));
@@ -411,11 +452,9 @@ MainWindow::MainWindow(QWidget* parent)
    // BWAHAHAHAHAHAHAHA. I did, I did find a better way to do it.
 
    // These are the sliders. I need to consider these harder, but small steps
-   connect(oGLabel, SIGNAL(labelChanged(unitDisplay,unitScale)), this, SLOT(redisplayLabel(unitDisplay,unitScale)));
-   connect(fGLabel, SIGNAL(labelChanged(unitDisplay,unitScale)), this, SLOT(redisplayLabel(unitDisplay,unitScale)));
-   connect(colorSRMLabel,SIGNAL(labelChanged(unitDisplay,unitScale)), this, SLOT(redisplayLabel(unitDisplay,unitScale)));
-
-   connect( dialog_about->pushButton_donate, SIGNAL(clicked()), this, SLOT(openDonateLink()) );
+   connect(oGLabel, SIGNAL(labelChanged(Unit::unitDisplay,Unit::unitScale)), this, SLOT(redisplayLabel(Unit::unitDisplay,Unit::unitScale)));
+   connect(fGLabel, SIGNAL(labelChanged(Unit::unitDisplay,Unit::unitScale)), this, SLOT(redisplayLabel(Unit::unitDisplay,Unit::unitScale)));
+   connect(colorSRMLabel,SIGNAL(labelChanged(Unit::unitDisplay,Unit::unitScale)), this, SLOT(redisplayLabel(Unit::unitDisplay,Unit::unitScale)));
 
    connect( equipmentComboBox, SIGNAL( activated(int) ), this, SLOT(updateRecipeEquipment()) );
    connect( equipmentButton, SIGNAL( clicked() ), this, SLOT(showEquipmentEditor()));
@@ -465,7 +504,8 @@ MainWindow::MainWindow(QWidget* parent)
 
    // No connections from the database yet? Oh FSM, that probably means I'm
    // doing it wrong again.
-   connect( &(Database::instance()), SIGNAL( deletedBrewNoteSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
+   connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
+   connect( &(Database::instance()), SIGNAL( isUnsavedChanged(bool)), this, SLOT( updateUnsavedStatus(bool)));
 }
 
 void MainWindow::setupShortCuts()
@@ -480,6 +520,10 @@ void MainWindow::deleteSelected()
 {
    QModelIndexList selected;
    BtTreeView* active = qobject_cast<BtTreeView*>(tabWidget_Trees->currentWidget()->focusWidget());
+
+   // This happens after startup when nothing is selected
+   if (!active)
+      return;
 
    active->deleteSelected(active->selectionModel()->selectedRows());
 
@@ -754,15 +798,15 @@ void MainWindow::changed(QMetaProperty prop, QVariant value)
 
 void MainWindow::updateDensitySlider(QString attribute, RangedSlider* slider, double max)
 {
-   unitDisplay dispUnit = (unitDisplay)Brewtarget::option(attribute, noUnit, "tab_recipe", Brewtarget::UNIT).toInt();
+   Unit::unitDisplay dispUnit = (Unit::unitDisplay)Brewtarget::option(attribute, Unit::noUnit, "tab_recipe", Brewtarget::UNIT).toInt();
 
-   if ( dispUnit == noUnit )
-      dispUnit = Brewtarget::densityUnit == Brewtarget::PLATO ? displayPlato : displaySg;
+   if ( dispUnit == Unit::noUnit )
+      dispUnit = Brewtarget::densityUnit == Brewtarget::PLATO ? Unit::displayPlato : Unit::displaySg;
 
    slider->setPreferredRange(Brewtarget::displayRange(recStyle, tab_recipe, attribute, Brewtarget::DENSITY));
    slider->setRange(         Brewtarget::displayRange(tab_recipe, attribute, 1.000, max, Brewtarget::DENSITY ));
 
-   if ( dispUnit == displayPlato )
+   if ( dispUnit == Unit::displayPlato )
    {
       slider->setPrecision(1);
       slider->setTickMarks(2,5);
@@ -776,14 +820,14 @@ void MainWindow::updateDensitySlider(QString attribute, RangedSlider* slider, do
 
 void MainWindow::updateColorSlider(QString attribute, RangedSlider* slider)
 {
-   unitDisplay dispUnit = (unitDisplay)Brewtarget::option(attribute, noUnit, "tab_recipe", Brewtarget::UNIT).toInt();
+   Unit::unitDisplay dispUnit = (Unit::unitDisplay)Brewtarget::option(attribute, Unit::noUnit, "tab_recipe", Brewtarget::UNIT).toInt();
 
-   if ( dispUnit == noUnit )
-      dispUnit = Brewtarget::colorUnit == Brewtarget::SRM ? displaySrm : displayEbc;
+   if ( dispUnit == Unit::noUnit )
+      dispUnit = Brewtarget::colorUnit == Brewtarget::SRM ? Unit::displaySrm : Unit::displayEbc;
 
    slider->setPreferredRange(Brewtarget::displayRange(recStyle, tab_recipe, attribute,Brewtarget::COLOR));
    slider->setRange(Brewtarget::displayRange(tab_recipe, attribute, 1, 44, Brewtarget::COLOR) );
-   slider->setTickMarks( dispUnit == displaySrm ? 10 : 40, 2);
+   slider->setTickMarks( dispUnit == Unit::displaySrm ? 10 : 40, 2);
 
 }
 
@@ -848,28 +892,20 @@ void MainWindow::showChanges(QMetaProperty* prop)
 
    ibuGuSlider->setValue(recipeObs->IBU()/((recipeObs->og()-1)*1000));
 
-   // Do some work for the calories per ??
-   // The hard part is that we store it as calories per 12oz. The adjust
-   // roughly converts between 12 oz and 33cL
-   double adjust;
-   if ( Brewtarget::volumeUnitSystem == SI ) 
-   {
-      adjust = 3.3/3.55;
-      label_caloriesper->setText(tr("calories/33cL"));
-   }
-   else
-   {
-      adjust = 1;
-      label_caloriesper->setText(tr("calories/12oz"));
-   }
-   label_calories->setText( QString("%1").arg(recipeObs->calories() * adjust,0,'f',0) );
+   label_calories->setText( QString("%1").arg( Brewtarget::getVolumeUnitSystem() == SI ? recipeObs->calories33cl() : recipeObs->calories12oz(),0,'f',0) );
 
    // See if we need to change the mash in the table.
    if( (updateAll && recipeObs->mash()) ||
-       (propName == "mash" &&
-       recipeObs->mash()) )
+       (propName == "mash" && recipeObs->mash()) )
    {
       mashStepTableModel->setMash(recipeObs->mash());
+   }
+
+   // Not sure about this, but I am annoyed that modifying the hop usage
+   // modifiers isn't automatically updating my display
+   if ( updateAll ) {
+     recipeObs->acceptHopChange( recipeObs->metaProperty("hops"), QVariant());
+     hopTableProxy->invalidate();
    }
 }
 
@@ -898,7 +934,7 @@ void MainWindow::updateRecipeStyle()
 
       styleRangeWidget_abv->setPreferredRange(selected->abvMin_pct(), selected->abvMax_pct());
       styleRangeWidget_ibu->setPreferredRange(selected->ibuMin(), selected->ibuMax());
-      styleRangeWidget_srm->setPreferredRange(selected->colorMin_srm(), selected->colorMax_srm());
+      styleRangeWidget_srm->setPreferredRange(Brewtarget::displayRange(selected, tab_recipe, "color_srm", Brewtarget::COLOR));
    }
 }
 
@@ -1027,7 +1063,7 @@ void MainWindow::updateRecipeBoilTime()
    double boilTime = 0.0;
    Equipment* kit;
 
-   if( recipeObs == 0 || ! lineEdit_boilTime->isModified() )
+   if( recipeObs == 0 )
       return;
 
    kit = recipeObs->equipment();
@@ -1045,7 +1081,7 @@ void MainWindow::updateRecipeBoilTime()
 
 void MainWindow::updateRecipeEfficiency()
 {
-   if( recipeObs == 0 || ! lineEdit_efficiency->isModified() )
+   if( recipeObs == 0 )
       return;
 
    recipeObs->setEfficiency_pct( lineEdit_efficiency->toSI() );
@@ -1240,7 +1276,7 @@ void MainWindow::removeSelectedFermentable()
     for(i = 0; i < itemsToRemove.size(); i++)
     {
         fermTableModel->removeFermentable(itemsToRemove.at(i));
-        recipeObs->removeFermentable(itemsToRemove.at(i));
+        recipeObs->remove(itemsToRemove.at(i));
     }
 }
 
@@ -1307,7 +1343,7 @@ void MainWindow::removeSelectedHop()
     for(i = 0; i < itemsToRemove.size(); i++)
     {
         hopTableModel->removeHop(itemsToRemove.at(i));
-        recipeObs->removeHop(itemsToRemove.at(i));
+        recipeObs->remove(itemsToRemove.at(i));
     }
 
 }
@@ -1335,7 +1371,7 @@ void MainWindow::removeSelectedMisc()
     for(i = 0; i < itemsToRemove.size(); i++)
     {
        miscTableModel->removeMisc(itemsToRemove.at(i));
-       recipeObs->removeMisc(itemsToRemove.at(i));
+       recipeObs->remove(itemsToRemove.at(i));
     }
 }
 
@@ -1362,7 +1398,7 @@ void MainWindow::removeSelectedYeast()
     for(i = 0; i < itemsToRemove.size(); i++)
     {
        yeastTableModel->removeYeast(itemsToRemove.at(i));
-       recipeObs->removeYeast(itemsToRemove.at(i));
+       recipeObs->remove(itemsToRemove.at(i));
     }
 }
 
@@ -1378,6 +1414,12 @@ void MainWindow::newRecipe()
 
    Recipe* newRec = Database::instance().newRecipe();
 
+   // bad things happened -- let somebody know
+   if ( ! newRec ) {
+      QMessageBox::warning(this,tr("Error copying recipe"), 
+                           tr("An error was returned while creating %1").arg(name));
+      return;
+   }
    // Set the following stuff so everything appears nice
    // and the calculations don't divide by zero... things like that.
    newRec->setName(name);
@@ -1829,7 +1871,7 @@ void MainWindow::moveSelectedMashStepDown()
 
 void MainWindow::editSelectedMashStep()
 {
-   if( ! ( recipeObs || recipeObs->mash() ) )
+   if( !recipeObs || !recipeObs->mash() )
       return;
 
    QModelIndexList selected = mashStepTableWidget->selectionModel()->selectedIndexes();
@@ -1887,6 +1929,18 @@ void MainWindow::closeEvent(QCloseEvent* /*event*/)
    if ( recipeObs )
       Brewtarget::setOption("recipeKey", recipeObs->key());
 
+   //UI save state
+   Brewtarget::setOption("MainWindow/splitter_vertical_State", splitter_vertical->saveState());
+   Brewtarget::setOption("MainWindow/splitter_horizontal_State", splitter_horizontal->saveState());
+   Brewtarget::setOption("MainWindow/treeView_recipe_headerState", treeView_recipe->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_style_headerState", treeView_style->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_equip_headerState", treeView_equip->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_ferm_headerState", treeView_ferm->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_hops_headerState", treeView_hops->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_misc_headerState", treeView_misc->header()->saveState());
+   Brewtarget::setOption("MainWindow/treeView_yeast_headerState", treeView_yeast->header()->saveState());
+   Brewtarget::setOption("MainWindow/mashStepTableWidget_headerState", mashStepTableWidget->horizontalHeader()->saveState());
+
    // After unloading the database, can't make any more queries to it, so first
    // make the main window disappear so that redraw events won't inadvertently
    // cause any more queries.
@@ -1918,7 +1972,8 @@ void MainWindow::copyRecipe()
       return;
 
    Recipe* newRec = Database::instance().newRecipe(recipeObs); // Create a deep copy.
-   newRec->setName(name);
+   if ( newRec ) 
+      newRec->setName(name);
 }
 
 void MainWindow::setMashToCurrentlySelected()
@@ -1955,14 +2010,10 @@ void MainWindow::saveMash()
 
 }
 
-void MainWindow::openDonateLink()
-{
-   QDesktopServices::openUrl(QUrl("http://sourceforge.net/project/project_donations.php?group_id=249733"));
-}
-
 void MainWindow::openManual()
 {
-   QDesktopServices::openUrl(QUrl::fromLocalFile(Brewtarget::getDataDir()+"brewtarget-manual.html"));
+   // TODO: open language-dependent manual when we have more than the English version
+   QDesktopServices::openUrl(QUrl::fromLocalFile(Brewtarget::getDataDir().filePath("manual-en.pdf")));
 }
 
 // One print function to rule them all. Now we just need to make the menuing
@@ -1994,6 +2045,10 @@ void MainWindow::print()
       selection == actionRecipeHTML ? recipeFormatter->print(printer, 0, RecipeFormatter::HTML, outfile) :
                                       brewDayScrollWidget->print(printer, 0, BrewDayScrollWidget::HTML, outfile);
       delete outfile;
+   }
+   else if ( selection == actionRecipeBBCode )
+   {
+      QApplication::clipboard()->setText(recipeFormatter->getBBCodeFormat());
    }
 }
 
@@ -2062,172 +2117,16 @@ void MainWindow::setupContextMenu()
 
 }
 
-void MainWindow::copyThis(Recipe *rec)
-{
-   QString name = QInputDialog::getText( this, tr("Copy %1").arg(rec->name()), tr("Enter a unique name for the copy of %1.").arg(rec->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Recipe* newRec = Database::instance().newRecipe(rec); // Create a deep copy.
-   newRec->setName(name);
-}
-
-void MainWindow::copyThis(Equipment *kit)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Equipment"), tr("Enter a unique name for the copy of %1.").arg(kit->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Equipment* newKit = Database::instance().newEquipment(kit); // Create a deep copy.
-   newKit->setName(name);
-}
-
-void MainWindow::copyThis(Fermentable *ferm)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Fermentable"), tr("Enter a unique name for the copy of %1.").arg(ferm->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Fermentable* newFerm = Database::instance().newFermentable(ferm); // Create a deep copy.
-   newFerm->setName(name);
-}
-
-void MainWindow::copyThis(Hop *hop)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Hop"), tr("Enter a unique name for the copy of %1.").arg(hop->name()));
-
-   if( name.isEmpty() )
-      return;
-
-   Hop* newHop = Database::instance().newHop(hop); // Create a deep copy.
-   newHop->setName(name);
-}
-
-void MainWindow::copyThis(Misc *misc)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Miscellaneous"), tr("Enter a unique name for the copy of %1.").arg(misc->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Misc* newMisc = Database::instance().newMisc(misc); // Create a deep copy.
-   newMisc->setName(name);
-}
-
-void MainWindow::copyThis(Yeast *yeast)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Yeast"), tr("Enter a unique name for the copy of %1.").arg(yeast->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Yeast* newYeast = Database::instance().newYeast(yeast); // Create a deep copy.
-   newYeast->setName(name);
-}
-
-void MainWindow::copyThis(Style *style)
-{
-   QString name = QInputDialog::getText( this, tr("Copy Style"), tr("Enter a unique name for the copy of %1.").arg(style->name()) );
-
-   if( name.isEmpty() )
-      return;
-
-   Style* newStyle = Database::instance().newStyle(style); // Create a deep copy.
-   newStyle->setName(name);
-}
-
 void MainWindow::copySelected()
 {
+   QModelIndexList selected;
    BtTreeView* active = qobject_cast<BtTreeView*>(tabWidget_Trees->currentWidget()->focusWidget());
 
-   QList<QModelIndex>::const_iterator at, end;
-   QModelIndex above;
-   QList<Recipe*> copyRec;
-   QList<Equipment*> copyKit;
-   QList<Fermentable*> copyFerm;
-   QList<Hop*> copyHop;
-   QList<Misc*> copyMisc;
-   QList<Style*> copyStyle;
-   QList<Yeast*> copyYeast;
-
-   if ( active == 0 )
-      return;
-
-   const QModelIndexList selected = active->selectionModel()->selectedRows();
-
-   // We need to process them all before we get the names, because adding new things does mess
-   // up the indexes.  This ... is not gonna be pretty.
-   for(at = selected.begin(),end = selected.end();at < end;++at)
-   {
-      switch(active->type(*at))
-      {
-         case BtTreeItem::RECIPE:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyRec.append(active->recipe(*at));
-            break;
-         case BtTreeItem::EQUIPMENT:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyKit.append(active->equipment(*at));
-            break;
-         case BtTreeItem::FERMENTABLE:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyFerm.append(active->fermentable(*at));
-            break;
-         case BtTreeItem::HOP:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyHop.append(active->hop(*at));
-            break;
-         case BtTreeItem::MISC:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyMisc.append(active->misc(*at));
-            break;
-         case BtTreeItem::STYLE:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyStyle.append(active->style(*at));
-            break;
-         case BtTreeItem::YEAST:
-            if ( *at == active->findElement(0) )
-               continue;
-            copyYeast.append(active->yeast(*at));
-            break;
-            // No Brewnote, because it just doesn't make sense
-         default:
-            Brewtarget::logW(QString("MainWindow::copySelected Unknown type: %1").arg(active->type(*at)));
-      }
-   }
-
-   for(int i = 0; i < copyRec.count(); ++i)
-      copyThis(copyRec.at(i));
-   for(int i = 0; i < copyKit.count(); ++i)
-      copyThis(copyKit.at(i));
-   for(int i = 0; i < copyFerm.count(); ++i)
-      copyThis(copyFerm.at(i));
-   for(int i = 0; i < copyMisc.count(); ++i)
-      copyThis(copyMisc.at(i));
-   for(int i = 0; i < copyStyle.count(); ++i)
-      copyThis(copyStyle.at(i));
-   for(int i = 0; i < copyYeast.count(); ++i)
-      copyThis(copyYeast.at(i));
-
-
-   above = active->first();
-   if ( active->type(above) == BtTreeItem::RECIPE )
-      setRecipe(above);
-   setTreeSelection(above);
+   active->copySelected(active->selectionModel()->selectedRows());
 }
 
 QFile* MainWindow::openForWrite( QString filterStr, QString defaultSuff)
 {
-   const char* filename;
    QFile* outFile = new QFile();
 
    fileSaver->setNameFilter( filterStr );
@@ -2235,7 +2134,7 @@ QFile* MainWindow::openForWrite( QString filterStr, QString defaultSuff)
 
    if( fileSaver->exec() )
    {
-      filename = fileSaver->selectedFiles()[0].toLatin1();
+      QString filename = fileSaver->selectedFiles()[0];
       outFile->setFileName(filename);
 
       if( ! outFile->open(QIODevice::WriteOnly | QIODevice::Truncate) )
@@ -2250,6 +2149,39 @@ QFile* MainWindow::openForWrite( QString filterStr, QString defaultSuff)
    return outFile;
 }
 
+void MainWindow::exportSelectedHtml() {
+   BtTreeView* active = qobject_cast<BtTreeView*>(tabWidget_Trees->currentWidget()->focusWidget());
+   QModelIndexList selected;
+   QList <Recipe*> targets;
+   QFile* outFile;
+
+   if ( active == 0 )
+      return;
+
+   // this only works for recipes
+   if ( active != treeView_recipe ) {
+       return;
+   }
+
+   // get the targeted file
+   outFile = openForWrite(tr("HTML files (*.html)"), QString("html"));
+   if ( !outFile )
+      return;
+
+   // Get the selected recipes and throw them into a list
+   selected = active->selectionModel()->selectedRows();
+   if( selected.count() == 0 )
+      return;
+
+   foreach( QModelIndex ndx, selected) 
+      targets.append( treeView_recipe->recipe(ndx) );
+
+   // and write it all
+   QTextStream out(outFile);
+   out << recipeFormatter->getHTMLFormat(targets);
+   outFile->close();
+}
+
 void MainWindow::exportSelected()
 {
    BtTreeView* active = qobject_cast<BtTreeView*>(tabWidget_Trees->currentWidget()->focusWidget());
@@ -2259,6 +2191,7 @@ void MainWindow::exportSelected()
    QFile* outFile;
    QDomElement root,dbase,recipe;
    bool didRecipe = false;
+
 
    if ( active == 0 )
       return;
@@ -2351,7 +2284,7 @@ void MainWindow::updateDatabase()
    // Select the db to merge with.
    otherDb = QFileDialog::getOpenFileName( this,
                                            tr("Select Database File"),
-                                           Brewtarget::getUserDataDir(),
+                                           Brewtarget::getUserDataDir().canonicalPath(),
                                            tr("Brewtarget Database (*.sqlite)") );
 
    // Merge.
@@ -2406,7 +2339,7 @@ void MainWindow::finishCheckingVersion()
    }
 }
 
-void MainWindow::redisplayLabel(unitDisplay oldUnit, unitScale oldScale)
+void MainWindow::redisplayLabel(Unit::unitDisplay oldUnit, Unit::unitScale oldScale)
 {
    // There is a lot of magic going on in the showChanges(). I can either
    // duplicate that magic or I can just call showChanges().
@@ -2454,10 +2387,8 @@ void MainWindow::convertedMsg()
 {
 
    QMessageBox msgBox;
-   QDir dir(Brewtarget::getUserDataDir());
-
    msgBox.setText( tr("The database has been converted/upgraded."));
-   msgBox.setInformativeText( tr("The original XML files can be found in ") + Brewtarget::getUserDataDir() + "obsolete");
+   msgBox.setInformativeText( tr("The original XML files can be found in ") + Brewtarget::getUserDataDir().canonicalPath() + "obsolete");
    msgBox.exec();
 
 }
@@ -2518,6 +2449,22 @@ void MainWindow::fixBrewNote()
          continue;
 
       target->recalculateEff(noteParent);
+   }
+}
+
+void MainWindow::updateStatus(const QString status) {
+   if( statusBar() )
+      statusBar()->showMessage(status, 3000);
+}
+
+void MainWindow::updateUnsavedStatus(bool isUnsaved) {
+   if ( isUnsaved ) {
+      statusBar()->showMessage(tr("Unsaved Changes"));
+      actionSave->setIcon(QIcon(SAVEDIRTYPNG));
+   }
+   else {
+      statusBar()->clearMessage();
+      actionSave->setIcon(QIcon(SAVEPNG));
    }
 }
 

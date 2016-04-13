@@ -66,10 +66,11 @@ void OgAdjuster::calculate()
    double waterToAdd_l = 0.0;
 
    bool gotSG = false;
+   bool okPlato = true;
 
    // Get inputs.
    sg          = lineEdit_sg->toSI();
-   plato       = lineEdit_plato->toSI();
+   plato       = lineEdit_plato->toDouble(&okPlato);
    temp_c      = lineEdit_temp->toSI();
    hydroTemp_c = lineEdit_calTemp->toSI();
    wort_l      = lineEdit_volume->toSI();
@@ -79,7 +80,7 @@ void OgAdjuster::calculate()
 
    if( wort_l == 0 )
       return;
-   if( ! gotSG && plato == 0 )
+   if( ! gotSG && ! okPlato )
       return;
 
    if( recObs == 0 || recObs->equipment() == 0 )
@@ -95,7 +96,7 @@ void OgAdjuster::calculate()
       sg_20C = sg_15C * Algorithms::getWaterDensity_kgL(15)/Algorithms::getWaterDensity_kgL(20);
 
       plato = Algorithms::SG_20C20C_toPlato( sg_20C );
-      lineEdit_plato->setText(plato);
+      lineEdit_plato->setText( sg_20C ); //Event if the display is in Plato, we must send it in default unit
    }
    else
    {

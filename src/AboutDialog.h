@@ -20,6 +20,7 @@
 #ifndef _ABOUTDIALOG_H
 #define _ABOUTDIALOG_H
 
+#include <QEvent>
 #include <QDialog>
 #include <QWidget>
 #include <QHBoxLayout>
@@ -38,11 +39,12 @@
  */
 class AboutDialog : public QDialog
 {
+   Q_OBJECT
+
 public:
    AboutDialog(QWidget* parent=0)
            : QDialog(parent),
-             label(0),
-             pushButton_donate(0)
+             label(0)
    {
       setObjectName("aboutDialog");
       doLayout();
@@ -68,23 +70,29 @@ public:
             "  <li>Philip G. Lee &lt;rocketman768@gmail.com&gt; -- Lead Developer</li>"
             "  <li>Mik Firestone &lt;mikfire@gmail.com&gt;</li>"
             "  <li>Maxime Lavigne &lt;duguigne@gmail.com&gt;</li>"
+            "  <li>Theophane Martin &lt;theophane.m@gmail.com&gt;</li>"
             "  <li>Dan Cavanagh &lt;dan@dancavanagh.com&gt;</li>"
             "  <li>Rob Taylor &lt;robtaylor@floopily.org&gt;</li>"
             "  <li>Kregg K &lt;gigatropolis@yahoo.com&gt;</li>"
             "  <li>A.J. Drobnich &lt;aj.drobnich@gmail.com&gt;</li>"
             "  <li>Ted Wright &lt;tedwright@users.sourceforge.net&gt;</li>"
             "  <li>Charles Fourneau (plut0nium) &lt;charles.fourneau@gmail.com&gt;</li>"
-            "  <li>Maxime Lavigne (malavv) &lt;duguigne@gmail.com&gt;</li>"
+            "  <li>Samuel Östling &lt;MrOstling@gmail.com&gt;</li>"
             "  <li>Peter Buelow &lt;goballstate@gmail.com&gt;</li>"
             "  <li>David Grundberg &lt;individ@acc.umu.se&gt;</li>"
+            "  <li>Daniel Pettersson &lt;pettson81@gmail.com&gt;</li>"
             "  <li>Tim Payne &lt;swstim@gmail.com&gt;</li>"
-            "  <li>Samuel \303\226stling &lt;MrOstling@gmail.com&gt;</li>"
             "  <li>Luke Vincent &lt;luke.r.vincent@gmail.com&gt;</li>"
             "  <li>Eric Tamme &lt;etamme@gmail.com&gt;</li>"
+            "  <li>Chris Pavetto &lt;chrispavetto@gmail.com&gt;</li>"
+            "  <li>Markus Mårtensson &lt;mackan.90@gmail.com&gt;</li>"
             "  <li>Julein &lt;j2bweb@gmail.com&gt;</li>"
             "  <li>Jeff Bailey &lt;skydvr38@verizon.net&gt;</li>"
             "  <li>Piotr Przybyla (przybysh) &lt;przybysh@gmail.com&gt;</li>"
             "  <li>Chris Hamilton &lt;marker5a@gmail.com&gt;</li>"
+            "  <li>Julian Volodia &lt;julianvolodia@gmail.com&gt;/li>"
+            "  <li>Jerry Jacobs &lt;jerry@xor-gate.org&gt;</li>"
+            "  <li>Gregg Meess &lt;Daedalus12@gmail.com&gt;</li>"
             " </ul>"
             ""
             " <h2>License (GPLv3)</h2>"
@@ -107,7 +115,7 @@ public:
             ""
             " <h2>Source Code</h2>"
             " <p>"
-            "  Brewtarget's source code is located at <a href=\"http://www.gitorious.org/brewtarget/\">www.gitorious.org/brewtarget</a>"
+            "  Brewtarget's source code is located at <a href=\"https://github.com/Brewtarget/brewtarget\">github.com/Brewtarget/brewtarget</a>"
             " </p>"
             "</html>"
          )
@@ -125,7 +133,6 @@ public:
    //! \name Public UI Variables
    //! @{
    QLabel* label;
-   QPushButton* pushButton_donate;
    //! @}
 
 private:
@@ -139,13 +146,7 @@ private:
             scrollArea->setWidget(label);
          QHBoxLayout* horizontalLayout = new QHBoxLayout;
             QSpacerItem* horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-            pushButton_donate = new QPushButton(this);
-               pushButton_donate->setObjectName("pushButton_donate");
-               QIcon icon;
-               icon.addFile(":/images/donate.svg", QSize(), QIcon::Normal, QIcon::Off);
-               pushButton_donate->setIcon(icon);
             horizontalLayout->addItem(horizontalSpacer);
-            horizontalLayout->addWidget(pushButton_donate);
          verticalLayout->addWidget(scrollArea);
          verticalLayout->addLayout(horizontalLayout);
       retranslateUi();
@@ -154,7 +155,6 @@ private:
    void retranslateUi()
    {
       setWindowTitle(tr("About Brewtarget"));
-      pushButton_donate->setText(tr("Donate"));
    }
 };
 

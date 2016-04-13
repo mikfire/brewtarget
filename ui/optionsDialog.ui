@@ -9,373 +9,216 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>584</width>
-    <height>294</height>
+    <width>601</width>
+    <height>380</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Options</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_11">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QTabWidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>3</number>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
      </property>
-     <widget class="QWidget" name="tab">
+     <property name="currentIndex">
+      <number>4</number>
+     </property>
+     <widget class="QWidget" name="tab_units">
       <attribute name="title">
        <string>Units</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QGroupBox" name="weight">
-           <property name="title">
-            <string>Weight</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <widget class="QRadioButton" name="weight_si">
-              <property name="text">
-               <string>Use SI units</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="weight_us">
-              <property name="text">
-               <string>Use US traditional units</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="weight_imperial">
-              <property name="text">
-               <string>Use British imperial units</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="temperature">
-           <property name="title">
-            <string>Temperature</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_8">
-            <item>
-             <widget class="QRadioButton" name="celsius">
-              <property name="text">
-               <string>Celsius</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="fahrenheit">
-              <property name="text">
-               <string>Fahrenheit</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
+      <layout class="QFormLayout" name="formLayout_5">
+       <item row="0" column="0">
+        <widget class="QLabel" name="weightLabel">
+         <property name="text">
+          <string>Weight</string>
+         </property>
+        </widget>
        </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QGroupBox" name="volume">
-           <property name="title">
-            <string>Volume</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <item>
-             <widget class="QRadioButton" name="volume_si">
-              <property name="text">
-               <string>Use SI units</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="volume_us">
-              <property name="text">
-               <string>Use US traditional units</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="volume_imperial">
-              <property name="text">
-               <string>Use British imperial units</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox_5">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="title">
-            <string>Gravity</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_9">
-            <item>
-             <widget class="QRadioButton" name="radioButton_sg">
-              <property name="text">
-               <string>20C/20C Specific Gravity</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_plato">
-              <property name="text">
-               <string>Plato/Brix/Balling</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="weightComboBox"/>
        </item>
-       <item>
-        <layout class="QVBoxLayout" name="verticalLayout_12">
-         <item>
-          <widget class="QGroupBox" name="groupBox_6">
-           <property name="title">
-            <string>Date</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_15">
-            <item>
-             <widget class="QRadioButton" name="radioButton_usDate">
-              <property name="text">
-               <string>mm-dd-YYYY</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_euDate">
-              <property name="text">
-               <string>dd-mm-YYYY</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_isoDate">
-              <property name="text">
-               <string>YYYY-dd-mm</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox">
-           <property name="title">
-            <string>Color</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_13">
-            <item>
-             <widget class="QRadioButton" name="radioButton_srm">
-              <property name="text">
-               <string>Use SRM</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton_ebc">
-              <property name="text">
-               <string>Use EBC</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
+       <item row="1" column="0">
+        <widget class="QLabel" name="temperatureLabel">
+         <property name="text">
+          <string>Temperature</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="temperatureComboBox"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="volumeLabel">
+         <property name="text">
+          <string>Volume</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="volumeComboBox"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="gravityLabel">
+         <property name="text">
+          <string>Gravity</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="gravityComboBox"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="dateLabel">
+         <property name="text">
+          <string>Date</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="dateComboBox">
+         <property name="minimumSize">
+          <size>
+           <width>200</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="colorLabel">
+         <property name="text">
+          <string>Color</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="colorComboBox"/>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tab_formula">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
       <attribute name="title">
        <string>Formulas</string>
       </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <item>
-          <widget class="QGroupBox" name="groupBox_3">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="title">
-            <string>Color</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4">
-            <item>
-             <widget class="QCheckBox" name="checkBox_mosher">
-              <property name="text">
-               <string>Mosher's approximation</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBox_daniel">
-              <property name="text">
-               <string>Daniels' approximation</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBox_morey">
-              <property name="text">
-               <string>Morey's approximation</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Forumulas</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="ibuFormulaLabel">
+            <property name="text">
+             <string>IBU</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="ibuFormulaComboBox">
+            <property name="minimumSize">
+             <size>
+              <width>230</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="colorFormulaLabel">
+            <property name="text">
+             <string>Color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="colorFormulaComboBox"/>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_10">
-         <item>
-          <widget class="QGroupBox" name="groupBox_4">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="title">
-            <string>IBU</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <widget class="QCheckBox" name="checkBox_tinseth">
-              <property name="text">
-               <string>Tinseth's approximation</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBox_rager">
-              <property name="text">
-               <string>Rager's approximation</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox_2">
-           <property name="title">
-            <string>IBU Adjustments</string>
-           </property>
-           <layout class="QFormLayout" name="formLayout">
-            <item row="1" column="1">
-             <widget class="BtGenericEdit" name="lineEdit_mashHop">
-              <property name="toolTip">
-               <string>% IBU adjustment</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="BtGenericEdit" name="lineEdit_firstWort">
-              <property name="toolTip">
-               <string>% IBU adjustment</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_mashHop">
-              <property name="text">
-               <string>Mash Hop</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_firstWort">
-              <property name="text">
-               <string>First Wort</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>IBU Adjustments</string>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="mashHopLabel_2">
+            <property name="text">
+             <string>Mash Hop (%)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="ibuAdjustmentMashHopDoubleSpinBox">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="firstWortLabel">
+            <property name="text">
+             <string>First Wort (%)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="ibuAdjustmentFirstWortDoubleSpinBox">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <double>200.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>5.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>100.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tab_directory">
       <attribute name="title">
        <string>Directories</string>
       </attribute>
@@ -412,19 +255,6 @@
             <string>Default</string>
            </property>
           </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>
@@ -496,6 +326,196 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_database">
+      <attribute name="title">
+       <string>Databases</string>
+      </attribute>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QGroupBox" name="groupBox_engine">
+         <property name="title">
+          <string>Engines</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_4">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::ExpandingFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_engine">
+            <property name="text">
+             <string>RDBMS Engine</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboBox_engine"/>
+          </item>
+          <item row="1" column="1">
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="2" column="1">
+           <widget class="QPushButton" name="pushButton_testConnection">
+            <property name="text">
+             <string>Test Connection</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_dbConfig">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="title">
+          <string>Configuration</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::ExpandingFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_hostname">
+            <property name="text">
+             <string>Hostname</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_hostname">
+            <property name="toolTip">
+             <string>PostgresSQL's host name or IP address</string>
+            </property>
+            <property name="text">
+             <string>localhost</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_portnum">
+            <property name="text">
+             <string>Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_portnum">
+            <property name="toolTip">
+             <string>Port the PostgreSQL is listening on</string>
+            </property>
+            <property name="text">
+             <string>5432</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_schema">
+            <property name="text">
+             <string>Schema</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_schema">
+            <property name="toolTip">
+             <string>The schema containing the database</string>
+            </property>
+            <property name="text">
+             <string>public</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_dbName">
+            <property name="text">
+             <string>Database</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_dbname">
+            <property name="toolTip">
+             <string>The name of the database</string>
+            </property>
+            <property name="text">
+             <string>brewtarget</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_username">
+            <property name="text">
+             <string>Username</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_username">
+            <property name="toolTip">
+             <string>User with create/delete table access</string>
+            </property>
+            <property name="text">
+             <string>brewtarget</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_password">
+            <property name="text">
+             <string>Password</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="BtStringEdit" name="btStringEdit_password">
+            <property name="toolTip">
+             <string>Password for the user</string>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBox_savePassword">
+              <property name="text">
+               <string>Save password</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -512,30 +532,13 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>BtGenericEdit</class>
+   <class>BtStringEdit</class>
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>tabWidget</tabstop>
-  <tabstop>weight_si</tabstop>
-  <tabstop>weight_us</tabstop>
-  <tabstop>weight_imperial</tabstop>
-  <tabstop>celsius</tabstop>
-  <tabstop>fahrenheit</tabstop>
-  <tabstop>volume_si</tabstop>
-  <tabstop>volume_us</tabstop>
-  <tabstop>volume_imperial</tabstop>
-  <tabstop>radioButton_sg</tabstop>
-  <tabstop>radioButton_plato</tabstop>
-  <tabstop>radioButton_srm</tabstop>
-  <tabstop>radioButton_ebc</tabstop>
-  <tabstop>checkBox_mosher</tabstop>
-  <tabstop>checkBox_daniel</tabstop>
-  <tabstop>checkBox_morey</tabstop>
-  <tabstop>checkBox_tinseth</tabstop>
-  <tabstop>checkBox_rager</tabstop>
   <tabstop>lineEdit_dbDir</tabstop>
   <tabstop>pushButton_dbDirBrowse</tabstop>
   <tabstop>pushButton_dbDirDefault</tabstop>
@@ -552,8 +555,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>257</x>
-     <y>426</y>
+     <x>266</x>
+     <y>298</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -568,8 +571,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>325</x>
-     <y>426</y>
+     <x>334</x>
+     <y>298</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>

@@ -35,14 +35,14 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
-     <widget class="QSplitter" name="splitter_2">
+     <widget class="QSplitter" name="splitter_vertical">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_12">
         <item>
-         <widget class="QLabel" name="label_12">
+         <widget class="QLabel" name="label_Brewtarget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -217,7 +217,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QSplitter" name="splitter">
+      <widget class="QSplitter" name="splitter_horizontal">
        <property name="acceptDrops">
         <bool>true</bool>
        </property>
@@ -233,8 +233,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>561</width>
-           <height>371</height>
+           <width>636</width>
+           <height>412</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -840,14 +840,14 @@
                  <layout class="QVBoxLayout" name="verticalLayout_lcd">
                   <item>
                    <layout class="QGridLayout" name="gridLayout">
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
                     <property name="horizontalSpacing">
                      <number>4</number>
                     </property>
                     <property name="verticalSpacing">
                      <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
                     </property>
                     <item row="4" column="1">
                      <widget class="StyleRangeWidget" name="styleRangeWidget_srm" native="true">
@@ -1112,8 +1112,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>561</width>
-           <height>371</height>
+           <width>636</width>
+           <height>323</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1141,7 +1141,7 @@
              <number>0</number>
             </property>
             <property name="mimeAccepted" stdset="0">
-             <string>application/x-brewtarget-ingredient</string>
+             <string notr="true">application/x-brewtarget-ingredient</string>
             </property>
             <widget class="QWidget" name="fermentableTab">
              <attribute name="title">
@@ -1665,7 +1665,7 @@
      <x>0</x>
      <y>0</y>
      <width>1050</width>
-     <height>15</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAbout">
@@ -1675,7 +1675,6 @@
     <addaction name="actionManual"/>
     <addaction name="separator"/>
     <addaction name="actionAbout_BrewTarget"/>
-    <addaction name="actionDonate"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -1696,6 +1695,7 @@
      <addaction name="actionRecipePreview"/>
      <addaction name="actionRecipePrint"/>
      <addaction name="actionRecipeHTML"/>
+     <addaction name="actionRecipeBBCode"/>
     </widget>
     <widget class="QMenu" name="menuDatabase">
      <property name="title">
@@ -1792,7 +1792,6 @@
    <addaction name="actionPitch_Rate_Calculator"/>
    <addaction name="actionRefractometer_Tools"/>
    <addaction name="separator"/>
-   <addaction name="actionDonate"/>
   </widget>
   <action name="actionAbout_BrewTarget">
    <property name="icon">
@@ -2181,15 +2180,6 @@
     <string>Delete recipe</string>
    </property>
   </action>
-  <action name="actionDonate">
-   <property name="icon">
-    <iconset resource="../brewtarget.qrc">
-     <normaloff>:/images/donate.svg</normaloff>:/images/donate.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Donate</string>
-   </property>
-  </action>
   <action name="actionMashs">
    <property name="icon">
     <iconset resource="../brewtarget.qrc">
@@ -2217,7 +2207,16 @@
     <string>Brew It</string>
    </property>
    <property name="toolTip">
-    <string>Create a brewnote for the recipe</string>
+      <string>Create a brewnote for the recipe</string>
+   </property>
+  </action>
+  <action name="actionRecipeBBCode">
+   <property name="icon">
+    <iconset resource="../brewtarget.qrc">
+     <normaloff>:/images/clipboard.svg</normaloff>:/images/clipboard.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export to &amp;BBCode</string>
    </property>
   </action>
  </widget>
@@ -2227,7 +2226,7 @@
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
    <slots>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -2235,7 +2234,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -2243,7 +2242,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -2251,7 +2250,7 @@
    <extends>QLabel</extends>
    <header>BtLabel.h</header>
    <slots>
-    <signal>labelChanged(unitDisplay,unitScale)</signal>
+    <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    </slots>
   </customwidget>
   <customwidget>
@@ -2259,7 +2258,7 @@
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
    <slots>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -2267,7 +2266,7 @@
    <extends>QLineEdit</extends>
    <header>BtLineEdit.h</header>
    <slots>
-    <slot>lineChanged(unitDisplay,unitScale)</slot>
+    <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -2421,9 +2420,9 @@
  <connections>
   <connection>
    <sender>label_targetBatchSize</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_batchSize</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>536</x>
@@ -2437,9 +2436,9 @@
   </connection>
   <connection>
    <sender>label_targetBoilSize</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_boilSize</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>536</x>
@@ -2453,9 +2452,9 @@
   </connection>
   <connection>
    <sender>label_calcBatchSize</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_calcBatchSize</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>536</x>
@@ -2469,9 +2468,9 @@
   </connection>
   <connection>
    <sender>label_calcBoilSize</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_calcBoilSize</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>536</x>
@@ -2485,9 +2484,9 @@
   </connection>
   <connection>
    <sender>label_boilSg</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_boilSg</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>536</x>
@@ -2501,9 +2500,9 @@
   </connection>
   <connection>
    <sender>label_boiltime</sender>
-   <signal>labelChanged(unitDisplay,unitScale)</signal>
+   <signal>labelChanged(Unit::unitDisplay,Unit::unitScale)</signal>
    <receiver>lineEdit_boilTime</receiver>
-   <slot>lineChanged(unitDisplay,unitScale)</slot>
+   <slot>lineChanged(Unit::unitDisplay,Unit::unitScale)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>455</x>

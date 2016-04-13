@@ -441,95 +441,25 @@ void Equipment::setBoilingPoint_c(double var)
 
 //============================"GET" METHODS=====================================
 
-QString Equipment::name() const
-{
-   return get("name").toString();
-}
+QString Equipment::name() const { return get("name").toString(); }
+QString Equipment::notes() const { return get("notes").toString(); }
+bool Equipment::calcBoilVolume() const { return get("calc_boil_volume").toBool(); }
 
-double Equipment::boilSize_l() const
-{
-   return get("boil_size").toDouble();
-}
-
-double Equipment::batchSize_l() const
-{
-   return get("batch_size").toDouble();
-}
-
-double Equipment::tunVolume_l() const
-{
-   return get("tun_volume").toDouble();
-}
-
-double Equipment::tunWeight_kg() const
-{
-   return get("tun_weight").toDouble();
-}
-
-double Equipment::tunSpecificHeat_calGC() const
-{
-   return get("tun_specific_heat").toDouble();
-}
-
-double Equipment::topUpWater_l() const
-{
-   return get("top_up_water").toDouble();
-}
-
-double Equipment::trubChillerLoss_l() const
-{
-   return get("trub_chiller_loss").toDouble();
-}
-
-double Equipment::evapRate_pctHr() const
-{
-   return get("evap_rate").toDouble();
-}
-
-double Equipment::evapRate_lHr() const
-{
-   return get("real_evap_rate").toDouble();
-}
-
-double Equipment::boilTime_min() const
-{
-   return get("boil_time").toDouble();
-}
-
-bool Equipment::calcBoilVolume() const
-{
-   return get("calc_boil_volume").toBool();
-}
-
-double Equipment::lauterDeadspace_l() const
-{
-   return get("lauter_deadspace").toDouble();
-}
-
-double Equipment::topUpKettle_l() const
-{
-   return get("top_up_kettle").toDouble();
-}
-
-double Equipment::hopUtilization_pct() const
-{
-   return get("hop_utilization").toDouble();
-}
-
-QString Equipment::notes() const
-{
-   return get("notes").toString();
-}
-
-double Equipment::grainAbsorption_LKg()
-{
-   return get("absorption").toDouble();
-}
-
-double Equipment::boilingPoint_c() const
-{
-   return get("boiling_point").toDouble();
-}
+double Equipment::boilSize_l() const            { return get("boil_size").toDouble(); }
+double Equipment::batchSize_l() const           { return get("batch_size").toDouble(); }
+double Equipment::tunVolume_l() const           { return get("tun_volume").toDouble(); }
+double Equipment::tunWeight_kg() const          { return get("tun_weight").toDouble(); }
+double Equipment::tunSpecificHeat_calGC() const { return get("tun_specific_heat").toDouble(); }
+double Equipment::topUpWater_l() const          { return get("top_up_water").toDouble(); }
+double Equipment::trubChillerLoss_l() const     { return get("trub_chiller_loss").toDouble(); }
+double Equipment::evapRate_pctHr() const        { return get("evap_rate").toDouble(); }
+double Equipment::evapRate_lHr() const          { return get("real_evap_rate").toDouble(); }
+double Equipment::boilTime_min() const          { return get("boil_time").toDouble(); }
+double Equipment::lauterDeadspace_l() const     { return get("lauter_deadspace").toDouble(); }
+double Equipment::topUpKettle_l() const         { return get("top_up_kettle").toDouble(); }
+double Equipment::hopUtilization_pct() const    { return get("hop_utilization").toDouble(); }
+double Equipment::grainAbsorption_LKg()         { return get("absorption").toDouble(); }
+double Equipment::boilingPoint_c() const        { return get("boiling_point").toDouble(); }
 
 void Equipment::doCalculations()
 {

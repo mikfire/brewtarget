@@ -65,6 +65,8 @@ bool operator==(Recipe &r1, Recipe &r2 );
 class Recipe : public BeerXMLElement
 {
    Q_OBJECT
+   Q_CLASSINFO("signal", "recipes")
+   Q_CLASSINFO("prefix", "recipe")
    
    friend class Database;
 public:
@@ -164,7 +166,7 @@ public:
    //! \brief The calculated final volume into the primary in liters.
    Q_PROPERTY( double finalVolume_l READ finalVolume_l /*WRITE*/ /*NOTIFY changed*/ /*changedEstimateFinalVolume_l*/ STORED false)
    //! \brief The calculated Calories per 12 oz. (kcal).
-   Q_PROPERTY( double calories READ calories /*WRITE*/ /*NOTIFY changed*/ /*changedEstimateCalories*/ STORED false)
+   Q_PROPERTY( double calories READ calories12oz /*WRITE*/ /*NOTIFY changed*/ /*changedEstimateCalories*/ STORED false)
    //! \brief The amount of grains in the mash in kg.
    Q_PROPERTY( double grainsInMash_kg READ grainsInMash_kg /*WRITE*/ /*NOTIFY changed*/ /*changedGrainsInMash_kg*/ STORED false)
    //! \brief The total amount of grains in the recipe in kg.
@@ -198,16 +200,15 @@ public:
    
    // Relational setters.
    // NOTE: do these add/remove methods belong here? Should they only exist in Database?
+   // One method to bring them all and in darkness bind them
+   void remove( BeerXMLElement *var);
+
+   // And you do know what happens next right?
    void addHop( Hop *var );
-   void removeHop( Hop *var );
    void addFermentable( Fermentable* var );
-   void removeFermentable( Fermentable* var );
    void addMisc( Misc* var );
-   void removeMisc( Misc* var );
    void addYeast( Yeast* var );
-   void removeYeast( Yeast* var );
    void addWater( Water* var );
-   void removeWater( Water* var );
    //void addBrewNote(BrewNote* var);
    void removeBrewNote(BrewNote* var);
    //void addInstruction( Instruction* ins );
@@ -272,7 +273,8 @@ public:
    double boilVolume_l();
    double postBoilVolume_l();
    double finalVolume_l();
-   double calories();
+   double calories12oz();
+   double calories33cl();
    double grainsInMash_kg();
    double grains_kg();
    QList<double> IBUs();
@@ -317,10 +319,12 @@ public slots:
    void acceptEquipChange(QMetaProperty prop, QVariant val);
    void acceptFermChange(QMetaProperty prop, QVariant val);
    void acceptHopChange(QMetaProperty prop, QVariant val);
+   void acceptYeastChange(QMetaProperty prop, QVariant val);
    void acceptMashChange(QMetaProperty prop, QVariant val);
 
    void acceptFermChange(Fermentable* ferm);
    void acceptHopChange(Hop* hop);
+   void acceptYeastChange(Yeast* yeast);
    void acceptMashChange(Mash* mash);
 
    // Setters

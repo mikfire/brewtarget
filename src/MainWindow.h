@@ -64,7 +64,7 @@ class ScaleRecipeTool;
 class RecipeFormatter;
 class OgAdjuster;
 class ConverterTool;
-class TimerListDialog;
+class TimerMainDialog;
 class PrimingDialog;
 class StrikeWaterDialog;
 class RecipeExtrasWidget;
@@ -141,6 +141,11 @@ public slots:
    //! \brief Update Recipe's mash
    void updateRecipeMash();
 
+   //! \brief Update the main windows statusbar.
+   void updateStatus(const QString status);
+   //! \brief Change unsaved status.
+   void updateUnsavedStatus(bool isUnsaved);
+
    //! \brief Close a brewnote tab if we must
    void closeBrewNote(BrewNote*);
    //! \brief Add given Fermentable to the Recipe.
@@ -208,6 +213,7 @@ public slots:
    void deleteSelected();
    void copySelected();
    void exportSelected();
+   void exportSelectedHtml();
 
    //! \brief Prints the right thing, depending on the signal sender.
    void print();
@@ -232,9 +238,6 @@ public slots:
    void changeBrewDate();
    void fixBrewNote();
 
-   //! \brief Open the default browser to Brewtarget's donation page.
-   void openDonateLink();
-
    //! \brief Open the default browser to view Brewtarget manual.
     void openManual();
 
@@ -244,7 +247,7 @@ public slots:
    //! \brief Catches a QNetworkReply signal and gets info about any new version available.
    void finishCheckingVersion();
 
-   void redisplayLabel(unitDisplay oldUnit, unitScale oldScale);
+   void redisplayLabel(Unit::unitDisplay oldUnit, Unit::unitScale oldScale);
 
    void showEquipmentEditor();
    void showStyleEditor();
@@ -303,7 +306,7 @@ private:
    RecipeFormatter* recipeFormatter;
    OgAdjuster* ogAdjuster;
    ConverterTool* converterTool;
-   TimerListDialog* timerListDialog;
+   TimerMainDialog* timerMainDialog;
    PrimingDialog* primingDialog;
    StrikeWaterDialog* strikeWaterDialog;
    RefractoDialog* refractoDialog;
@@ -353,17 +356,10 @@ private:
 
    void updateDensitySlider(QString attribute, RangedSlider* slider, double max);
    void updateColorSlider(QString attribute, RangedSlider* slider);
-   // Copy methods used by copySelected()
-   void copyThis(Recipe *rec);
-   void copyThis(Equipment *kit);
-   void copyThis(Fermentable *ferm);
-   void copyThis(Hop *hop);
-   void copyThis(Misc *misc);
-   void copyThis(Style *style);
-   void copyThis(Yeast *yeast);
 
    void convertedMsg();
    void importMsg();
+
 };
 
 #endif   /* _MAINWINDOW_H */

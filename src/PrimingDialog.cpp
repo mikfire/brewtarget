@@ -29,10 +29,10 @@ PrimingDialog::PrimingDialog(QWidget* parent) : QDialog(parent)
    sugarGroup = new QButtonGroup(this);
    sugarGroup->setExclusive(true); // Can select only one.
    
-   sugarGroup->addButton(checkBox_glucMono);
-   sugarGroup->addButton(checkBox_gluc);
-   sugarGroup->addButton(checkBox_sucrose);
-   sugarGroup->addButton(checkBox_dme);
+   sugarGroup->addButton(radioButton_glucMono);
+   sugarGroup->addButton(radioButton_gluc);
+   sugarGroup->addButton(radioButton_sucrose);
+   sugarGroup->addButton(radioButton_dme);
    
    connect( pushButton_calculate, SIGNAL( clicked() ), this, SLOT( calculate() ) );
 }
@@ -69,28 +69,30 @@ void PrimingDialog::calculate()
    
    button = sugarGroup->checkedButton();
    
-   if( button == checkBox_glucMono )
+   if( button == radioButton_glucMono )
    {
       sugar_mol = co2_mol / 2;
       sugar_g = sugar_mol * 198; // Glucose monohydrate is 198 g/mol.
    }
-   else if( button == checkBox_gluc )
+   else if( button == radioButton_gluc )
    {
       sugar_mol = co2_mol / 2;
       sugar_g = sugar_mol * 180; // Glucose is 180g/mol.
    }
-   else if( button == checkBox_sucrose )
+   else if( button == radioButton_sucrose )
    {
       sugar_mol = co2_mol / 4;
       sugar_g = sugar_mol * 342; // Sucrose is 342 g/mol.
    }
-   else if( button == checkBox_dme )
+   else if( button == radioButton_dme )
    {
       sugar_mol = co2_mol / 2;
       sugar_g = sugar_mol * 180 / 0.60; // DME is equivalently about 60% glucose.
    }
    else
       sugar_g = 0;
-   
-   lineEdit_output->setText( sugar_g );
+
+   //The amount have to be set in default unit to BtLineEdit.
+   //We should find a better solution, but until it is not, we must do it this way.
+   lineEdit_output->setText( sugar_g/1000 );
 }

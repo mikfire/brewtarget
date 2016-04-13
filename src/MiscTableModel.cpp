@@ -22,7 +22,6 @@
 
 #include <QComboBox>
 #include <QLineEdit>
-#include <QCheckBox>
 #include <QHeaderView>
 #include "database.h"
 #include "misc.h"
@@ -43,6 +42,10 @@ MiscTableModel::MiscTableModel(QTableView* parent, bool editable)
 
    QHeaderView* headerView = parentTableWidget->horizontalHeader();
    headerView->setContextMenuPolicy(Qt::CustomContextMenu);
+   parentTableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+   parentTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    parentTableWidget->setWordWrap(false);
+
    connect(headerView, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint&)));
 }
 
@@ -69,7 +72,7 @@ void MiscTableModel::observeDatabase(bool val)
       observeRecipe(0);
       removeAll();
       connect( &(Database::instance()), SIGNAL(newMiscSignal(Misc*)), this, SLOT(addMisc(Misc*)) );
-      connect( &(Database::instance()), SIGNAL(deletedMiscSignal(Misc*)), this, SLOT(removeMisc(Misc*)) );
+      connect( &(Database::instance()), SIGNAL(deletedSignal(Misc*)), this, SLOT(removeMisc(Misc*)) );
       addMiscs( Database::instance().miscs() );
    }
    else
@@ -100,12 +103,6 @@ void MiscTableModel::addMisc(Misc* misc)
    connect( misc, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
    //reset(); // Tell everybody that the table has changed.
    endInsertRows();
-
-   if( parentTableWidget )
-   {
-      parentTableWidget->resizeColumnsToContents();
-      parentTableWidget->resizeRowsToContents();
-   }
 }
 
 void MiscTableModel::addMiscs(QList<Misc*> miscs)
@@ -130,13 +127,6 @@ void MiscTableModel::addMiscs(QList<Misc*> miscs)
 
       endInsertRows();
    }
-
-   if( parentTableWidget )
-   {
-      parentTableWidget->resizeColumnsToContents();
-      parentTableWidget->resizeRowsToContents();
-   }
-
 }
 
 // Returns true when misc is successfully found and removed.
@@ -152,12 +142,6 @@ bool MiscTableModel::removeMisc(Misc* misc)
       miscObs.removeAt(i);
       //reset(); // Tell everybody the table has changed.
       endRemoveRows();
-
-      if(parentTableWidget)
-      {
-         parentTableWidget->resizeColumnsToContents();
-         parentTableWidget->resizeRowsToContents();
-      }
 
       return true;
    }
@@ -191,8 +175,8 @@ int MiscTableModel::columnCount(const QModelIndex& /*parent*/) const
 QVariant MiscTableModel::data( const QModelIndex& index, int role ) const
 {
    Misc* row;
-   unitDisplay unit;
-   unitScale scale;
+   Unit::unitDisplay unit;
+   Unit::unitScale scale;
 
    // Ensure the row is ok.
    if( index.row() >= (int)miscObs.size() )
@@ -231,25 +215,25 @@ QVariant MiscTableModel::data( const QModelIndex& index, int role ) const
 
          scale = displayScale(MISCTIMECOL);
 
-         return QVariant( Brewtarget::displayAmount(row->time(), Units::minutes, 0, noUnit, scale) );
+         return QVariant( Brewtarget::displayAmount(row->time(), Units::minutes, 0, Unit::noUnit, scale) );
       case MISCINVENTORYCOL:
          if( role != Qt::DisplayRole )
             return QVariant();
 
          unit = displayUnit(index.column());
-         return QVariant( Brewtarget::displayAmount(row->inventory(), row->amountIsWeight()? (Unit*)Units::kilograms : (Unit*)Units::liters, 3, unit, noScale ) );
+         return QVariant( Brewtarget::displayAmount(row->inventory(), row->amountIsWeight()? (Unit*)Units::kilograms : (Unit*)Units::liters, 3, unit, Unit::noScale ) );
       case MISCAMOUNTCOL:
          if( role != Qt::DisplayRole )
             return QVariant();
 
          unit = displayUnit(index.column());
-         return QVariant( Brewtarget::displayAmount(row->amount(), row->amountIsWeight()? (Unit*)Units::kilograms : (Unit*)Units::liters, 3, unit, noScale ) );
+         return QVariant( Brewtarget::displayAmount(row->amount(), row->amountIsWeight()? (Unit*)Units::kilograms : (Unit*)Units::liters, 3, unit, Unit::noScale ) );
 
       case MISCISWEIGHT:
-         if ( role == Qt::CheckStateRole )
-            return QVariant( row->amountIsWeight() ? Qt::Checked : Qt::Unchecked );
-         else if ( role == Qt::DisplayRole )
-            return row->amountIsWeight() ? tr("Weight") : tr("Volume");
+         if( role == Qt::DisplayRole )
+            return QVariant(row->amountTypeStringTr());
+         else if( role == Qt::UserRole )
+            return QVariant(row->amountType());
          else
             return QVariant();
       default:
@@ -294,8 +278,6 @@ Qt::ItemFlags MiscTableModel::flags(const QModelIndex& index ) const
    {
       case MISCNAMECOL:
          return defaults;
-      case MISCISWEIGHT:
-         return defaults | (editable ? Qt::ItemIsUserCheckable : Qt::NoItemFlags);
       case MISCINVENTORYCOL:
          return (defaults | (_inventoryEditable ? Qt::ItemIsEditable : Qt::NoItemFlags));
       default:
@@ -308,7 +290,6 @@ bool MiscTableModel::setData( const QModelIndex& index, const QVariant& value, i
    Misc *row;
    int col;
    QString tmpStr;
-   unitDisplay dispUnit;
    Unit* unit;
 
    if( index.row() >= (int)miscObs.size() )
@@ -318,6 +299,9 @@ bool MiscTableModel::setData( const QModelIndex& index, const QVariant& value, i
 
    col = index.column();
    unit = row->amountIsWeight() ? (Unit*)Units::kilograms : (Unit*)Units::liters;
+
+   Unit::unitDisplay dspUnit = displayUnit(index.column());
+   Unit::unitScale   dspScl  = displayScale(index.column());
 
    switch (col )
    {
@@ -344,28 +328,24 @@ bool MiscTableModel::setData( const QModelIndex& index, const QVariant& value, i
          if( ! value.canConvert(QVariant::String) )
             return false;
 
-         row->setTime( Brewtarget::qStringToSI(value.toString(), Units::minutes) );
+         row->setTime( Brewtarget::qStringToSI(value.toString(), Units::minutes, dspUnit, dspScl) );
          break;
       case MISCINVENTORYCOL:
          if( ! value.canConvert(QVariant::String) )
             return false;
 
-         dispUnit = displayUnit(col);
-
-         row->setInventoryAmount(Brewtarget::qStringToSI(value.toString(), unit, dispUnit));
+         row->setInventoryAmount(Brewtarget::qStringToSI(value.toString(), unit, dspUnit,dspScl));
       case MISCAMOUNTCOL:
          if( ! value.canConvert(QVariant::String) )
             return false;
 
-         dispUnit = displayUnit(col);
-
-         row->setAmount( Brewtarget::qStringToSI(value.toString(), unit, dispUnit ));
+         row->setAmount( Brewtarget::qStringToSI(value.toString(), unit, dspUnit,dspScl ));
          break;
       case MISCISWEIGHT:
-         if ( role == Qt::CheckStateRole && value.canConvert(QVariant::Int) )
-            row->setAmountIsWeight( ((Qt::CheckState)value.toInt()) == Qt::Checked );
-         else
+         if( ! value.canConvert(QVariant::Int) )
             return false;
+
+         row->setAmountType( static_cast<Misc::AmountType>(value.toInt()) );
          break;
       default:
          return false;
@@ -419,31 +399,31 @@ Misc* MiscTableModel::getMisc(unsigned int i)
    return miscObs[i];
 }
 
-unitDisplay MiscTableModel::displayUnit(int column) const
+Unit::unitDisplay MiscTableModel::displayUnit(int column) const
 {
    QString attribute = generateName(column);
 
    if ( attribute.isEmpty() )
-      return noUnit;
+      return Unit::noUnit;
 
-   return (unitDisplay)Brewtarget::option(attribute, noUnit, this->objectName(), Brewtarget::UNIT).toInt();
+   return (Unit::unitDisplay)Brewtarget::option(attribute, Unit::noUnit, this->objectName(), Brewtarget::UNIT).toInt();
 }
 
-unitScale MiscTableModel::displayScale(int column) const
+Unit::unitScale MiscTableModel::displayScale(int column) const
 {
    QString attribute = generateName(column);
 
    if ( attribute.isEmpty() )
-      return noScale;
+      return Unit::noScale;
 
-   return (unitScale)Brewtarget::option(attribute, noScale, this->objectName(), Brewtarget::SCALE).toInt();
+   return (Unit::unitScale)Brewtarget::option(attribute, Unit::noScale, this->objectName(), Brewtarget::SCALE).toInt();
 }
 
 // We need to:
 //   o clear the custom scale if set
 //   o clear any custom unit from the rows
 //      o which should have the side effect of clearing any scale
-void MiscTableModel::setDisplayUnit(int column, unitDisplay displayUnit)
+void MiscTableModel::setDisplayUnit(int column, Unit::unitDisplay displayUnit)
 {
    // Misc* row; // disabled per-cell magic
    QString attribute = generateName(column);
@@ -452,19 +432,19 @@ void MiscTableModel::setDisplayUnit(int column, unitDisplay displayUnit)
       return;
 
    Brewtarget::setOption(attribute,displayUnit,this->objectName(),Brewtarget::UNIT);
-   Brewtarget::setOption(attribute,noScale,this->objectName(),Brewtarget::SCALE);
+   Brewtarget::setOption(attribute,Unit::noScale,this->objectName(),Brewtarget::SCALE);
 
    /* Disabled cell-specific code
    for (int i = 0; i < rowCount(); ++i )
    {
       row = getMisc(i);
-      row->setDisplayUnit(noUnit);
+      row->setDisplayUnit(Unit::noUnit);
    }
    */
 }
 
 // Setting the scale should clear any cell-level scaling options
-void MiscTableModel::setDisplayScale(int column, unitScale displayScale)
+void MiscTableModel::setDisplayScale(int column, Unit::unitScale displayScale)
 {
    // Misc* row; //disabled per-cell magic
 
@@ -479,7 +459,7 @@ void MiscTableModel::setDisplayScale(int column, unitScale displayScale)
    for (int i = 0; i < rowCount(); ++i )
    {
       row = getMisc(i);
-      row->setDisplayScale(noScale);
+      row->setDisplayScale(Unit::noScale);
    }
    */
 }
@@ -511,8 +491,8 @@ void MiscTableModel::contextMenu(const QPoint &point)
    QHeaderView* hView = qobject_cast<QHeaderView*>(calledBy);
 
    int selected = hView->logicalIndexAt(point);
-   unitDisplay currentUnit;
-   unitScale  currentScale;
+   Unit::unitDisplay currentUnit;
+   Unit::unitScale  currentScale;
 
    // Since we need to call generateVolumeMenu() two different ways, we need
    // to figure out the currentUnit and Scale here
@@ -541,9 +521,9 @@ void MiscTableModel::contextMenu(const QPoint &point)
       return;
 
    if ( selected == MISCTIMECOL )
-      setDisplayScale(selected,(unitScale)invoked->data().toInt());
+      setDisplayScale(selected,(Unit::unitScale)invoked->data().toInt());
    else
-      setDisplayUnit(selected,(unitDisplay)invoked->data().toInt());
+      setDisplayUnit(selected,(Unit::unitDisplay)invoked->data().toInt());
 }
 
 //======================CLASS MiscItemDelegate===========================
@@ -564,6 +544,7 @@ QWidget* MiscItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
       box->addItem(tr("Herb"));
       box->addItem(tr("Flavor"));
       box->addItem(tr("Other"));
+      box->setMinimumWidth(box->minimumSizeHint().width());
       box->setSizeAdjustPolicy(QComboBox::AdjustToContents);
       return box;
    }
@@ -576,15 +557,18 @@ QWidget* MiscItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
       box->addItem(tr("Primary"));
       box->addItem(tr("Secondary"));
       box->addItem(tr("Bottling"));
+      box->setMinimumWidth(box->minimumSizeHint().width());
       box->setSizeAdjustPolicy(QComboBox::AdjustToContents);
       return box;
    }
    else if ( index.column() == MISCISWEIGHT )
    {
-      QCheckBox* box = new QCheckBox(parent);
-      box->setFocusPolicy(Qt::StrongFocus);
-      box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+      QComboBox *box = new QComboBox(parent);
 
+      box->addItem(tr("Weight"));
+      box->addItem(tr("Volume"));
+      box->setMinimumWidth(box->minimumSizeHint().width());
+      box->setSizeAdjustPolicy(QComboBox::AdjustToContents);
       return box;
    }
    else
@@ -595,18 +579,12 @@ void MiscItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
 {
    int column = index.column();
 
-   if( column == MISCTYPECOL || column == MISCUSECOL )
+   if( column == MISCTYPECOL || column == MISCUSECOL || column == MISCISWEIGHT)
    {
       QComboBox* box = qobject_cast<QComboBox*>(editor);
       if( box == 0 )
          return;
       box->setCurrentIndex(index.model()->data(index, Qt::UserRole).toInt());
-   }
-   else if ( column == MISCISWEIGHT )
-   {
-      QCheckBox* checkBox = (QCheckBox*)editor;
-      Qt::CheckState checkState = (Qt::CheckState)index.model()->data(index, Qt::CheckStateRole).toInt();
-      checkBox->setCheckState( checkState );
    }
    else
    {
@@ -619,7 +597,7 @@ void MiscItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
 void MiscItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
    int column = index.column();
-   if( column == MISCTYPECOL || column == MISCUSECOL )
+   if( column == MISCTYPECOL || column == MISCUSECOL || column == MISCISWEIGHT)
    {
       QComboBox* box = (QComboBox*)editor;
       int ndx = box->currentIndex();
@@ -627,13 +605,6 @@ void MiscItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, 
 
       if ( curr != ndx )
          model->setData(index, ndx, Qt::EditRole);
-   }
-   else if ( column == MISCISWEIGHT )
-   {
-      QCheckBox* checkBox = qobject_cast<QCheckBox*>(editor);
-      bool checked = ( checkBox->checkState() == Qt::Checked );
-
-      model->setData( index, checked, Qt::EditRole);
    }
    else
    {

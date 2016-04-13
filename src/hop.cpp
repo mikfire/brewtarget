@@ -145,6 +145,7 @@ void Hop::setAmount_kg( double num )
       set("amount_kg", "amount", num);
    }
 }
+
 void Hop::setInventoryAmount( double num )
 {
    if( num < 0.0 )
@@ -284,60 +285,38 @@ void Hop::setMyrcene_pct( double num )
 
 //============================="GET" METHODS====================================
 
-const QString Hop::name() const
-{
-   return get("name").toString();
-}
+const QString Hop::name() const { return get("name").toString(); }
+Hop::Use Hop::use() const { return static_cast<Hop::Use>(uses.indexOf(get("use").toString())); }
+const QString Hop::useString() const { return get("use").toString(); }
+Hop::Form Hop::form() const { return static_cast<Hop::Form>(forms.indexOf(get("form").toString())); }
+const QString Hop::notes() const { return get("notes").toString(); }
+Hop::Type Hop::type() const { return static_cast<Hop::Type>(types.indexOf(get("htype").toString())); }
+const QString Hop::typeString() const { return get("htype").toString(); }
+const QString Hop::formString() const { return get("form").toString(); }
+const QString Hop::origin() const { return get("origin").toString(); }
+const QString Hop::substitutes() const { return get("substitutes").toString(); }
 
-double Hop::alpha_pct() const
-{
-   return get("alpha").toDouble();
-}
+double Hop::alpha_pct()          const { return get("alpha").toDouble(); }
+double Hop::amount_kg()          const { return get("amount").toDouble(); }
+double Hop::time_min()           const { return get("time").toDouble(); }
+double Hop::beta_pct()           const { return get("beta").toDouble(); }
+double Hop::hsi_pct()            const { return get("hsi").toDouble(); }
+double Hop::humulene_pct()       const { return get("humulene").toDouble(); }
+double Hop::caryophyllene_pct()  const { return get("caryophyllene").toDouble(); }
+double Hop::cohumulone_pct()     const { return get("cohumulone").toDouble(); }
+double Hop::myrcene_pct()        const { return get("myrcene").toDouble(); }
 
-double Hop::amount_kg() const
-{
-   return get("amount").toDouble();
-}
-
+// inventory still must be handled separately, and I'm still annoyed.
 double Hop::inventory() const
 {
    return getInventory("amount").toDouble();
 }
-
-Hop::Use Hop::use() const
-{
-   return static_cast<Hop::Use>(uses.indexOf(get("use").toString()));
-}
-
-const QString Hop::useString() const
-{
-   return get("use").toString();
-}
+ 
 
 const QString Hop::useStringTr() const
 {
    static QStringList usesTr = QStringList() << tr("Mash") << tr("First Wort") << tr("Boil") << tr("Aroma") << tr("Dry Hop") ;
    return usesTr.at(use());
-}
-
-double Hop::time_min() const
-{
-   return get("time").toDouble();
-}
-
-const QString Hop::notes() const
-{
-   return get("notes").toString();
-}
-
-Hop::Type Hop::type() const
-{
-   return static_cast<Hop::Type>(types.indexOf(get("htype").toString()));
-}
-
-const QString Hop::typeString() const
-{
-   return get("htype").toString();
 }
 
 const QString Hop::typeStringTr() const
@@ -346,58 +325,9 @@ const QString Hop::typeStringTr() const
    return typesTr.at(type());
 }
 
-Hop::Form Hop::form() const
-{
-   return static_cast<Hop::Form>(forms.indexOf(get("form").toString()));
-}
-
-const QString Hop::formString() const
-{
-   return get("form").toString();
-}
-
 const QString Hop::formStringTr() const
 {
    static QStringList formsTr = QStringList() << tr("Leaf") << tr("Pellet") << tr("Plug");
    return formsTr.at(form());
 }
 
-double Hop::beta_pct() const
-{
-   return get("beta").toDouble();
-}
-
-double Hop::hsi_pct() const
-{
-   return get("hsi").toDouble();
-}
-
-const QString Hop::origin() const
-{
-   return get("origin").toString();
-}
-
-const QString Hop::substitutes() const
-{
-   return get("substitutes").toString();
-}
-
-double Hop::humulene_pct() const
-{
-   return get("humulene").toDouble();
-}
-
-double Hop::caryophyllene_pct() const
-{
-   return get("caryophyllene").toDouble();
-}
-
-double Hop::cohumulone_pct() const
-{
-   return get("cohumulone").toDouble();
-}
-
-double Hop::myrcene_pct() const
-{
-   return get("myrcene").toDouble();
-}

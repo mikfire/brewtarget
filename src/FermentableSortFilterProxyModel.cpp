@@ -35,32 +35,59 @@ FermentableSortFilterProxyModel::FermentableSortFilterProxyModel(QObject *parent
 bool FermentableSortFilterProxyModel::lessThan(const QModelIndex &left, 
                                          const QModelIndex &right) const
 {
-    QVariant leftFermentable = sourceModel()->data(left);
-    QVariant rightFermentable = sourceModel()->data(right);
-    Unit* unit = Units::kilograms;
+   QVariant leftFermentable = sourceModel()->data(left);
+   QVariant rightFermentable = sourceModel()->data(right);
+   double leftDouble, rightDouble;
+
+   Unit* unit = Units::kilograms;
 
    switch( left.column() )
    {
+      case FERMINVENTORYCOL:
+         // If the numbers are equal, compare the names and be done with it
+         if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == Brewtarget::qStringToSI(rightFermentable.toString(),unit))
+            return getName(right) < getName(left);
+         // Show non-zero entries first.
+         else if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == 0.0 && this->sortOrder() == Qt::AscendingOrder)
+            return false;
+         else
+            return Brewtarget::qStringToSI(leftFermentable.toString(),unit) < Brewtarget::qStringToSI(rightFermentable.toString(),unit);
       case FERMAMOUNTCOL:
-         // This is a bit twisted. If the numbers are equal, reset the left
-         // and right to the names and let it hit the default
+         // If the numbers are equal, compare the names and be done with it
          if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == Brewtarget::qStringToSI(rightFermentable.toString(),unit))
             return getName(right) < getName(left);
          else
             return Brewtarget::qStringToSI(leftFermentable.toString(),unit) < Brewtarget::qStringToSI(rightFermentable.toString(),unit);
       case FERMYIELDCOL:
-         if (leftFermentable.toDouble() == rightFermentable.toDouble() )
+         leftDouble = toDouble(leftFermentable);
+         rightDouble = toDouble(rightFermentable);
+
+         if (leftDouble == rightDouble)
             return getName(right) < getName(left);
          else
-            return leftFermentable.toDouble() < rightFermentable.toDouble();
+            return leftDouble < rightDouble;
       case FERMCOLORCOL:
-         if (leftFermentable.toDouble() == rightFermentable.toDouble())
+         leftDouble = toDouble(leftFermentable);
+         rightDouble = toDouble(rightFermentable);
+
+         if (leftDouble == rightDouble)
             return getName(right) < getName(left);
          else
-            return leftFermentable.toDouble() < rightFermentable.toDouble();
+            return leftDouble < rightDouble;
    }
 
    return leftFermentable.toString() < rightFermentable.toString();
+}
+
+double FermentableSortFilterProxyModel::toDouble(QVariant side) const
+{
+   double amt;
+   bool ok = false;
+
+   amt = Brewtarget::toDouble(side.toString(), &ok);
+   if ( ! ok )
+      Brewtarget::logW( QString("FermentableSortFilterProxyModel::lessThan could not convert %1 to double").arg(side.toString()));
+   return amt;
 }
 
 QString FermentableSortFilterProxyModel::getName( const QModelIndex &index ) const
@@ -72,5 +99,11 @@ QString FermentableSortFilterProxyModel::getName( const QModelIndex &index ) con
 bool FermentableSortFilterProxyModel::filterAcceptsRow( int source_row, const QModelIndex &source_parent) const
 {
    FermentableTableModel* model = qobject_cast<FermentableTableModel*>(sourceModel());
-   return ! filter || model->getFermentable(source_row)->display();
+   QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+
+   return !filter
+          ||
+          (  sourceModel()->data(index).toString().contains(filterRegExp())
+             && model->getFermentable(source_row)->display()
+          );
 }

@@ -36,16 +36,24 @@ bool YeastSortFilterProxyModel::lessThan(const QModelIndex &left,
     QVariant leftYeast = sourceModel()->data(left);
     QVariant rightYeast = sourceModel()->data(right);
     Unit* unit = Units::liters;
+    double lAmt, rAmt;
 
     switch( left.column() )
     {
+    case YEASTINVENTORYCOL:
+      if (Brewtarget::qStringToSI(leftYeast.toString(),unit) == 0.0 && this->sortOrder() == Qt::AscendingOrder)
+         return false;
+      else
+         return Brewtarget::qStringToSI(leftYeast.toString(),unit) < Brewtarget::qStringToSI(rightYeast.toString(),unit);
        // This is a lie. I need to figure out if they are weights or volumes.
        // and then figure some reasonable way to compare weights to volumes.
        // Maybe lying isn't such a bad idea
     case YEASTAMOUNTCOL:
       return Brewtarget::qStringToSI(leftYeast.toString(),unit) < Brewtarget::qStringToSI(rightYeast.toString(),unit);
     case YEASTPRODIDCOL:
-      return leftYeast.toDouble() < rightYeast.toDouble();
+      lAmt = Brewtarget::toDouble( leftYeast.toString(), "YeastSortFilterProxyModel::lessThan");
+      rAmt = Brewtarget::toDouble( rightYeast.toString(), "YeastSortFilterProxyModel::lessThan");
+      return lAmt < rAmt;
     default:
       return leftYeast.toString() < rightYeast.toString();
     }
@@ -54,5 +62,11 @@ bool YeastSortFilterProxyModel::lessThan(const QModelIndex &left,
 bool YeastSortFilterProxyModel::filterAcceptsRow( int source_row, const QModelIndex &source_parent) const
 {
    YeastTableModel* model = qobject_cast<YeastTableModel*>(sourceModel());
-   return ! filter || model->getYeast(source_row)->display();
+   QModelIndex index = sourceModel()->index(source_row, 0, source_parent);
+
+   return !filter
+          ||
+           ( sourceModel()->data(index).toString().contains(filterRegExp())
+             && model->getYeast(source_row)->display()
+           );
 }

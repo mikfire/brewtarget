@@ -27,53 +27,18 @@
 #include <QSettings>
 #include <QDebug>
 
-BtLineEdit::BtLineEdit(QWidget *parent, FieldType type)
+BtLineEdit::BtLineEdit(QWidget *parent, Unit::UnitType type) :
+   QLineEdit(parent)
 {
    btParent = parent;
    _type = type;
-
-   switch( _type )
-   {
-      case MASS:
-         // I don't ... oh bugger
-         _units = Units::grams;
-         break;
-      case VOLUME:
-         _units = Units::liters;
-         break;
-      case TEMPERATURE:
-         _units = Units::celsius;
-         break;
-      case TIME:
-         _units = Units::minutes;
-         break;
-      case COLOR:
-         _units = Units::srm;
-         break;
-      case DENSITY:
-         _units = Units::sp_grav;
-         break;
-      case MIXED:
-         _units = Units::grams;
-         break;
-      case GENERIC:
-      case STRING:
-         _units = 0;
-         break;
-   }
 
    connect(this,SIGNAL(editingFinished()),this,SLOT(lineChanged()));
 }
 
 void BtLineEdit::lineChanged()
 {
-   lineChanged(noUnit,noScale);
-}
-
-// Dynamic properties need to be evaluated late, so we do it this way
-void BtLineEdit::initializeProperty()
-{
-   _property = property("editField").toString();
+   lineChanged(Unit::noUnit,Unit::noScale);
 }
 
 void BtLineEdit::initializeSection()
@@ -88,12 +53,13 @@ void BtLineEdit::initializeSection()
 
 }
 
-void BtLineEdit::lineChanged(unitDisplay oldUnit, unitScale oldScale)
+void BtLineEdit::lineChanged(Unit::unitDisplay oldUnit, Unit::unitScale oldScale)
 {
    // This is where it gets hard
-   double val;
+   double val = -1.0;
    QString amt;
    bool force = false;
+   bool ok = false;
 
    // editingFinished happens on focus being lost, regardless of anything
    // being changed. I am hoping this short circuits properly and we do
@@ -114,33 +80,35 @@ void BtLineEdit::lineChanged(unitDisplay oldUnit, unitScale oldScale)
    if ( _section.isEmpty() )
       initializeSection();
 
-   if ( _property.isEmpty() )
-      initializeProperty();
-
+   if (text().isEmpty())
+   {
+      return;
+   }
 
    // The idea here is we need to first translate the field into a known
    // amount (aka to SI) and then into the unit we want.
    switch( _type )
    {
-      case MASS:
-      case VOLUME:
-      case TEMPERATURE:
-      case TIME:
+      case Unit::Mass:
+      case Unit::Volume:
+      case Unit::Temp:
+      case Unit::Time:
+      case Unit::Density:
          val = toSI(oldUnit,oldScale,force);
          amt = displayAmount(val,3);
          break;
-      case DENSITY:
-      case COLOR:
+      case Unit::Color:
          val = toSI(oldUnit,oldScale,force);
          amt = displayAmount(val,0);
          break;
-      case STRING:
-         val = -1.0;
+      case Unit::String:
          amt = text();
          break;
-      case GENERIC:
+      case Unit::None:
       default:
-         val = text().toDouble();
+         val = Brewtarget::toDouble(text(),&ok);
+         if ( ! ok )
+            Brewtarget::logW( QString("%1: failed to convert %2 (%3:%4) to double").arg(Q_FUNC_INFO).arg(text()).arg(_section).arg(_editField) );
          amt = displayAmount(val);
    }
    QLineEdit::setText(amt);
@@ -151,24 +119,31 @@ void BtLineEdit::lineChanged(unitDisplay oldUnit, unitScale oldScale)
    }
 }
 
-double BtLineEdit::toSI(unitDisplay oldUnit,unitScale oldScale,bool force)
+double BtLineEdit::toSI(Unit::unitDisplay oldUnit,Unit::unitScale oldScale,bool force)
 {
    UnitSystem* temp;
    Unit*       works;
-   unitDisplay dspUnit  = oldUnit;
-   unitScale   dspScale = oldScale;
+   Unit::unitDisplay dspUnit  = oldUnit;
+   Unit::unitScale   dspScale = oldScale;
 
    if ( _section.isEmpty() )
       initializeSection();
-   if ( _property.isEmpty() )
-      initializeProperty();
 
    // If force is set, just use what is provided in the call. If we are
    // not forcing the unit & scale, we need to read the configured properties
    if ( ! force )
    {
-      dspUnit   = (unitDisplay)Brewtarget::option(_property, noUnit, _section, Brewtarget::UNIT).toInt();
-      dspScale  = (unitScale)Brewtarget::option(_property, noUnit, _section, Brewtarget::SCALE).toInt();
+      // If the display unit is forced, use this unit the default one.
+      if ( _forceUnit != Unit::noUnit )
+         dspUnit = _forceUnit;
+      else
+         dspUnit   = (Unit::unitDisplay)Brewtarget::option(_editField, Unit::noUnit, _section, Brewtarget::UNIT).toInt();
+
+      // If the display scale is forced, use this scale as the default one.
+      if( _forceScale != Unit::noScale )
+         dspScale = _forceScale;
+      else
+         dspScale  = (Unit::unitScale)Brewtarget::option(_editField, Unit::noUnit, _section, Brewtarget::SCALE).toInt();
    }
 
    // Find the unit system containing dspUnit
@@ -183,34 +158,66 @@ double BtLineEdit::toSI(unitDisplay oldUnit,unitScale oldScale,bool force)
          works = temp->unit();
 
       // get the qstringToSI() from the unit system, using the found unit.
-      // Force the issue in qstringToSI() unless dspScale is noScale.
-      return temp->qstringToSI(text(), works, dspScale != noScale);
+      // Force the issue in qstringToSI() unless dspScale is Unit::noScale.
+      return temp->qstringToSI(text(), works, dspScale != Unit::noScale, dspScale);
    }
-   else if ( _type == STRING )
+   else if ( _type == Unit::String )
       return 0.0;
 
    // If all else fails, simply try to force the contents of the field to a
    // double. This doesn't seem advisable?
-   return text().toDouble();
+   bool ok = false;
+   double amt = toDouble(&ok);
+   if ( ! ok )
+      Brewtarget::logW( QString("%1 : could not convert %2 (%3:%4) to double").arg(Q_FUNC_INFO).arg(text()).arg(_section).arg(_editField) );
+   return amt;
 }
 
 QString BtLineEdit::displayAmount( double amount, int precision)
 {
-   unitDisplay unitDsp;
-   unitScale scale;
+   Unit::unitDisplay unitDsp;
+   Unit::unitScale scale;
 
    if ( _section.isEmpty() )
       initializeSection();
-   if ( _property.isEmpty() )
-      initializeProperty();
 
-   unitDsp  = (unitDisplay)Brewtarget::option(_property, noUnit, _section, Brewtarget::UNIT).toInt();
-   scale = (unitScale)Brewtarget::option(_property, noScale, _section, Brewtarget::SCALE).toInt();
+   if ( _forceUnit != Unit::noUnit )
+      unitDsp = _forceUnit;
+   else
+      unitDsp  = (Unit::unitDisplay)Brewtarget::option(_editField, Unit::noUnit, _section, Brewtarget::UNIT).toInt();
+
+   scale    = (Unit::unitScale)Brewtarget::option(_editField, Unit::noScale, _section, Brewtarget::SCALE).toInt();
 
    // I find this a nice level of abstraction. This lets all of the setText()
    // methods make a single call w/o having to do the logic for finding the
    // unit and scale.
    return Brewtarget::displayAmount(amount, _units, precision, unitDsp, scale);
+}
+
+double BtLineEdit::toDouble(bool* ok)
+{
+   QRegExp amtUnit;
+
+   if ( ok ) 
+      *ok = true;
+   // Make sure we get the right decimal point (. or ,) and the right grouping
+   // separator (, or .). Some locales write 1.000,10 and other write
+   // 1,000.10. We need to catch both
+   QString decimal = QRegExp::escape( QLocale::system().decimalPoint());
+   QString grouping = QRegExp::escape(QLocale::system().groupSeparator());
+
+   amtUnit.setPattern("((?:\\d+" + grouping + ")?\\d+(?:" + decimal + "\\d+)?|" + decimal + "\\d+)\\s*(\\w+)?");
+   amtUnit.setCaseSensitivity(Qt::CaseInsensitive);
+
+   // if the regex dies, return 0.0
+   if (amtUnit.indexIn(text()) == -1)
+   {
+      if ( ok )
+         *ok = false;
+      return 0.0;
+   }
+
+   return Brewtarget::toDouble(amtUnit.cap(1), "BtLineEdit::toDouble()");
 }
 
 void BtLineEdit::setText( double amount, int precision)
@@ -225,15 +232,18 @@ void BtLineEdit::setText( BeerXMLElement* element, int precision )
 
    if ( _section.isEmpty() )
       initializeSection();
-   if ( _property.isEmpty() )
-      initializeProperty();
 
-   if ( _type == STRING )
-      display = element->property(_property.toLatin1().constData()).toString();
-   else if ( element->property(_property.toLatin1().constData()).canConvert(QVariant::Double) )
+   if ( _type == Unit::String )
+      display = element->property(_editField.toLatin1().constData()).toString();
+   else if ( element->property(_editField.toLatin1().constData()).canConvert(QVariant::Double) )
    {
       // Get the amount
-      amount = element->property(_property.toLatin1().constData()).toDouble();
+      bool ok = false;
+      QString tmp = element->property(_editField.toLatin1().constData()).toString();
+      amount = Brewtarget::toDouble(tmp, &ok);
+      if ( !ok )
+         Brewtarget::logW( QString("%1 could not convert %2 (%3:%4) to double").arg(Q_FUNC_INFO).arg(tmp).arg(_section).arg(_editField) );
+
       display = displayAmount(amount, precision);
    }
    else
@@ -246,65 +256,124 @@ void BtLineEdit::setText( BeerXMLElement* element, int precision )
 
 void BtLineEdit::setText( QString amount, int precision)
 {
-   if ( _type == STRING )
+   double amt;
+   bool ok = false;
+
+   if ( _type == Unit::String )
       QLineEdit::setText(amount);
    else
-      QLineEdit::setText(displayAmount(amount.toDouble(), precision));
+   {
+      amt = Brewtarget::toDouble(amount,&ok);
+      if ( !ok )
+         Brewtarget::logW( QString("%1 could not convert %2 (%3:%4) to double").arg(Q_FUNC_INFO).arg(amount).arg(_section).arg(_editField) );
+      QLineEdit::setText(displayAmount(amt, precision));
+   }
 }
 
 void BtLineEdit::setText( QVariant amount, int precision)
 {
-   if ( _type == STRING )
-      QLineEdit::setText(amount.toString());
-   else
-      QLineEdit::setText(displayAmount(amount.toDouble(), precision));
+   setText(amount.toString(), precision);
+}
+
+int BtLineEdit::type() const { return (int)_type; }
+QString BtLineEdit::editField() const { return _editField; }
+QString BtLineEdit::configSection() const { return _section; }
+
+// Once we require >qt5.5, we can replace this noise with
+// QMetaEnum::fromType()
+QString BtLineEdit::forcedUnit() const 
+{ 
+   const QMetaObject &mo = Unit::staticMetaObject;
+   int index = mo.indexOfEnumerator("unitDisplay");
+   QMetaEnum unitEnum = mo.enumerator(index);
+
+   return QString( unitEnum.valueToKey(_forceUnit) );
+}
+
+QString BtLineEdit::forcedScale() const
+{ 
+   const QMetaObject &mo = Unit::staticMetaObject;
+   int index = mo.indexOfEnumerator("unitScale");
+   QMetaEnum scaleEnum = mo.enumerator(index);
+
+   return QString( scaleEnum.valueToKey(_forceScale) );
+}
+
+void BtLineEdit::setType(int type) { _type = (Unit::UnitType)type;}
+void BtLineEdit::setEditField( QString editField) { _editField = editField; }
+void BtLineEdit::setConfigSection( QString configSection) { _section = configSection; }
+
+// previous comment about qt5.5 applies
+void BtLineEdit::setForcedUnit( QString forcedUnit ) 
+{ 
+   const QMetaObject &mo = Unit::staticMetaObject;
+   int index = mo.indexOfEnumerator("unitDisplay");
+   QMetaEnum unitEnum = mo.enumerator(index);
+
+   _forceUnit = (Unit::unitDisplay)unitEnum.keyToValue(forcedUnit.toStdString().c_str());
+}
+
+void BtLineEdit::setForcedScale( QString forcedScale ) 
+{ 
+   const QMetaObject &mo = Unit::staticMetaObject;
+   int index = mo.indexOfEnumerator("unitScale");
+   QMetaEnum unitEnum = mo.enumerator(index);
+   _forceScale = (Unit::unitScale)unitEnum.keyToValue(forcedScale.toStdString().c_str());
 }
 
 BtGenericEdit::BtGenericEdit(QWidget *parent)
-   : BtLineEdit(parent,GENERIC)
+   : BtLineEdit(parent,Unit::None)
 {
+   _units = 0;
 }
 
 BtMassEdit::BtMassEdit(QWidget *parent)
-   : BtLineEdit(parent,MASS)
+   : BtLineEdit(parent,Unit::Mass)
 {
+   _units = Units::kilograms;
 }
 
 BtVolumeEdit::BtVolumeEdit(QWidget *parent)
-   : BtLineEdit(parent,VOLUME)
+   : BtLineEdit(parent,Unit::Volume)
 {
+   _units = Units::liters;
 }
 
 BtTemperatureEdit::BtTemperatureEdit(QWidget *parent)
-   : BtLineEdit(parent,TEMPERATURE)
+   : BtLineEdit(parent,Unit::Temp)
 {
+   _units = Units::celsius;
 }
 
 BtTimeEdit::BtTimeEdit(QWidget *parent)
-   : BtLineEdit(parent,TIME)
+   : BtLineEdit(parent,Unit::Time)
 {
+   _units = Units::minutes;
 }
 
 BtDensityEdit::BtDensityEdit(QWidget *parent)
-   : BtLineEdit(parent,DENSITY)
+   : BtLineEdit(parent,Unit::Density)
 {
+   _units = Units::sp_grav;
 }
 
 BtColorEdit::BtColorEdit(QWidget *parent)
-   : BtLineEdit(parent,COLOR)
+   : BtLineEdit(parent,Unit::Color)
 {
+   _units = Units::srm;
 }
 
 BtStringEdit::BtStringEdit(QWidget *parent)
-   : BtLineEdit(parent,STRING)
+   : BtLineEdit(parent,Unit::String)
 {
+   _units = 0;
 }
 
 BtMixedEdit::BtMixedEdit(QWidget *parent)
-   : BtLineEdit(parent,MIXED)
+   : BtLineEdit(parent,Unit::Mixed)
 {
    // This is probably pure evil I will later regret
-   _type = VOLUME;
+   _type = Unit::Volume;
    _units = Units::liters;
 }
 
@@ -313,17 +382,16 @@ void BtMixedEdit::setIsWeight(bool state)
    // But you have to admit, this is clever
    if (state)
    {
-      _type = MASS;
-      _units = Units::grams;
+      _type = Unit::Mass;
+      _units = Units::kilograms;
    }
    else
    {
-      _type = VOLUME;
+      _type = Unit::Volume;
       _units = Units::liters;
    }
 
    // maybe? My head hurts now
    lineChanged();
-
 }
 
