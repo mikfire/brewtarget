@@ -35,17 +35,20 @@ ADD_CUSTOM_COMMAND(
 ADD_CUSTOM_COMMAND(
    OUTPUT "${brewtarget_DOCDIR}/brewtarget-manual.html"
    COMMAND cmake -E make_directory ${brewtarget_DOCDIR}
-   COMMAND cmake -E copy "${DOCSRC}/brewtarget-manual.html" ${brewtarget_DOCDIR}
+   COMMAND cmake -E copy "${DOCSRC}/manual-en.pdf" ${brewtarget_DOCDIR}
    COMMAND cmake -E make_directory "${brewtarget_DOCDIR}/images"
    COMMAND cmake -E copy_directory "${DOCSRC}/images" "${brewtarget_DOCDIR}/images"
 )
 
 # All the assets we need go here.
+# libpq.so is a custom built, statically linked, cross-compiled file. I have
+# no idea how to actually make this work.
 ADD_CUSTOM_TARGET(
    brewtarget_assets
    DEPENDS
    ${brewtarget_RES_DB}
    "${brewtarget_DOCDIR}/brewtarget-manual.html"
+   "${ROOTDIR}/android/libpq.so"
 )
 
 find_program(ANDROID_DEPLOY_QT NAMES androiddeployqt PATHS ${_qt5Core_install_prefix}/bin/ )

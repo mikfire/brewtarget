@@ -330,37 +330,8 @@ QDir Brewtarget::getDocDir()
 const QDir Brewtarget::getConfigDir()
 {
 #if defined(Q_OS_ANDROID)
-   bool tmp;
-   QFile::Permissions sevenFiveFive = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner;
    QDir dir = QDir::home();
 
-   if( !dir.exists("brewtarget") )
-   {
-      logW( QString("\"%1\" does not exist...creating.").arg(dir.absolutePath() + "/brewtarget") );
-
-      // Try to make brewtarget dir.
-      if( ! dir.mkdir("brewtarget") )
-      {
-         logE( QString("Could not create \"%1\"").arg(dir.absolutePath() + "/brewtarget") );
-         if( success != 0 )
-            *success = false;
-         return "";
-      }
-
-      // chmod 755 ~/.config/brewtarget
-      QFile::setPermissions( dir.absolutePath() + "/brewtarget", sevenFiveFive );
-   }
-
-   if( ! dir.cd("brewtarget") )
-   {
-      logE(QString("Could not CD into \"%1\"").arg(dir.absolutePath() + "/brewtarget"));
-      if( success != 0 )
-         *success = false;
-      return "";
-   }
-
-   if( success != 0 )
-      *success = true;
    return dir.absolutePath() + "/";
 #elif defined(Q_OS_LINUX) || defined(Q_OS_MAC) // Linux OS or Mac OS.
 

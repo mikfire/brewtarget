@@ -325,11 +325,11 @@ MainWindow::MainWindow(QWidget* parent)
 
    // Do some magic on the splitter widget to keep the tree from expanding
 #if defined(Q_OS_ANDROID)
-   splitter_2->setStretchFactor(0,0.75);
-   splitter_2->setStretchFactor(1,0.25);
+   splitter_vertical->setStretchFactor(0,0.75);
+   //splitter_vertical->setStretchFactor(1,0.25);
 #else
-   splitter_2->setStretchFactor(0,0);
-   splitter_2->setStretchFactor(1,1);
+   splitter_vertical->setStretchFactor(0,0);
+   //splitter_vertical->setStretchFactor(1,1);
 #endif
 
 
@@ -2094,25 +2094,32 @@ void MainWindow::setupContextMenu()
    treeView_yeast->setupContextMenu(this,yeastDialog);
 
    // TreeView for clicks, both double and right
+   // double clicks for everybody but android
+
+#if defined(Q_OS_ANDROID)
+   connect( treeView_recipe, SIGNAL(clicked(const QModelIndex &)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_equip, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_ferm, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_hops, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_misc, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_yeast, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+   connect( treeView_style, SIGNAL(clicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+#else
    connect( treeView_recipe, SIGNAL(doubleClicked(const QModelIndex &)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_recipe, SIGNAL(customContextMenuRequested( const QPoint& )), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_equip, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_equip, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_ferm, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_ferm, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_hops, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_hops, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_misc, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_misc, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_yeast, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
-   connect( treeView_yeast, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
-
    connect( treeView_style, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(treeActivated(const QModelIndex &)));
+#endif
+
+   connect( treeView_recipe, SIGNAL(customContextMenuRequested( const QPoint& )), this, SLOT(contextMenu(const QPoint &)));
+   connect( treeView_equip, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
+   connect( treeView_ferm, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
+   connect( treeView_hops, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
+   connect( treeView_misc, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
+   connect( treeView_yeast, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
    connect( treeView_style, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(contextMenu(const QPoint &)));
 
 }

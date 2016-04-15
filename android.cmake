@@ -13,7 +13,8 @@ cmake_policy(SET CMP0011 NEW)
 # setup reasonable defaults for our project
 #set(LIBRARY_OUTPUT_PATH_ROOT "${CMAKE_SOURCE_DIR}/jni")
 #set(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/jni")
-set(ANDROID_ABI "x86" CACHE STRING "ABI type. See android.cmake toolchain file for details on ABI")
+set(ANDROID_ABI "armeabi-v7a" CACHE STRING "ABI type. See android.cmake toolchain file for details on ABI")
+#set(ANDROID_ABI "x86" CACHE STRING "ABI type. See android.cmake toolchain file for details on ABI")
 set(ANDROID_JAVA_API_LEVEL "android-19")
 set(ANDROID_NATIVE_API_LEVEL "android-19")
 

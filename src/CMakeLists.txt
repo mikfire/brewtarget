@@ -353,7 +353,6 @@ ADD_LIBRARY(
    ${brewtarget_UIS_H}
 )
 
-<<<<<<< HEAD
 IF( ANDROID )
    ADD_LIBRARY(
       ${brewtarget_EXECUTABLE}
@@ -364,8 +363,8 @@ IF( ANDROID )
       )
    QT5_USE_MODULES( ${brewtarget_EXECUTABLE} Gui Core Multimedia Network PrintSupport Qml Sql Svg Xml AndroidExtras )
    target_link_libraries(${brewtarget_EXECUTABLE} ${QT_LIBRARIES})
-=======
-IF( APPLE )
+
+ELSEIF( APPLE )
    # It seems I have to set these properties in this file, or things don't
    # get installed
    SET_SOURCE_FILES_PROPERTIES(
@@ -433,8 +432,6 @@ SET( QT5_USE_MODULES_LIST
    Widgets
    Network
    PrintSupport
-   Qml
-   Quick
    Sql
    Svg
    Xml
@@ -449,44 +446,44 @@ QT5_USE_MODULES( ${QT5_USE_MODULES_LIST})
 #=================================Tests========================================
 
 #QT4_WRAP_CPP( testing_MOC_SRCS ${SRCDIR}/Testing.h )
-ADD_EXECUTABLE(
-   brewtarget_tests
-   ${SRCDIR}/Testing.cpp
-   ${testing_MOC_SRCS}
-   $<TARGET_OBJECTS:btobjlib>
-)
-
-SET( QT5_USE_MODULES_LIST
-   brewtarget_tests
-   Widgets
-   Network
-   PrintSupport
-   Qml
-   Quick
-   Sql
-   Svg
-   Xml
-   Test
+IF ( NOT ANDROID )
+   ADD_EXECUTABLE(
+      brewtarget_tests
+      ${SRCDIR}/Testing.cpp
+      ${testing_MOC_SRCS}
+      $<TARGET_OBJECTS:btobjlib>
    )
 
-IF( NOT ${NO_QTMULTIMEDIA})
-SET( QT5_USE_MODULES_LIST ${QT5_USE_MODULES_LIST} Multimedia)
+   SET( QT5_USE_MODULES_LIST
+      brewtarget_tests
+      Widgets
+      Network
+      PrintSupport
+      Sql
+      Svg
+      Xml
+      Test
+      )
+
+   IF( NOT ${NO_QTMULTIMEDIA})
+   SET( QT5_USE_MODULES_LIST ${QT5_USE_MODULES_LIST} Multimedia)
+   ENDIF()
+
+   QT5_USE_MODULES(${QT5_USE_MODULES_LIST})
+
+   ADD_TEST(
+      NAME pstdintTest
+      COMMAND brewtarget_tests pstdintTest
+   )
+   ADD_TEST(
+      NAME recipeCalcTest_allGrain
+      COMMAND brewtarget_tests recipeCalcTest_allGrain
+   )
+   ADD_TEST(
+      NAME postBoilLossOgTest
+      COMMAND brewtarget_tests postBoilLossOgTest
+   )
 ENDIF()
-
-QT5_USE_MODULES(${QT5_USE_MODULES_LIST})
-
-ADD_TEST(
-   NAME pstdintTest
-   COMMAND brewtarget_tests pstdintTest
-)
-ADD_TEST(
-   NAME recipeCalcTest_allGrain
-   COMMAND brewtarget_tests recipeCalcTest_allGrain
-)
-ADD_TEST(
-   NAME postBoilLossOgTest
-   COMMAND brewtarget_tests postBoilLossOgTest
-)
 #=================================Installs=====================================
 
 # Install library for Android, executables for everybody else.
