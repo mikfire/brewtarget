@@ -133,6 +133,7 @@ public slots:
 
 private slots:
    void expandFolder(BtTreeModel::TypeMasks kindaThing, QModelIndex fIdx);
+   void showVersions();
 
 private:
    BtTreeModel* _model;
@@ -160,6 +161,8 @@ public:
    // few options on the tree that can only be set after the model
    RecipeTreeView(QWidget *parent = 0);
 
+private:
+   QList<Recipe*> versionsShown;
 };
 
 //! 

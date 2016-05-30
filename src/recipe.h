@@ -281,7 +281,7 @@ public:
    QList<Misc*> miscs() const;
    QList<Yeast*> yeasts() const;
    QList<Water*> waters() const;
-   QList<BrewNote*> brewNotes() const;
+   QList<BrewNote*> brewNotes(bool recurse = true) const;
    
    Mash* mash() const;
    Equipment* equipment() const;
@@ -305,6 +305,7 @@ public:
    QList<QString> getReagents( QList<MashStep*> msteps );
    QList<QString> getReagents( QList<Hop*> hops, bool firstWort = false );
    QHash<QString,double> calcTotalPoints();
+   QList<int> ancestors() const;
    
 signals:
    //! \brief Emitted when \c name() changes.

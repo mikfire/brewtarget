@@ -316,6 +316,7 @@ private:
    static QString colRecStyleId;
    static QString colRecMashId;
    static QString colRecEquipId;
+   static QString colRecAncestorId;
    
    static QString tableBtEquipment;
    static QString tableBtFermentable;
@@ -428,5 +429,8 @@ private:
    static bool migrate_to_4(QSqlQuery q);
    static bool migrate_to_5(QSqlQuery q);
    static bool migrate_to_6(QSqlQuery q);
+   static bool migrate_to_7(QSqlQuery q);
    
+   static bool postgresAddConstraint(QSqlQuery q);
+   static bool sqliteAddConstraint(QSqlQuery q);
 };

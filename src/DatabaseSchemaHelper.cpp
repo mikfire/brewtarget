@@ -27,7 +27,7 @@
 #include <QDebug>
 #include <QSqlError>
 
-const int DatabaseSchemaHelper::dbVersion = 6;
+const int DatabaseSchemaHelper::dbVersion = 7;
 
 // Commands and keywords
 QString DatabaseSchemaHelper::CREATETABLE("CREATE TABLE");
@@ -295,6 +295,7 @@ QString DatabaseSchemaHelper::colRecTasteRating("taste_rating");
 QString DatabaseSchemaHelper::colRecStyleId("style_id");
 QString DatabaseSchemaHelper::colRecMashId("mash_id");
 QString DatabaseSchemaHelper::colRecEquipId("equipment_id");
+QString DatabaseSchemaHelper::colRecAncestorId("ancestor_id");
 
 QString DatabaseSchemaHelper::tableBtEquipment("bt_equipment");
 
@@ -459,6 +460,9 @@ bool DatabaseSchemaHelper::migrateNext(int oldVersion, QSqlDatabase db)
       case 5:
          ret &= migrate_to_6(q);
          break;
+      case 6:
+         ret &= migrate_to_7(q);
+         break;
       default:
          Brewtarget::logE(QString("Unknown version %1").arg(oldVersion));
          return false;
@@ -489,7 +493,13 @@ bool DatabaseSchemaHelper::migrate(int oldVersion, int newVersion, QSqlDatabase 
 
    // Late eval of some strings
    select_dbStrings(Brewtarget::dbType());
+
+   // If we are migrating to v7, we have to disable foreign keys now
+   if ( newVersion == 7 )
+      db.exec( "PRAGMA foreign_keys = off");
+
    // Start a transaction
+
    db.transaction();
 
    for( ; oldVersion < newVersion && ret; ++oldVersion )
@@ -503,6 +513,9 @@ bool DatabaseSchemaHelper::migrate(int oldVersion, int newVersion, QSqlDatabase 
       Brewtarget::logE("Rolling back");
       db.rollback();
    }
+
+   if ( newVersion == 7 )
+      db.exec( "PRAGMA foreign_keys = on");
 
    return ret;
 }
@@ -734,9 +747,9 @@ bool DatabaseSchemaHelper::create_childTable( QSqlQuery q, QString const& tableN
    QString create = 
             CREATETABLE + SEP + tableName + SEP + OPENPAREN +
             id                                             + COMMA +
-            "parent_id" + SEP + TYPEINTEGER  + COMMA +
+            "ancestor_id" + SEP + TYPEINTEGER  + COMMA +
             "child_id"  + SEP + TYPEINTEGER  + SEP + UNIQUE              + COMMA +
-            foreignKey("parent_id", foreignTable)          + COMMA +
+            foreignKey("ancestor_id", foreignTable)          + COMMA +
             foreignKey("child_id", foreignTable) +
             CLOSEPAREN;
 
@@ -1157,6 +1170,7 @@ bool DatabaseSchemaHelper::create_recipe(QSqlQuery q)
       colRecStyleId      + SEP + TYPEINTEGER                                                             + COMMA +
       colRecMashId       + SEP + TYPEINTEGER                                                             + COMMA +
       colRecEquipId      + SEP + TYPEINTEGER                                                             + COMMA +
+      colRecAncestorId      + SEP + TYPEINTEGER                                                             + COMMA +
       // Metadata--------------------------------------------------------------
       deleted                                                                                            + COMMA +
       display                                                                                            + COMMA +
@@ -1507,7 +1521,8 @@ bool DatabaseSchemaHelper::migrate_to_5(QSqlQuery q)
    return ret;
 }
 
-bool DatabaseSchemaHelper::migrate_to_6(QSqlQuery q) {
+bool DatabaseSchemaHelper::migrate_to_6(QSqlQuery q)
+{
    bool ret = true;
 
    ret = create_meta(q);
@@ -1557,3 +1572,29 @@ bool DatabaseSchemaHelper::migrate_to_6(QSqlQuery q) {
 
    return ret;
 }
+
+bool DatabaseSchemaHelper::migrate_to_7(QSqlQuery q)
+{
+   QString addColumn     = ALTERTABLE + SEP + tableRecipe + SEP + ADDCOLUMN + SEP + colRecAncestorId + SEP + TYPEINTEGER + QString(" references %1(id)").arg(tableRecipe);
+   QString setColumn     = UPDATE + SEP + tableRecipe + SEP + SET + SEP + colRecAncestorId + SEP + "=" + SEP + "id";
+ 
+   try {
+      // Add the new field
+      qDebug() << Q_FUNC_INFO << addColumn;
+      if ( ! q.exec(addColumn) ) 
+         throw QString("Could not add column %1 to %2").arg(colRecAncestorId).arg(tableRecipe);
+
+      // Set the contents
+      qDebug() << Q_FUNC_INFO << setColumn;
+      if ( ! q.exec(setColumn) ) 
+         throw QString("Could not initialize column %1").arg(colRecAncestorId);
+
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
+      return false;
+   }
+
+   return true;
+}
+

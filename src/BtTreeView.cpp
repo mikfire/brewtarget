@@ -365,6 +365,17 @@ void BtTreeView::newIngredient() {
 
 }
 
+void BtTreeView::showVersions()
+{
+   if ( _type == BtTreeModel::RECIPEMASK ) {
+      QModelIndexList indexes = selectionModel()->selectedRows();
+
+      foreach(QModelIndex selected, indexes) {
+         _model->showVersions(filter->mapToSource(selected));
+      }
+   }
+}
+
 void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 {
    QMenu* _newMenu = new QMenu(this);
@@ -386,6 +397,7 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
          _newMenu->addAction(tr("Recipe"), editor, SLOT(newRecipe()));
 
          _contextMenu->addAction(tr("Brew It!"), top, SLOT(brewItHelper()));
+         _contextMenu->addAction(tr("Show versions"), this, SLOT(showVersions()));
          _contextMenu->addSeparator();
 
          subMenu->addAction(tr("Brew Again"), top, SLOT(brewAgainHelper()));
