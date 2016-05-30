@@ -631,9 +631,9 @@ void BtTreeModel::loadTreeModel()
    }
 }
 
-void BtTreeModel::addBrewNoteSubTree(Recipe* rec, int i, BtTreeItem* parent)
+void BtTreeModel::addBrewNoteSubTree(Recipe* rec, int i, BtTreeItem* parent, bool recurse)
 {
-   QList<BrewNote*> notes = rec->brewNotes();
+   QList<BrewNote*> notes = rec->brewNotes(recurse);
    BtTreeItem* temp = parent->child(i);
 
    int j = 0;
@@ -1301,7 +1301,7 @@ void BtTreeModel::elementRemoved(BeerXMLElement* victim)
    if ( ! pIndex.isValid() )
       return;
 
-   if ( removeRows(index.row(),1,pIndex) )
+   if ( ! removeRows(index.row(),1,pIndex) )
       return;
 
    disconnect( victim, 0, this, 0 );
@@ -1425,5 +1425,59 @@ QStringList BtTreeModel::mimeTypes() const
 Qt::DropActions BtTreeModel::supportedDropActions() const
 {
    return Qt::CopyAction | Qt::MoveAction;
+}
+
+// =========================================================================
+// ===================== RECIPE VERSION STUFF ==============================
+// =========================================================================
+
+void BtTreeModel::showVersions(QModelIndex ndx)
+{
+   QModelIndex pIndex;
+   QList<int> ancestors;
+
+   // this is going to be clever. I just wish I knew more than that.
+   if ( ! ndx.isValid() )
+      return;
+
+   Recipe *descendant = recipe(ndx);
+
+   pIndex = parent(ndx);
+   if ( ! pIndex.isValid() )
+      return;
+
+   ancestors = descendant->ancestors();
+
+   // Remove the existing row first. This is mostly a hack to remove all the
+   // brewnotes
+   removeRows(ndx.row(),1,pIndex);
+   disconnect( descendant, 0, this, 0 );
+
+   // Now add everything in. This is the tricking part, as I am not quite
+   // certain how to hack the folder
+
+   // Ok. First, add back what we just removed, but no brewnoes
+   int i,j;
+   BtTreeItem* local;
+   QModelIndex wtfNdx;
+
+   local = rootItem->child(0);
+   i = local->childCount();
+   wtfNdx = createIndex(i,0,local);
+
+   insertRow(i,wtfNdx,descendant,_type);
+   addBrewNoteSubTree(descendant,i,local);
+
+   local = item(wtfNdx);
+   j = 0;
+   foreach( int key, ancestors ) {
+      Recipe *tempRec =  Database::instance().recipe(key);
+
+      // Ok. If this is an ancestor, we need to invoke some magic
+      if ( tempRec != descendant ) {
+         insertRow(j, createIndex(i,0,local), tempRec, _type);
+         addBrewNoteSubTree( tempRec, j, local,false);
+      }
+   }
 }
 

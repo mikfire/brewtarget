@@ -115,6 +115,7 @@ public:
    bool loadSuccessful();
    bool isDirty();
 
+   int numberOfRecipes() const;
    /*! update an entry, and call the notification when complete.
     * NOTE: This cannot be simplified without a bit more work. The inventory
     * needs to specify a table other than the one named by the beerXML element
@@ -370,8 +371,11 @@ public:
    QList<Water*> waters();
    QList<Yeast*> yeasts();
 
+
+   //! \b returns a list of all the ancestors of a recipe
+   QList<int> ancestoralIds(Recipe const* descendant);
    //! \b returns a list of the brew notes in a recipe.
-   QList<BrewNote*> brewNotes(Recipe const* parent);
+   QList<BrewNote*> brewNotes(Recipe const* parent, bool recurse = true);
    //! Return a list of all the fermentables in a recipe.
    QList<Fermentable*> fermentables(Recipe const* parent);
    //! Return a list of all the hops in a recipe.

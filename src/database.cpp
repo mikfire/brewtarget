@@ -426,6 +426,10 @@ bool Database::load()
    return true;
 }
 
+int Database::numberOfRecipes() const {
+   return allRecipes.size();
+}
+
 bool Database::createBlank(QString const& filename)
 {
    {
@@ -939,12 +943,51 @@ void Database::insertInstruction(Instruction* in, int pos)
    emit in->changed( in->metaProperty("instructionNumber"), pos );
 }
 
-QList<BrewNote*> Database::brewNotes(Recipe const* parent)
+QList<int> Database::ancestoralIds(Recipe const* descendant)
 {
-   QList<BrewNote*> ret;
-   QString filterString = QString("recipe_id = %1 AND deleted = %2").arg(parent->_key).arg(Brewtarget::dbFalse());
+   QList<int> ret;
+   // Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn
+   QString recursiveQuery = 
+      QString("WITH RECURSIVE ") +
+      QString("ancestor(id,ancestor_id) AS ") +
+      QString("(SELECT id,ancestor_id from recipe r where r.id = %1 ").arg(descendant->_key) +
+      QString("UNION ALL ") +
+      QString("select r.id, r.ancestor_id from ancestor a, recipe r ") +
+      QString("where r.id = a.ancestor_id and r.ancestor_id != a.id ) ") +
+      QString("select r.id from ancestor a, recipe r where a.id = r.id");
 
-   getElements(ret, filterString, Brewtarget::BREWNOTETABLE, allBrewNotes);
+   QSqlQuery q( sqlDatabase() );
+   try {
+      if ( !q.exec(recursiveQuery) )
+         throw QString("Could not find ancestoral recipes");
+
+      while ( q.next() )
+         ret.append(q.record().value("id").toInt());
+   }
+   catch (QString e) {
+      Brewtarget::logE(QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
+   }
+
+   return ret;
+}
+
+QList<BrewNote*> Database::brewNotes(Recipe const* parent, bool recurse)
+{
+   QList<int>ancestors;
+
+   QList<BrewNote*> ret;
+   // It is about to get freaky, funky and nasty
+
+   if ( recurse )
+      ancestors = ancestoralIds(parent);
+   else 
+      ancestors.append(parent->_key);
+
+   foreach(int key, ancestors) {
+      QString filterString = QString("recipe_id = %1 AND deleted = %2").arg(key).arg(Brewtarget::dbFalse());
+
+      getElements(ret, filterString, Brewtarget::BREWNOTETABLE, allBrewNotes);
+   }
 
    return ret;
 }
@@ -2247,7 +2290,8 @@ QList<Recipe*> Database::recipes()
 {
    QList<Recipe*> tmp;
    // This is gonna kill me.
-   getElements( tmp, QString("deleted=%1").arg(Brewtarget::dbFalse()), Brewtarget::RECTABLE, allRecipes );
+   getElements( tmp, QString("deleted=%1 and display = %2").arg(Brewtarget::dbFalse()).arg(Brewtarget::dbTrue()), 
+                     Brewtarget::RECTABLE, allRecipes );
    return tmp;
 }
 
