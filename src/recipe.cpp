@@ -1281,9 +1281,9 @@ QList<Instruction*> Recipe::instructions() const
    return Database::instance().instructions(this);
 }
 
-QList<BrewNote*> Recipe::brewNotes() const
+QList<BrewNote*> Recipe::brewNotes(bool recurse) const
 {
-   return Database::instance().brewNotes(this);
+   return Database::instance().brewNotes(this,recurse);
 }
 
 QList<Hop*> Recipe::hops() const
@@ -1309,6 +1309,11 @@ QList<Yeast*> Recipe::yeasts() const
 QList<Water*> Recipe::waters() const
 {
    return Database::instance().waters(this);
+}
+
+QList<int> Recipe::ancestors() const 
+{
+   return Database::instance().ancestoralIds(this);
 }
 
 //==============================Getters===================================
