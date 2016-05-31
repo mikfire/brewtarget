@@ -370,7 +370,12 @@ void BtTreeView::showVersions()
    if ( _type == BtTreeModel::RECIPEMASK ) {
       QModelIndexList indexes = selectionModel()->selectedRows();
 
+      // I hear a noise at the door, as of some immense slippery body
+      // lumbering against it
       foreach(QModelIndex selected, indexes) {
+         Recipe* thisOne = recipe(selected);
+         // make sure we see the ancestors in an interesting way
+         filter->addAncestors( thisOne->ancestors() );
          _model->showVersions(filter->mapToSource(selected));
       }
    }

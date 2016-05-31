@@ -1435,49 +1435,37 @@ void BtTreeModel::showVersions(QModelIndex ndx)
 {
    QModelIndex pIndex;
    QList<int> ancestors;
+   BtTreeItem* node = item(ndx);
 
    // this is going to be clever. I just wish I knew more than that.
    if ( ! ndx.isValid() )
       return;
 
+   // Uh. Ok. Let's see if we can remove the existing children
+   removeRows(0,node->childCount(),ndx);
+
    Recipe *descendant = recipe(ndx);
-
-   pIndex = parent(ndx);
-   if ( ! pIndex.isValid() )
-      return;
-
    ancestors = descendant->ancestors();
 
-   // Remove the existing row first. This is mostly a hack to remove all the
-   // brewnotes
-   removeRows(ndx.row(),1,pIndex);
-   disconnect( descendant, 0, this, 0 );
+   qDebug() << Q_FUNC_INFO << "name:" << descendant->name() << "ancestors:" << ancestors;
+   qDebug() << Q_FUNC_INFO << "ndx:" << ndx << "found index:" << findElement(descendant);
 
-   // Now add everything in. This is the tricking part, as I am not quite
-   // certain how to hack the folder
+   // first, add the brewnotes for this version back
+   addBrewNoteSubTree(descendant, ndx.row(), node->parent(),false);
 
-   // Ok. First, add back what we just removed, but no brewnoes
-   int i,j;
-   BtTreeItem* local;
-   QModelIndex wtfNdx;
+   foreach( int ancestor, ancestors ) {
+      int j= node->childCount();
+      Recipe *anc = Database::instance().recipe(ancestor);
+      if ( anc == descendant ) 
+         continue;
+      qDebug() << Q_FUNC_INFO << anc->name() << ":" << j;
+      if ( ! insertRow(j, ndx, anc, BtTreeItem::RECIPE) )
+         qDebug() << Q_FUNC_INFO << "That failed";
 
-   local = rootItem->child(0);
-   i = local->childCount();
-   wtfNdx = createIndex(i,0,local);
-
-   insertRow(i,wtfNdx,descendant,_type);
-   addBrewNoteSubTree(descendant,i,local);
-
-   local = item(wtfNdx);
-   j = 0;
-   foreach( int key, ancestors ) {
-      Recipe *tempRec =  Database::instance().recipe(key);
-
-      // Ok. If this is an ancestor, we need to invoke some magic
-      if ( tempRec != descendant ) {
-         insertRow(j, createIndex(i,0,local), tempRec, _type);
-         addBrewNoteSubTree( tempRec, j, local,false);
-      }
+      // Ok. Now, we need to get the brewnotes added to each recipe
+      // no recursion though
+      addBrewNoteSubTree(anc, j, node, false);
    }
+
 }
 

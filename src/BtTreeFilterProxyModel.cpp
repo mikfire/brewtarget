@@ -89,6 +89,12 @@ bool BtTreeFilterProxyModel::lessThanRecipe(BtTreeModel* model, const QModelInde
    Recipe* leftRecipe  = model->recipe(left);
    Recipe* rightRecipe = model->recipe(right);
 
+   // Yog-Sothoth knows the gate.
+   if ( ancestor_override.contains( leftRecipe->key() ) &&
+        ancestor_override.contains( rightRecipe->key() ) ) {
+      return leftRecipe->key() > rightRecipe->key();
+   }
+
    switch(left.column())
    {
       case BtTreeItem::RECIPENAMECOL:
@@ -367,6 +373,26 @@ bool BtTreeFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex 
 
    BeerXMLElement* thing = model->thing(child);
 
+   // Ancestors are not normally displayed. If the user asks to see ancestors,
+   // the ancestor's keys are put in the override list. If the keys are in the
+   // override list, I wanna see them
+   if ( treeMask == BtTreeModel::RECIPEMASK && thing ) {
+      if ( ancestor_override.contains(thing->key()) )
+         return true;
+   }
    return thing->display();
 
+}
+
+void BtTreeFilterProxyModel::addAncestor(int ancestor) { ancestor_override.append(ancestor); }
+void BtTreeFilterProxyModel::addAncestors(QList<int> ancestors)
+{ 
+   foreach(int i, ancestors)
+      addAncestor(i);
+}
+void BtTreeFilterProxyModel::removeAncestor(int ancestor) { ancestor_override.removeOne(ancestor); }
+void BtTreeFilterProxyModel::removeAncestors(QList<int> ancestors)
+{ 
+   foreach(int i, ancestors)
+      removeAncestor(i);
 }
