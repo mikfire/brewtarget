@@ -1447,9 +1447,6 @@ void BtTreeModel::showVersions(QModelIndex ndx)
    Recipe *descendant = recipe(ndx);
    ancestors = descendant->ancestors();
 
-   qDebug() << Q_FUNC_INFO << "name:" << descendant->name() << "ancestors:" << ancestors;
-   qDebug() << Q_FUNC_INFO << "ndx:" << ndx << "found index:" << findElement(descendant);
-
    // first, add the brewnotes for this version back
    addBrewNoteSubTree(descendant, ndx.row(), node->parent(),false);
 
@@ -1458,12 +1455,11 @@ void BtTreeModel::showVersions(QModelIndex ndx)
       Recipe *anc = Database::instance().recipe(ancestor);
       if ( anc == descendant ) 
          continue;
-      qDebug() << Q_FUNC_INFO << anc->name() << ":" << j;
       if ( ! insertRow(j, ndx, anc, BtTreeItem::RECIPE) )
-         qDebug() << Q_FUNC_INFO << "That failed";
+         Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
 
       // Ok. Now, we need to get the brewnotes added to each recipe
-      // no recursion though
+      // make sure we tell addBrewNoteSubTree not to recurse the ancestors
       addBrewNoteSubTree(anc, j, node, false);
    }
 

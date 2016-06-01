@@ -256,6 +256,7 @@ public slots:
    void droppedRecipeMisc(QList<Misc*>miscs);
    void droppedRecipeYeast(QList<Yeast*>yeasts);
 
+   void versionedRecipe(Recipe* ancestor, Recipe* descendant);
 protected:
    virtual void closeEvent(QCloseEvent* event);
 
