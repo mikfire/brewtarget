@@ -1304,10 +1304,22 @@ QList<Water*> Recipe::waters() const
    return Database::instance().waters(this);
 }
 
-QList<int> Recipe::ancestors() const 
+QList<Recipe*> Recipe::ancestors()
 {
-   return Database::instance().ancestoralIds(this);
+   if ( _ancestors.size() == 0 )
+      foreach( int ancestor, Database::instance().ancestoralIds(this) )
+         _ancestors.append( Database::instance().recipe(ancestor) );
+
+   return _ancestors;
 }
+
+bool Recipe::hasAncestors()
+{ 
+   // the way I've written this is that every recipe is its own ancestor. So
+   // we need to make sure there's more than one in there.
+   return ancestors().size() > 1;
+}
+
 
 //==============================Getters===================================
 QString Recipe::type()             const { return get("type").toString(); }

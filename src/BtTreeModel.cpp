@@ -277,8 +277,12 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
    {
       if ( itm->type() == BtTreeItem::FOLDER )
          return QIcon(":images/folder.png");
-      else
-         return QVariant();
+      else if ( treeMask == RECIPEMASK ) {
+         Recipe *tmp = itm->recipe();
+         if ( tmp && tmp->hasAncestors() ) 
+            return QIcon(":images/circle.png");
+      }
+      return QVariant();
    }
 
    return itm->data(index.column());
@@ -1434,7 +1438,7 @@ Qt::DropActions BtTreeModel::supportedDropActions() const
 void BtTreeModel::showVersions(QModelIndex ndx)
 {
    QModelIndex pIndex;
-   QList<int> ancestors;
+   QList<Recipe*> ancestors;
    BtTreeItem* node = item(ndx);
 
    // this is going to be clever. I just wish I knew more than that.
@@ -1450,17 +1454,16 @@ void BtTreeModel::showVersions(QModelIndex ndx)
    // first, add the brewnotes for this version back
    addBrewNoteSubTree(descendant, ndx.row(), node->parent(),false);
 
-   foreach( int ancestor, ancestors ) {
+   foreach( Recipe* ancestor, ancestors ) {
       int j= node->childCount();
-      Recipe *anc = Database::instance().recipe(ancestor);
-      if ( anc == descendant ) 
+      if ( ancestor == descendant ) 
          continue;
-      if ( ! insertRow(j, ndx, anc, BtTreeItem::RECIPE) )
+      if ( ! insertRow(j, ndx, ancestor, BtTreeItem::RECIPE) )
          Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
 
       // Ok. Now, we need to get the brewnotes added to each recipe
       // make sure we tell addBrewNoteSubTree not to recurse the ancestors
-      addBrewNoteSubTree(anc, j, node, false);
+      addBrewNoteSubTree(ancestor, j, node, false);
    }
 
 }

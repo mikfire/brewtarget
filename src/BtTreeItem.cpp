@@ -113,7 +113,6 @@ int BtTreeItem::columnCount(int _type) const
 
 QVariant BtTreeItem::data(int _type, int column)
 {
-
    switch(_type)
    {
       case RECIPE:
