@@ -61,10 +61,10 @@ BtTreeView::BtTreeView(QWidget *parent, BtTreeModel::TypeMasks type) :
 
    _type = type;
    _model = new BtTreeModel(this, _type);
-   filter = new BtTreeFilterProxyModel(this, _type);
-   filter->setSourceModel(_model);
-   setModel(filter);
-   filter->setDynamicSortFilter(true);
+   _filter = new BtTreeFilterProxyModel(this, _type);
+   _filter->setSourceModel(_model);
+   setModel(_filter);
+   _filter->setDynamicSortFilter(true);
    
    setExpanded(findElement(0), true);
    setSortingEnabled(true);
@@ -75,14 +75,13 @@ BtTreeView::BtTreeView(QWidget *parent, BtTreeModel::TypeMasks type) :
    connect( _model, SIGNAL(expandFolder(BtTreeModel::TypeMasks, QModelIndex)), this, SLOT(expandFolder(BtTreeModel::TypeMasks, QModelIndex)));
 }
 
-BtTreeModel* BtTreeView::model()
-{
-   return _model;
-}
+BtTreeModel* BtTreeView::model() { return _model; }
+
+BtTreeFilterProxyModel* BtTreeView::filter() { return _filter; }
 
 bool BtTreeView::removeRow(const QModelIndex &index)
 {
-   QModelIndex modelIndex = filter->mapToSource(index);
+   QModelIndex modelIndex = _filter->mapToSource(index);
    QModelIndex parent = _model->parent(modelIndex);
    int position       = modelIndex.row();
 
@@ -91,8 +90,8 @@ bool BtTreeView::removeRow(const QModelIndex &index)
 
 bool BtTreeView::isParent(const QModelIndex& parent, const QModelIndex& child)
 {
-   QModelIndex modelParent = filter->mapToSource(parent);
-   QModelIndex modelChild = filter->mapToSource(child);
+   QModelIndex modelParent = _filter->mapToSource(parent);
+   QModelIndex modelChild = _filter->mapToSource(child);
    return modelParent == _model->parent(modelChild);
 }
 
@@ -101,68 +100,68 @@ QModelIndex BtTreeView::parent(const QModelIndex& child)
    if ( ! child.isValid() )
       return QModelIndex();
 
-   QModelIndex modelChild = filter->mapToSource(child);
+   QModelIndex modelChild = _filter->mapToSource(child);
    if ( modelChild.isValid())
-      return filter->mapFromSource(_model->parent(modelChild));
+      return _filter->mapFromSource(_model->parent(modelChild));
 
    return QModelIndex();
 }
 
 QModelIndex BtTreeView::first()
 {
-   return filter->mapFromSource(_model->first());
+   return _filter->mapFromSource(_model->first());
 }
 
 Recipe* BtTreeView::recipe(const QModelIndex &index) const
 {
-   return _model->recipe(filter->mapToSource(index));
+   return _model->recipe(_filter->mapToSource(index));
 }
 
 QString BtTreeView::folderName(QModelIndex index)
 {
-   if ( _model->type(filter->mapToSource(index)) == BtTreeItem::FOLDER)
-      return _model->folder(filter->mapToSource(index))->fullPath();
+   if ( _model->type(_filter->mapToSource(index)) == BtTreeItem::FOLDER)
+      return _model->folder(_filter->mapToSource(index))->fullPath();
 
-   BeerXMLElement* thing = _model->thing(filter->mapToSource(index));
+   BeerXMLElement* thing = _model->thing(_filter->mapToSource(index));
    if ( thing )
-      return _model->thing(filter->mapToSource(index))->folder();
+      return _model->thing(_filter->mapToSource(index))->folder();
    else 
       return "";
 }
 
 QModelIndex BtTreeView::findElement(BeerXMLElement* thing)
 {
-   return filter->mapFromSource(_model->findElement(thing));
+   return _filter->mapFromSource(_model->findElement(thing));
 }
 
 Equipment* BtTreeView::equipment(const QModelIndex &index) const
 {
-   return _model->equipment(filter->mapToSource(index));
+   return _model->equipment(_filter->mapToSource(index));
 }
 
 Fermentable* BtTreeView::fermentable(const QModelIndex &index) const
 {
-   return _model->fermentable(filter->mapToSource(index));
+   return _model->fermentable(_filter->mapToSource(index));
 }
 
 Hop* BtTreeView::hop(const QModelIndex &index) const
 {
-   return _model->hop(filter->mapToSource(index));
+   return _model->hop(_filter->mapToSource(index));
 }
 
 Misc* BtTreeView::misc(const QModelIndex &index) const
 {
-   return _model->misc(filter->mapToSource(index));
+   return _model->misc(_filter->mapToSource(index));
 }
 
 Yeast* BtTreeView::yeast(const QModelIndex &index) const
 {
-   return _model->yeast(filter->mapToSource(index));
+   return _model->yeast(_filter->mapToSource(index));
 }
 
 Style* BtTreeView::style(const QModelIndex &index) const
 {
-   return _model->style(filter->mapToSource(index));
+   return _model->style(_filter->mapToSource(index));
 }
 
 BrewNote* BtTreeView::brewNote(const QModelIndex &index) const
@@ -170,7 +169,7 @@ BrewNote* BtTreeView::brewNote(const QModelIndex &index) const
    if ( ! index.isValid() ) 
       return NULL;
 
-   return _model->brewNote(filter->mapToSource(index));
+   return _model->brewNote(_filter->mapToSource(index));
 }
 
 BtFolder* BtTreeView::folder(const QModelIndex &index) const
@@ -178,12 +177,12 @@ BtFolder* BtTreeView::folder(const QModelIndex &index) const
    if ( ! index.isValid() ) 
       return NULL;
 
-   return _model->folder(filter->mapToSource(index));
+   return _model->folder(_filter->mapToSource(index));
 }
 
 QModelIndex BtTreeView::findFolder(BtFolder* folder)
 {
-   return filter->mapFromSource(_model->findFolder(folder->fullPath(), NULL, false));
+   return _filter->mapFromSource(_model->findFolder(folder->fullPath(), NULL, false));
 }
 
 void BtTreeView::addFolder(QString folder)
@@ -198,7 +197,7 @@ void BtTreeView::renameFolder(BtFolder* victim, QString newName)
 
 int BtTreeView::type(const QModelIndex &index)
 {
-   return _model->type(filter->mapToSource(index));
+   return _model->type(_filter->mapToSource(index));
 }
 
 void BtTreeView::mousePressEvent(QMouseEvent *event)
@@ -280,8 +279,8 @@ QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
       _type = type(index);
       if ( _type != BtTreeItem::FOLDER ) 
       {
-         id   = _model->thing(filter->mapToSource(index))->key();
-         name = _model->name(filter->mapToSource(index));
+         id   = _model->thing(_filter->mapToSource(index))->key();
+         name = _model->name(_filter->mapToSource(index));
          // Save this for later reference
          if ( itsa == -1 )
             itsa = _type;
@@ -289,7 +288,7 @@ QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
       else 
       {
          id = -1;
-         name = _model->folder(filter->mapToSource(index))->fullPath();
+         name = _model->folder(_filter->mapToSource(index))->fullPath();
       }
       stream << _type << id << name;
    }
@@ -321,7 +320,7 @@ bool BtTreeView::multiSelected()
 
    foreach (QModelIndex selection, selected)
    {
-      QModelIndex selectModel = filter->mapToSource(selection);
+      QModelIndex selectModel = _filter->mapToSource(selection);
       if (_model->isRecipe(selectModel))
          hasRecipe = true;
       else
@@ -375,8 +374,8 @@ void BtTreeView::showVersions()
       foreach(QModelIndex selected, indexes) {
          Recipe* thisOne = recipe(selected);
          // make sure we see the ancestors in an interesting way
-         filter->addAncestors( thisOne->ancestors() );
-         _model->showVersions(filter->mapToSource(selected));
+         _filter->addAncestors( thisOne->ancestors() );
+         _model->showVersions(_filter->mapToSource(selected));
       }
    }
 }
@@ -497,7 +496,7 @@ void BtTreeView::copySelected(QModelIndexList selected)
          return;
 
       // First, we should translate from proxy to model, because I need this index a lot.
-      QModelIndex trans = filter->mapToSource(at);
+      QModelIndex trans = _filter->mapToSource(at);
 
       // You can't delete the root element
       if ( trans == findElement(0) )
@@ -566,7 +565,7 @@ void BtTreeView::deleteSelected(QModelIndexList selected)
          return;
 
       // First, we should translate from proxy to model, because I need this index a lot.
-      QModelIndex trans = filter->mapToSource(at);
+      QModelIndex trans = _filter->mapToSource(at);
 
       // You can't delete the root element
       if ( trans == findElement(0) )
@@ -624,8 +623,8 @@ void BtTreeView::expandFolder(BtTreeModel::TypeMasks kindaThing, QModelIndex fId
 {
    // FUN! I get to map from source this time.
    // I don't have to check if this is a folder (I think?)
-   if ( kindaThing & _type && fIdx.isValid() && ! isExpanded(filter->mapFromSource(fIdx) ))
-      setExpanded(filter->mapFromSource(fIdx),true);
+   if ( kindaThing & _type && fIdx.isValid() && ! isExpanded(_filter->mapFromSource(fIdx) ))
+      setExpanded(_filter->mapFromSource(fIdx),true);
 }
 // Bad form likely
 
