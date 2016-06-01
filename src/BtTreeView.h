@@ -54,6 +54,7 @@ public:
    BtTreeView(QWidget *parent = 0, BtTreeModel::TypeMasks mask = BtTreeModel::RECIPEMASK);
    //! \brief returns the model associated with this tree
    BtTreeModel* model();
+   BtTreeFilterProxyModel* filter();
    //! \brief returns the context menu associated with the \c selected item
    QMenu* contextMenu(QModelIndex selected);
 
@@ -137,7 +138,7 @@ private slots:
 
 private:
    BtTreeModel* _model;
-   BtTreeFilterProxyModel* filter;
+   BtTreeFilterProxyModel* _filter;
    BtTreeModel::TypeMasks _type;
    QMenu* _contextMenu, *subMenu;
    QPoint dragStart;

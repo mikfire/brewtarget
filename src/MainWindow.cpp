@@ -129,10 +129,10 @@ MainWindow::MainWindow(QWidget* parent)
    // Need to call this to get all the widgets added (I think).
    setupUi(this);
 
-   /* PLEASE DO NOT REMOVE. 
+   /* PLEASE DO NOT REMOVE.
     This code is left here, commented out, intentionally. The only way I can
     test internationalization is by forcing the locale manually. I am tired
-    of having to figure this out every time I need to test. 
+    of having to figure this out every time I need to test.
     PLEASE DO NOT REMOVE.
    QLocale german(QLocale::German,QLocale::Germany);
    QLocale::setDefault(german);
@@ -532,6 +532,17 @@ MainWindow::MainWindow(QWidget* parent)
    // No connections from the database yet? Oh FSM, that probably means I'm
    // doing it wrong again.
    connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
+   connect( &(Database::instance()), SIGNAL( isUnsavedChanged(bool)), this, SLOT( updateUnsavedStatus(bool)));
+   connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
+}
+
+// I think I may actually want to catch this here instead of in the tree,
+// mostly so I can invalidate but only after I've updated all the rest.
+
+void MainWindow::versionedRecipe(Recipe* ancestor, Recipe* descendant)
+{
+   setRecipe(descendant);
+   treeView_recipe->filter()->invalidate();
 }
 
 void MainWindow::setupShortCuts()
@@ -1044,6 +1055,7 @@ void MainWindow::droppedRecipeHop(QList<Hop*>hops)
 
    if ( tabWidget_ingredients->currentWidget() != hopsTab )
       tabWidget_ingredients->setCurrentWidget(hopsTab);
+
    Database::instance().addToRecipe(recipeObs, hops);
 }
 
@@ -1444,7 +1456,7 @@ void MainWindow::newRecipe()
 
    // bad things happened -- let somebody know
    if ( ! newRec ) {
-      QMessageBox::warning(this,tr("Error copying recipe"), 
+      QMessageBox::warning(this,tr("Error copying recipe"),
                            tr("An error was returned while creating %1").arg(name));
       return;
    }
@@ -1978,7 +1990,7 @@ void MainWindow::copyRecipe()
       return;
 
    Recipe* newRec = Database::instance().newRecipe(recipeObs); // Create a deep copy.
-   if ( newRec ) 
+   if ( newRec )
       newRec->setName(name);
 }
 
@@ -2174,7 +2186,7 @@ void MainWindow::exportSelectedHtml() {
    if( selected.count() == 0 )
       return;
 
-   foreach( QModelIndex ndx, selected) 
+   foreach( QModelIndex ndx, selected)
       targets.append( treeView_recipe->recipe(ndx) );
 
    // and write it all

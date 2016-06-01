@@ -211,7 +211,7 @@ public:
    Fermentable* newFermentable(Fermentable* other = 0);
    Hop* newHop(Hop* other = 0);
    //! \returns a copy of the given recipe.
-   Recipe* newRecipe(Recipe* other);
+   Recipe* newRecipe(Recipe* other, bool ancestor = false);
    /*! \returns a copy of the given mash. Displaces the mash currently in the
     * parent recipe unless \b displace is false.
     */
@@ -440,6 +440,7 @@ public:
    void convertFromXml();
 
    bool isConverted();
+   bool wantsVersion(Recipe* thing);
 
    //! \brief Figures out what databases we are copying to and from, opens what
    //   needs opens and then calls the appropriate workhorse to get it done. 
@@ -474,6 +475,9 @@ signals:
 
    // MashSteps need signals too
    void newMashStepSignal(MashStep*);
+
+   // Emits a signal when we create a version
+   void spawned(Recipe* ancestor, Recipe* descendant);
 
 private slots:
    //! Load database from file.

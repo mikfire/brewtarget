@@ -1461,10 +1461,32 @@ Recipe* Database::newRecipe()
    return tmp;
 }
 
+bool Database::wantsVersion(Recipe* thing)
+{
+   // When is a version needed? I will rely on the interface to mark ancestors
+   // "read-only" -- that is, it will be up to the UI to disable anything that
+   // could modify an ancestor. My only question here is do I fork the recipe
+   // or not
+   QSqlQuery q(sqlDatabase());
+   qDebug() << Q_FUNC_INFO;
+   QString queryExistence = QString("SELECT id from brewnote where recipe_id=%1").arg(thing->key());
+
+   try {
+      qDebug() << Q_FUNC_INFO << queryExistence;
+      if ( !q.exec(queryExistence) ) 
+         throw QString("Could not query existence. Which is really metaphysical");
+      return q.next();
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
+   }
+   q.finish();
+   return false;
+}
+
 // TODO: Oh my. This the entire thing should be transacted. It took some work
 // to get all the addToRecipe methods to play nice.
-//
-Recipe* Database::newRecipe(Recipe* other)
+Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 {
    Recipe* tmp;
 
@@ -1485,6 +1507,19 @@ Recipe* Database::newRecipe(Recipe* other)
       addToRecipe( tmp, other->equipment(), false, false);
       addToRecipe( tmp, other->mash(), false, false);
       addToRecipe( tmp, other->style(), false, false);
+
+      // if other is an ancestor of our new recipe, 
+      // set display to false on the ancestor and link the two together
+      // I need something in here to determine if, by my rules, I version the
+      // recipe -- 
+      if ( ancestor ) {
+         QSqlQuery q(sqlDatabase());
+         other->setDisplay(false);
+         QString setAncestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(other->key()).arg(tmp->key());
+         if ( ! q.exec(setAncestor) ) 
+            throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
+         q.finish();
+      }
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
@@ -1948,21 +1983,44 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
 
 void Database::addToRecipe( Recipe* rec, Hop* hop, bool noCopy, bool transact )
 {
+   Recipe *spawn;
    try {
-      Hop* newHop = addIngredientToRecipe<Hop>( rec, hop, noCopy, &allHops, true, transact );
+      // Try here?
+      qDebug() << Q_FUNC_INFO << "testing to see if I want a version";
+      if ( wantsVersion(rec) ) {
+         qDebug() << Q_FUNC_INFO << "yup. I wanted a version";
+         spawn = newRecipe(rec,true);
+      }
+      else {
+         qDebug() << Q_FUNC_INFO << "nope. I didn't want a version";
+         spawn = rec;
+      }
+      Hop* newHop = addIngredientToRecipe<Hop>( spawn, hop, noCopy, &allHops, true, transact );
       // it's slightly dirty pool to put this all in the try block. Sue me.
       connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptHopChange(QMetaProperty,QVariant)));
       if ( transact ) {
-         rec->recalcIBU();
+         spawn->recalcIBU();
       }
    }
    catch (QString e) {
       throw;
    }
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
+
+}
+
+Recipe* breed(Recipe* parent)
+{
+   if ( wantsVersion(rec) )
+      return newRecipe(rec,true);
+   else 
+      return rec;
 }
 
 void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
 {
+   Recipe *spawn = breed(rec);
    if ( hops.size() == 0 )
       return;
 
@@ -1972,8 +2030,8 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
    try {
       foreach (Hop* hop, hops )
       {
-         Hop* newHop = addIngredientToRecipe<Hop>( rec, hop, false, &allHops, true, false );
-         connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptHopChange(QMetaProperty,QVariant)));
+         Hop* newHop = addIngredientToRecipe<Hop>( spawn, hop, false, &allHops, true, false );
+         connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptHopChange(QMetaProperty,QVariant)));
       }
    }
    catch (QString e) {
@@ -1988,6 +2046,8 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
       sqlDatabase().commit();
       rec->recalcIBU();
    }
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
