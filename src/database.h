@@ -145,7 +145,8 @@ public:
    // Named constructors ======================================================
    //! Create new brew note attached to \b parent.
    // maybe I should have never learned templates?
-   template<class T> T* newIngredient(QHash<int,T*>* all) {
+   template<class T> T* newIngredient(QHash<int,T*>* all)
+   {
       int key;
       T* tmp = new T();
       // To quote the talking heads, my god what have I done?
@@ -182,6 +183,8 @@ public:
 
    MashStep* newMashStep(Mash* parent, bool connected = true);
 
+   //! \returns a copy of the given mash, displacing the original if \b
+   //! displace is true
    Mash* newMash(Mash* other = 0, bool displace = true);
    Mash* newMash(Recipe* parent, bool transaction = true);
 
@@ -196,9 +199,7 @@ public:
    Hop* newHop(Hop* other = 0);
    //! \returns a copy of the given recipe.
    Recipe* newRecipe(Recipe* other, bool ancestor = false);
-   /*! \returns a copy of the given mash. Displaces the mash currently in the
-    * parent recipe unless \b displace is false.
-    */
+    
    Misc* newMisc(Misc* other = 0);
    Style* newStyle(Style* other = 0);
    Water* newWater(Water* other = 0);
@@ -256,10 +257,10 @@ public:
    //void addToRecipe( Recipe* rec, Instruction* ins );
    //
    //! \brief bulk add to a recipe.
-   void addToRecipe(Recipe* rec, QList<Fermentable*> ferms, bool transact = true);
-   void addToRecipe(Recipe* rec, QList<Hop*> hops, bool transact = true);
-   void addToRecipe(Recipe* rec, QList<Misc*> miscs, bool transact = true);
-   void addToRecipe(Recipe* rec, QList<Yeast*> yeasts, bool transact = true);
+   void addToRecipe(Recipe* rec, QList<Fermentable*> ferms, bool transact = true, Fermentable* except=0);
+   void addToRecipe(Recipe* rec, QList<Hop*> hops, bool transact = true, Hop* except=0);
+   void addToRecipe(Recipe* rec, QList<Misc*> miscs, bool transact = true, Misc* except=0);
+   void addToRecipe(Recipe* rec, QList<Yeast*> yeasts, bool transact = true, Yeast* except=0);
 
    // Remove these from a recipe, then call the changed()
    // signal corresponding to the appropriate QList
@@ -892,6 +893,9 @@ private:
    // Returns true if the schema gets updated, false otherwise.
    // If err != 0, set it to true if an error occurs, false otherwise.
    bool updateSchema(bool* err = 0);
+
+   Recipe* breed(Recipe* parent);
+   void filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing);
 
    // May St. Stevens intercede on my behalf.
    //

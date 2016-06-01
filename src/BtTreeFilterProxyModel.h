@@ -51,11 +51,11 @@ class BtTreeFilterProxyModel : public QSortFilterProxyModel
 public:
    BtTreeFilterProxyModel(QObject *parent, BtTreeModel::TypeMasks mask);
 
-   void addAncestor( int ancestor );
-   void addAncestors( QList<int> ancestors );
+   void addAncestor( Recipe* ancestor );
+   void addAncestors( QList<Recipe*> ancestors );
 
-   void removeAncestor(int ancestor);
-   void removeAncestors(QList<int> ancestors);
+   void removeAncestor(Recipe* ancestor);
+   void removeAncestors(QList<Recipe*> ancestors);
 
 protected:
    bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
@@ -63,7 +63,7 @@ protected:
 
 private:
    BtTreeModel::TypeMasks treeMask;
-   QList<int> ancestor_override;
+   QList<Recipe*> ancestor_override;
 
    bool lessThanRecipe(BtTreeModel* model,const QModelIndex &left, const QModelIndex &right) const;
    bool lessThanEquip(BtTreeModel* model,const QModelIndex &left, const QModelIndex &right) const;

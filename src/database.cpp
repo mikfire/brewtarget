@@ -728,8 +728,17 @@ void Database::removeIngredientFromRecipe( Recipe* rec, BeerXMLElement* ing )
    int ndx = meta->indexOfClassInfo("signal");
    QString propName, relTableName, ingKeyName, childTableName;
 
+   // If we are doing versioning and a recipe needs to be versioned, then
+   // delete is then functionally equivalent to "copy everything but this..."
+   if ( wantsVersion(rec) )  {
+      filterIngredientFromSpawn(rec,ing);
+      return;
+   }
+
+   // This does the remaining work on non-versioned recipes
    sqlDatabase().transaction();
    QSqlQuery q(sqlDatabase());
+
 
    try {
       if ( ndx != -1 ) {
@@ -801,6 +810,59 @@ void Database::removeFromRecipe( Recipe* rec, Instruction* ins )
 
    allInstructions.remove(ins->_key);
    emit changed( metaProperty("instructions"), QVariant() );
+}
+// The problem this solves is if we do the deep copy, we no longer know which
+// ingredient ing points at.
+void Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing)
+{
+   Recipe* tmp;
+
+   sqlDatabase().transaction();
+   try {
+      tmp = copy<Recipe>(other, true, &allRecipes);
+
+      // the cast will return NULL if the BeerXMLElement pointer can't be
+      // coerced, which means the called method will do the right thing and
+      // simply copy all items.
+      addToRecipe( tmp, other->fermentables(), false, qobject_cast<Fermentable*>(ing));
+      addToRecipe( tmp, other->hops(), false, qobject_cast<Hop*>(ing));
+      addToRecipe( tmp, other->miscs(), false, qobject_cast<Misc*>(ing));
+      addToRecipe( tmp, other->yeasts(), false, qobject_cast<Yeast*>(ing));
+
+      // Copy style/mash/equipment
+      // Style or equipment might be non-existent but these methods handle that.
+      if ( ing->metaObject()->className() != QStringLiteral("Equipment") ) {
+         addToRecipe( tmp, other->equipment(), false, false);
+      }
+      if ( ing->metaObject()->className() != QStringLiteral("Mash") ) {
+         addToRecipe( tmp, other->mash(), false, false);
+      }
+      if ( ing->metaObject()->className() != QStringLiteral("Style") ) {
+         addToRecipe( tmp, other->style(), false, false);
+      }
+
+      // Yeast is an ancestor of our new recipe, 
+      // set display to false on the ancestor and link the two together
+      QSqlQuery q(sqlDatabase());
+      other->setDisplay(false);
+      QString setAncestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(other->key()).arg(tmp->key());
+      if ( ! q.exec(setAncestor) ) 
+         throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
+      q.finish();
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
+      sqlDatabase().rollback();
+      throw;
+   }
+
+   sqlDatabase().commit();
+   makeDirty();
+   // Emit all our signals
+   emit changed( metaProperty("recipes"), QVariant() );
+   emit newRecipeSignal(tmp);
+   emit spawned(other,tmp);
+
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1002,6 +1064,10 @@ QList<int> Database::ancestoralIds(Recipe const* descendant)
       QString("where r.id = a.ancestor_id and r.ancestor_id != a.id ) ") +
       QString("select r.id from ancestor a, recipe r where a.id = r.id");
 
+   // That is a recursive query. 
+   // The first select initializes the chain, so we get the id and ancestor_id of the current recipe.
+   // The UNION ALL does the recursive bit, where we find all the ancestors, making sure we stop when recipe.id = ancestor_id
+   // The last select runs it and collects the information we want
    QSqlQuery q( sqlDatabase() );
    try {
       if ( !q.exec(recursiveQuery) )
@@ -1463,6 +1529,7 @@ Recipe* Database::newRecipe()
 
 bool Database::wantsVersion(Recipe* thing)
 {
+   bool ret = false;
    // When is a version needed? I will rely on the interface to mark ancestors
    // "read-only" -- that is, it will be up to the UI to disable anything that
    // could modify an ancestor. My only question here is do I fork the recipe
@@ -1472,16 +1539,16 @@ bool Database::wantsVersion(Recipe* thing)
    QString queryExistence = QString("SELECT id from brewnote where recipe_id=%1").arg(thing->key());
 
    try {
-      qDebug() << Q_FUNC_INFO << queryExistence;
       if ( !q.exec(queryExistence) ) 
          throw QString("Could not query existence. Which is really metaphysical");
-      return q.next();
+      ret = q.next();
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
    }
    q.finish();
-   return false;
+   qDebug() << Q_FUNC_INFO << "Returning" << ret << "for id" << thing->key();
+   return ret;
 }
 
 // TODO: Oh my. This the entire thing should be transacted. It took some work
@@ -1511,8 +1578,6 @@ Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 
       // if other is an ancestor of our new recipe, 
       // set display to false on the ancestor and link the two together
-      // I need something in here to determine if, by my rules, I version the
-      // recipe -- 
       if ( ancestor ) {
          QSqlQuery q(sqlDatabase());
          other->setDisplay(false);
@@ -1852,9 +1917,19 @@ void Database::newInventory(Brewtarget::DBTable invForTable, int invForID) {
 }
 
 // Add to recipe ==============================================================
+
+Recipe* Database::breed(Recipe* parent)
+{
+   if ( wantsVersion(parent) )
+      return newRecipe(parent,true);
+   else 
+      return parent;
+}
+
 void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transact )
 {
    Equipment* newEquip = e;
+   Recipe *spawn;
 
    if( e == 0 )
       return;
@@ -1863,6 +1938,8 @@ void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transac
       sqlDatabase().transaction();
 
    try {
+
+      spawn = breed(rec);
       // Make a copy of equipment.
       if ( ! noCopy ) {
          newEquip = copy<Equipment>(e,false,&allEquipments);
@@ -1871,7 +1948,7 @@ void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transac
       // Update equipment_id
       sqlUpdate(Brewtarget::RECTABLE,
                 QString("equipment_id=%1").arg(newEquip->key()),
-                QString("id=%1").arg(rec->_key));
+                QString("id=%1").arg(spawn->_key));
 
    }
    catch (QString e ) {
@@ -1886,43 +1963,55 @@ void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transac
       sqlDatabase().commit();
    }
    // NOTE: need to disconnect the recipe's old equipment?
-   connect( newEquip, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptEquipChange(QMetaProperty,QVariant)) );
+   connect( newEquip, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptEquipChange(QMetaProperty,QVariant)) );
    // NOTE: If we don't reconnect these signals, bad things happen when
    // changing boil times on the mainwindow
-   connect( newEquip, SIGNAL(changedBoilSize_l(double)), rec, SLOT(setBoilSize_l(double)));
-   connect( newEquip, SIGNAL(changedBoilTime_min(double)), rec, SLOT(setBoilTime_min(double)));
+   connect( newEquip, SIGNAL(changedBoilSize_l(double)), spawn, SLOT(setBoilSize_l(double)));
+   connect( newEquip, SIGNAL(changedBoilTime_min(double)), spawn, SLOT(setBoilTime_min(double)));
 
    // Emit a changed signal.
-   emit rec->changed( rec->metaProperty("equipment"), BeerXMLElement::qVariantFromPtr(newEquip) );
+   emit spawn->changed( spawn->metaProperty("equipment"), BeerXMLElement::qVariantFromPtr(newEquip) );
 
    // If we are already wrapped in a transaction boundary, do not call
    // recaclAll(). Weirdness ensues. But I want this after all the signals are
    // attached, etc.
    if ( transact )
-      rec->recalcAll();
+      spawn->recalcAll();
+
+   if ( spawn != rec )
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Fermentable* ferm, bool noCopy, bool transact )
 {
+   Recipe* spawn;
    if ( ferm == 0 )
       return;
 
    try {
-      Fermentable* newFerm = addIngredientToRecipe<Fermentable>(rec,ferm,noCopy,&allFermentables,true,transact );
-      connect( newFerm, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
+      spawn = breed(rec);
+
+      Fermentable* newFerm = addIngredientToRecipe<Fermentable>(spawn,ferm,noCopy,&allFermentables,true,transact );
+      connect( newFerm, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
    }
    catch (QString e) {
       throw;
    }
 
    // If somebody upstream is doing the transaction, let them call recalcAll
-   if ( transact && ! noCopy )
-      rec->recalcAll();
-
+   // and makeDirty
+   if ( transact ) {
+      makeDirty();
+      if (! noCopy )
+         spawn->recalcAll();
+   }
+   if ( spawn != rec )
+      emit spawned(rec,spawn);
 }
 
-void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact )
+void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact, Fermentable* except )
 {
+   Recipe* spawn;
    if ( ferms.size() == 0 )
       return;
 
@@ -1931,10 +2020,14 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
    }
 
    try { 
+      spawn = breed(rec);
       foreach (Fermentable* ferm, ferms )
       {
-         Fermentable* newFerm = addIngredientToRecipe<Fermentable>(rec,ferm,false,&allFermentables,true,false);
-         connect( newFerm, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
+         if ( except == ferm ) 
+            continue;
+
+         Fermentable* newFerm = addIngredientToRecipe<Fermentable>(spawn,ferm,false,&allFermentables,true,false);
+         connect( newFerm, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
       }
    }
    catch ( QString(e) ) {
@@ -1946,27 +2039,20 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
 
    if ( transact ) {
       sqlDatabase().commit();
-      rec->recalcAll();
+      spawn->recalcAll();
    }
+   if ( spawn != rec )
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Hop* hop, bool noCopy, bool transact )
 {
-   Recipe *spawn;
+   Recipe *spawn; 
    try {
-      // Try here?
-      qDebug() << Q_FUNC_INFO << "testing to see if I want a version";
-      if ( wantsVersion(rec) ) {
-         qDebug() << Q_FUNC_INFO << "yup. I wanted a version";
-         spawn = newRecipe(rec,true);
-      }
-      else {
-         qDebug() << Q_FUNC_INFO << "nope. I didn't want a version";
-         spawn = rec;
-      }
+      spawn = breed(rec);
       Hop* newHop = addIngredientToRecipe<Hop>( spawn, hop, noCopy, &allHops, true, transact );
       // it's slightly dirty pool to put this all in the try block. Sue me.
-      connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptHopChange(QMetaProperty,QVariant)));
+      connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptHopChange(QMetaProperty,QVariant)));
       if ( transact ) {
          spawn->recalcIBU();
       }
@@ -1979,17 +2065,9 @@ void Database::addToRecipe( Recipe* rec, Hop* hop, bool noCopy, bool transact )
 
 }
 
-Recipe* breed(Recipe* parent)
+void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact, Hop* except )
 {
-   if ( wantsVersion(rec) )
-      return newRecipe(rec,true);
-   else 
-      return rec;
-}
-
-void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
-{
-   Recipe *spawn = breed(rec);
+   Recipe *spawn;
    if ( hops.size() == 0 )
       return;
 
@@ -1997,8 +2075,11 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
       sqlDatabase().transaction();
 
    try {
+      spawn = breed(rec);
       foreach (Hop* hop, hops )
       {
+         if ( hop == except ) 
+            continue;
          Hop* newHop = addIngredientToRecipe<Hop>( spawn, hop, false, &allHops, true, false );
          connect( newHop, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptHopChange(QMetaProperty,QVariant)));
       }
@@ -2013,7 +2094,7 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
 
    if ( transact ) {
       sqlDatabase().commit();
-      rec->recalcIBU();
+      spawn->recalcIBU();
    }
    if ( spawn != rec ) 
       emit spawned(rec,spawn);
@@ -2022,6 +2103,7 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact )
 void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
 {
    Mash* newMash = m;
+   Recipe* spawn;
 
    if ( transact ) 
       sqlDatabase().transaction();
@@ -2029,6 +2111,7 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
    // Making a copy of the mash isn't enough. We need a copy of the mashsteps
    // too.
    try {
+      spawn = breed(rec);
       if ( ! noCopy )
       {
          newMash = copy<Mash>(m, false, &allMashs);
@@ -2038,7 +2121,7 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
       // Update mash_id
       sqlUpdate(Brewtarget::RECTABLE,
                QString("mash_id=%1").arg(newMash->key()),
-               QString("id=%1").arg(rec->_key));
+               QString("id=%1").arg(spawn->_key));
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
@@ -2050,29 +2133,39 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
    if ( transact ) {
       sqlDatabase().commit();
    }
-   connect( newMash, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptMashChange(QMetaProperty,QVariant)));
-   emit rec->changed( rec->metaProperty("mash"), BeerXMLElement::qVariantFromPtr(newMash) );
+   connect( newMash, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptMashChange(QMetaProperty,QVariant)));
+   emit spawn->changed( spawn->metaProperty("mash"), BeerXMLElement::qVariantFromPtr(newMash) );
    // And let the recipe recalc all?
    if ( !noCopy && transact )
-      rec->recalcAll();
+      spawn->recalcAll();
+
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Misc* m, bool noCopy, bool transact )
 {
+   Recipe* spawn;
    try {
-      addIngredientToRecipe( rec, m, noCopy, &allMiscs, true, transact );
+      spawn = breed(rec);
+      addIngredientToRecipe( spawn, m, noCopy, &allMiscs, true, transact );
    }
    catch (QString e) {
       throw;
    }
 
-   if ( transact && ! noCopy )
-      rec->recalcAll();
-
+   if ( transact ) {
+      if (! noCopy )
+         spawn->recalcAll();
+   }
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
-void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact )
+//  are we sure we shouldn't be connecting some kind of signal?
+void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact, Misc* except )
 {
+   Recipe* spawn;
    if ( miscs.size() == 0 )
       return;
 
@@ -2080,9 +2173,12 @@ void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact )
       sqlDatabase().transaction();
 
    try {
+      spawn = breed(rec);
       foreach (Misc* misc, miscs )
       {
-         addIngredientToRecipe( rec, misc, false, &allMiscs,true,false );
+         if ( misc == except )
+            continue;
+         addIngredientToRecipe( spawn, misc, false, &allMiscs,true,false );
       }
    }
    catch (QString e) {
@@ -2094,27 +2190,34 @@ void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact )
    }
    if ( transact ) { 
       sqlDatabase().commit();
-      rec->recalcAll();
+      spawn->recalcAll();
    }
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Water* w, bool noCopy, bool transact )
 {
-
+   Recipe* spawn;
    try {
-      addIngredientToRecipe( rec, w, noCopy, &allWaters,true,transact );
+      spawn = breed(rec);
+      addIngredientToRecipe( spawn, w, noCopy, &allWaters,true,transact );
    }
    catch (QString e) {
       throw;
    }
 
-   if ( transact  && ! noCopy )
-      rec->recalcAll();
+   if ( transact ) {
+      if (! noCopy )
+         spawn->recalcAll();
+   }
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
 {
-
+   Recipe* spawn;
    Style* newStyle = s;
 
    if ( s == 0 )
@@ -2124,12 +2227,13 @@ void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
       sqlDatabase().transaction();
 
    try {
+      spawn = breed(rec);
       if ( ! noCopy )
          newStyle = copy<Style>(s,false,&allStyles);
 
       sqlUpdate(Brewtarget::RECTABLE,
                 QString("style_id=%1").arg(newStyle->key()),
-                QString("id=%1").arg(rec->_key));
+                QString("id=%1").arg(spawn->_key));
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
@@ -2142,27 +2246,36 @@ void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
       sqlDatabase().commit();
    }
    // Emit a changed signal.
-   emit rec->changed( rec->metaProperty("style"), BeerXMLElement::qVariantFromPtr(newStyle) );
+   emit spawn->changed( spawn->metaProperty("style"), BeerXMLElement::qVariantFromPtr(newStyle) );
+   if ( spawn != rec ) 
+      emit spawned(rec,spawn);
 }
 
 void Database::addToRecipe( Recipe* rec, Yeast* y, bool noCopy, bool transact )
 {
+   Recipe* spawn;
    try {
-      Yeast* newYeast = addIngredientToRecipe<Yeast>( rec, y, noCopy, &allYeasts, true, transact );
-      connect( newYeast, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptYeastChange(QMetaProperty,QVariant)));
-      if ( transact && ! noCopy )
-      {
-         rec->recalcOgFg();
-         rec->recalcABV_pct();
+      spawn = breed(rec);
+      Yeast* newYeast = addIngredientToRecipe<Yeast>( spawn, y, noCopy, &allYeasts, true, transact );
+      connect( newYeast, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptYeastChange(QMetaProperty,QVariant)));
+      if ( transact ) {
+         if ( ! noCopy )
+         {
+            spawn->recalcOgFg();
+            spawn->recalcABV_pct();
+         }
       }
+      if ( spawn != rec ) 
+         emit spawned(rec,spawn);
    }
    catch (QString e) {
       throw;
    }
 }
 
-void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact )
+void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact, Yeast* except )
 {
+   Recipe* spawn;
    if ( yeasts.size() == 0 )
       return;
 
@@ -2170,10 +2283,13 @@ void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact )
       sqlDatabase().transaction();
 
    try {
+      spawn = breed(rec);
       foreach (Yeast* yeast, yeasts )
       {
-         Yeast* newYeast = addIngredientToRecipe( rec, yeast, false, &allYeasts,true,false );
-         connect( newYeast, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptYeastChange(QMetaProperty,QVariant)));
+         if ( yeast == except )
+            continue;
+         Yeast* newYeast = addIngredientToRecipe( spawn, yeast, false, &allYeasts,true,false );
+         connect( newYeast, SIGNAL(changed(QMetaProperty,QVariant)), spawn, SLOT(acceptYeastChange(QMetaProperty,QVariant)));
       }
    }
    catch (QString e) {
@@ -2185,9 +2301,11 @@ void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact )
 
    if ( transact ) {
       sqlDatabase().commit();
-      rec->recalcOgFg();
-      rec->recalcABV_pct();
+      spawn->recalcOgFg();
+      spawn->recalcABV_pct();
    }
+   if ( spawn != rec )
+      emit spawned(rec,spawn);
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

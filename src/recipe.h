@@ -197,6 +197,8 @@ public:
    Q_PROPERTY( QList<Yeast*> yeasts READ yeasts /*WRITE*/ /*NOTIFY changed*/ STORED false )
    //! \brief The waters.
    Q_PROPERTY( QList<Water*> waters READ waters /*WRITE*/ /*NOTIFY changed*/ STORED false )
+   //! \brief the ancestors
+   Q_PROPERTY( QList<Recipe*> ancestors READ ancestors /*WRITE*/ /*NOTIFY changed*/ STORED false )
    
    // Relational setters.
    // NOTE: do these add/remove methods belong here? Should they only exist in Database?
@@ -287,6 +289,7 @@ public:
    QList<Yeast*> yeasts() const;
    QList<Water*> waters() const;
    QList<BrewNote*> brewNotes(bool recurse = true) const;
+   QList<Recipe*> ancestors();
    
    Mash* mash() const;
    Equipment* equipment() const;
@@ -301,6 +304,7 @@ public:
    bool hasBoilFermentable();
    bool hasBoilExtract();
    bool isFermentableSugar(Fermentable*);
+   bool hasAncestors();
    PreInstruction addExtracts(double timeRemaining);
    
    // Helpers
@@ -310,7 +314,6 @@ public:
    QList<QString> getReagents( QList<MashStep*> msteps );
    QList<QString> getReagents( QList<Hop*> hops, bool firstWort = false );
    QHash<QString,double> calcTotalPoints();
-   QList<int> ancestors() const;
    
 signals:
    //! \brief Emitted when \c name() changes.
@@ -386,6 +389,9 @@ private:
    double _fg;
    double _og_fermentable;
    double _fg_fermentable;
+
+   // version stuff
+   QList<Recipe*> _ancestors;
    
    // True when constructed, indicates whether recalcAll has been called.
    bool _uninitializedCalcs;
@@ -434,7 +440,7 @@ private:
    //void setDefaults();
    void addPreinstructions( QVector<PreInstruction> preins );
    bool isValidType( const QString &str );
-   
+
    static QHash<QString,QString> tagToProp;
    static QHash<QString,QString> tagToPropHash();
 };
