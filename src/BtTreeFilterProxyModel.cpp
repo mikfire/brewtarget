@@ -90,8 +90,8 @@ bool BtTreeFilterProxyModel::lessThanRecipe(BtTreeModel* model, const QModelInde
    Recipe* rightRecipe = model->recipe(right);
 
    // Yog-Sothoth knows the gate.
-   if ( ancestor_override.contains( leftRecipe->key() ) &&
-        ancestor_override.contains( rightRecipe->key() ) ) {
+   if ( ancestor_override.contains( leftRecipe ) &&
+        ancestor_override.contains( rightRecipe ) ) {
       return leftRecipe->key() > rightRecipe->key();
    }
 
@@ -377,22 +377,26 @@ bool BtTreeFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex 
    // the ancestor's keys are put in the override list. If the keys are in the
    // override list, I wanna see them
    if ( treeMask == BtTreeModel::RECIPEMASK && thing ) {
-      if ( ancestor_override.contains(thing->key()) )
-         return true;
+      if ( ancestor_override.size() > 0 ) {
+         Recipe* bar = model->recipe(child);
+
+         if ( bar && ancestor_override.contains(bar) )
+            return true;
+      }
    }
    return thing->display();
 
 }
 
-void BtTreeFilterProxyModel::addAncestor(int ancestor) { ancestor_override.append(ancestor); }
-void BtTreeFilterProxyModel::addAncestors(QList<int> ancestors)
+void BtTreeFilterProxyModel::addAncestor(Recipe* ancestor) { ancestor_override.append(ancestor); }
+void BtTreeFilterProxyModel::addAncestors(QList<Recipe*> ancestors)
 { 
-   foreach(int i, ancestors)
+   foreach(Recipe* i, ancestors)
       addAncestor(i);
 }
-void BtTreeFilterProxyModel::removeAncestor(int ancestor) { ancestor_override.removeOne(ancestor); }
-void BtTreeFilterProxyModel::removeAncestors(QList<int> ancestors)
+void BtTreeFilterProxyModel::removeAncestor(Recipe* ancestor) { ancestor_override.removeOne(ancestor); }
+void BtTreeFilterProxyModel::removeAncestors(QList<Recipe*> ancestors)
 { 
-   foreach(int i, ancestors)
+   foreach(Recipe* i, ancestors)
       removeAncestor(i);
 }
