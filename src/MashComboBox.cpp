@@ -28,7 +28,7 @@ MashComboBox::MashComboBox(QWidget* parent)
    : QComboBox(parent)
 {
    setCurrentIndex(-1);
-   connect( &(Database::instance()), SIGNAL(newMashSignal(Mash*)), this, SLOT(addMash(Mash*)) );
+   connect( &(Database::instance()), SIGNAL(newSignal(Mash*)), this, SLOT(addMash(Mash*)) );
    connect( &(Database::instance()), SIGNAL(deletedSignal(Mash*)), this, SLOT(removeMash(Mash*)) );
    repopulateList();
 }

@@ -100,7 +100,7 @@ void HopTableModel::observeDatabase(bool val)
    {
       observeRecipe(0);
       removeAll();
-      connect( &(Database::instance()), SIGNAL(newHopSignal(Hop*)), this, SLOT(addHop(Hop*)) );
+      connect( &(Database::instance()), SIGNAL(newSignal(Hop*)), this, SLOT(addHop(Hop*)) );
       connect( &(Database::instance()), SIGNAL(deletedSignal(Hop*)), this, SLOT(removeHop(Hop*)) );
       addHops( Database::instance().hops() );
    }
@@ -137,13 +137,13 @@ void HopTableModel::addHop(Hop* hop)
 
 void HopTableModel::addHops(QList<Hop*> hops)
 {
-   QList<Hop*>::iterator i;
    QList<Hop*> tmp;
 
-   for( i = hops.begin(); i != hops.end(); i++ )
+   foreach( Hop* hop, hops)
    {
-      if( !hopObs.contains(*i) )
-         tmp.append(*i);
+      if( !hopObs.contains(hop) ) {
+         tmp.append(hop);
+      }
    }
 
    int size = hopObs.size();
@@ -152,8 +152,8 @@ void HopTableModel::addHops(QList<Hop*> hops)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       hopObs.append(tmp);
 
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
+      foreach( Hop* hop, tmp )
+         connect( hop, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
 
       endInsertRows();
    }
