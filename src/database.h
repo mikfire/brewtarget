@@ -335,6 +335,70 @@ public:
          emit deletedSignal(ing);
    }
 
+   // Versioning when modifying something in a recipe is *hard*. If we copy
+   // the recipe, there is no easy way that I know of to say this ingredient
+   // in the old recipe is this ingredient in the new recipe. The best I can
+   // think of is to use the delete idea -- copy the recipe with everything
+   // but what's being modified, clone whats being modified and add that to
+   // the copy.
+   template <class T>void modifyIngredient(T* ing, const char* property, const char* dbCol, QVariant value, bool notify=true)
+   {
+      // Yog-Sothoth is the gate. Yog-Sothoth is the key and guardian of the
+      // gate. Past, present, future, all are one in Yog-Sothoth
+      Recipe* parent;
+      Recipe* spawn;
+      const QMetaObject* meta;
+      Brewtarget::DBTable table;
+      int ndx;
+      T* ingSpawn;
+      QString propname;
+      // I need this to force the templates to work for copy, but I don't care
+      // beyong that. Is it evil? Hell yes.  Yog-Sothoth knows the gate.
+      QHash<int,T*> nowhereHash; 
+
+      parent = inRecipe(ing,ing->key());
+
+      // If the ingredient is in a recipe, and that recipe needs a version
+      if ( parent && wantsVersion(parent) ) {
+         // Create a copy of the recipe, less the ingredient we are modifying
+         spawn = filterIngredientFromSpawn(parent, ing,false);
+         // Add a copy of the ingredient we want to change to the new recipe.
+         // This is the magic step, really.
+         ingSpawn = addIngredientToRecipe( spawn, ing, false, &nowhereHash);
+         // Since we don't know which hash to use, we have to add it in
+         // manually. This has to happen early.
+         addToHash(ingSpawn);
+
+         // Do some book keeping, mostly because we need to find the signal
+         // name
+         meta  = ingSpawn->metaObject();
+         ndx   = meta->indexOfClassInfo("signal");
+         propname = meta->classInfo(ndx).value();
+
+
+         emit newSignal(ingSpawn);
+         emit changed( metaProperty("recipes"), QVariant() );
+         emit newSignal(spawn);
+         emit spawned(parent,spawn);
+      }
+      // If the ingredient isn't in a recipe, or the recipe doesn't want a
+      // version
+      else {
+         ingSpawn = ing;
+      }
+
+      meta = ingSpawn->metaObject();
+      table = classNameToTable.value(meta->className());
+      ndx   = meta->indexOfProperty( property );
+      propname = meta->classInfo(meta->indexOfClassInfo("signal")).value();
+
+      updateEntry( table, ingSpawn->key(), dbCol, value, meta->property(ndx), ingSpawn, notify);
+
+      emit changed( metaProperty(propname.toLatin1().data()), QVariant());
+   }
+
+
+
    //! Get the recipe that this \b note is part of.
    Recipe* getParentRecipe( BrewNote const* note );
 
@@ -435,17 +499,18 @@ public:
                         int Portnum, Brewtarget::DBTypes newType);
 signals:
    void changed(QMetaProperty prop, QVariant value);
-   void newEquipmentSignal(Equipment*);
-   void newFermentableSignal(Fermentable*);
-   void newHopSignal(Hop*);
-   void newMashSignal(Mash*);
-   void newMiscSignal(Misc*);
-   void newRecipeSignal(Recipe*);
-   void newStyleSignal(Style*);
-   void newWaterSignal(Water*);
-   void newYeastSignal(Yeast*);
-   // This is still experimental. Or at least mental
-   void newBrewNoteSignal(BrewNote*);
+
+   void newSignal(BrewNote*);
+   void newSignal(Equipment*);
+   void newSignal(Fermentable*);
+   void newSignal(Hop*);
+   void newSignal(Mash*);
+   void newSignal(MashStep*);
+   void newSignal(Misc*);
+   void newSignal(Recipe*);
+   void newSignal(Style*);
+   void newSignal(Water*);
+   void newSignal(Yeast*);
 
    void deletedSignal(Equipment*);
    void deletedSignal(Fermentable*);
@@ -460,7 +525,6 @@ signals:
    void deletedSignal(MashStep*);
 
    // MashSteps need signals too
-   void newMashStepSignal(MashStep*);
    // Emits a signal when the dirty status changes
    void isUnsavedChanged(bool);
 
@@ -533,6 +597,7 @@ private:
    QHash< int, Style* > allStyles;
    QHash< int, Water* > allWaters;
    QHash< int, Yeast* > allYeasts;
+
    QHash<Brewtarget::DBTable,QSqlQuery> selectAll;
 
    //! Get the right database connection for the calling thread.
@@ -605,8 +670,9 @@ private:
       while( q.next() )
       {
          key = q.record().value("id").toInt();
-         if( allElements.contains(key) )
+         if( allElements.contains(key) ) {
             list.append( allElements[key] );
+         }
       }
 
       q.finish();
@@ -698,15 +764,21 @@ private:
 
       QSqlQuery q(sqlDatabase());
       try {
+         // Do initialize some important variables
          if ( ndx != -1 ) {
             QString prefix = meta->classInfo( meta->indexOfClassInfo("prefix")).value();
             propName  = meta->classInfo(ndx).value();
+            // TODO: Consider if we really need to construct childTableName
+            // this way. Shouldn't they already be available via the
+            // tableToChildTable? And does that suggest we should make an
+            // ingredientInRecipe hash?
             relTableName = QString("%1_in_recipe").arg(prefix);
             ingKeyName = QString("%1_id").arg(prefix);
             childTableName = QString("%1_children").arg(prefix);
          }
          else 
-            throw QString("could not locate classInfo for signal on %2").arg(meta->className());
+            throw QString("could not locate classInfo for signal on %1").arg(meta->className());
+
          // Ensure this ingredient is not already in the recipe.
          QString select = QString("SELECT recipe_id from %1 WHERE %2=%3 AND recipe_id=%4")
                               .arg(relTableName)
@@ -719,9 +791,9 @@ private:
          if( q.next() )
             throw QString("Ingredient already exists in recipe." );
 
-
          q.finish();
 
+         // if it isn't in the recipe already
          if ( noCopy )
          {
             newIng = qobject_cast<T*>(ing);
@@ -732,7 +804,6 @@ private:
          }
          else
          {
-
             newIng = copy<T>(ing, false, keyHash);
             if ( newIng == 0 )
                throw QString("error copying ingredient");
@@ -752,7 +823,6 @@ private:
          if ( ! q.exec() ) 
             throw QString("%2 : %1.").arg(q.lastQuery()).arg(q.lastError().text());
 
-         emit rec->changed( rec->metaProperty(propName), QVariant() );
 
          q.finish();
 
@@ -771,6 +841,8 @@ private:
 
             emit rec->changed( rec->metaProperty(propName), QVariant() );
          }
+         else 
+            emit rec->changed( rec->metaProperty(propName), QVariant() );
       }
       catch (QString e) {
          Brewtarget::logE( QString("%1 %2").arg(QString("Q_FUNC_INFO")).arg(e));
@@ -815,8 +887,8 @@ private:
 
          if( !q.exec(select) )
             throw QString("%1 %2").arg(q.lastQuery()).arg(q.lastError().text());
-         else 
-            q.next();
+
+         q.next();
         
          QSqlRecord oldRecord = q.record();
          q.finish();
@@ -910,7 +982,7 @@ private:
     */
    void makeDirty();
    Recipe* breed(Recipe* parent);
-   void filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing);
+   Recipe* filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing, bool notify = true);
 
    // May St. Stevens intercede on my behalf.
    //
@@ -935,7 +1007,20 @@ private:
    //next
    void copyDatabase( Brewtarget::DBTypes oldType, Brewtarget::DBTypes newType, QSqlDatabase oldDb);
 
+   Recipe* inRecipe(BeerXMLElement* object, int key);
 
+   void addToHash( BrewNote* whatever );
+   void addToHash( Equipment* whatever );
+   void addToHash( Fermentable* whatever );
+   void addToHash( Hop* whatever );
+   void addToHash( Instruction* whatever );
+   void addToHash( Mash* whatever );
+   void addToHash( MashStep* whatever );
+   void addToHash( Misc* whatever );
+   void addToHash( Recipe* whatever );
+   void addToHash( Style* whatever );
+   void addToHash( Water* whatever );
+   void addToHash( Yeast* whatever );
 };
 
 #endif   /* _DATABASE_H */

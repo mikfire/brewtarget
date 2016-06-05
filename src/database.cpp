@@ -763,7 +763,7 @@ void Database::removeFromRecipe( Recipe* rec, Instruction* ins )
 }
 // The problem this solves is if we do the deep copy, we no longer know which
 // ingredient ing points at.
-void Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing)
+Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing, bool notify )
 {
    Recipe* tmp;
 
@@ -809,10 +809,13 @@ void Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing)
    sqlDatabase().commit();
    makeDirty();
    // Emit all our signals
-   emit changed( metaProperty("recipes"), QVariant() );
-   emit newRecipeSignal(tmp);
-   emit spawned(other,tmp);
-
+   if ( notify  ) { 
+      emit changed( metaProperty("recipes"), QVariant() );
+      emit newSignal(tmp);
+      emit spawned(other,tmp);
+   }
+   
+   return tmp;
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -834,6 +837,9 @@ void Database::removeFrom( Mash* mash, MashStep* step )
    emit mash->mashStepsChanged();
 }
 
+// TODO: if I create a generic inRecipe method for the recipe versions, do I
+// need a separate method just for brewnotes? In fact, wouldn't it be nice to
+// just reuse this name?
 Recipe* Database::getParentRecipe( BrewNote const* note )
 {
    int key;
@@ -1169,7 +1175,7 @@ BrewNote* Database::newBrewNote(BrewNote* other, bool signal)
       if ( signal )
       {
          emit changed( metaProperty("brewNotes"), QVariant() );
-         emit newBrewNoteSignal(tmp);
+         emit newSignal(tmp);
       }
 
       makeDirty();
@@ -1201,7 +1207,7 @@ BrewNote* Database::newBrewNote(Recipe* parent, bool signal)
    if ( signal )
    {
       emit changed( metaProperty("brewNotes"), QVariant() );
-      emit newBrewNoteSignal(tmp);
+      emit newSignal(tmp);
    }
 
    makeDirty();
@@ -1220,7 +1226,7 @@ Equipment* Database::newEquipment(Equipment* other)
    if ( tmp ) {
       makeDirty();
       emit changed( metaProperty("equipments"), QVariant() );
-      emit newEquipmentSignal(tmp);
+      emit newSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 couldn't copy %2").arg(Q_FUNC_INFO).arg(other->name()));
@@ -1241,7 +1247,7 @@ Fermentable* Database::newFermentable(Fermentable* other)
    if ( tmp ) {
       makeDirty();
       emit changed( metaProperty("fermentables"), QVariant() );
-      emit newFermentableSignal(tmp);
+      emit newSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 couldn't copy %2").arg(Q_FUNC_INFO).arg(other->name()));
@@ -1262,7 +1268,7 @@ Hop* Database::newHop(Hop* other)
    if ( tmp ) {
       makeDirty();
       emit changed( metaProperty("hops"), QVariant() );
-      emit newHopSignal(tmp);
+      emit newSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 could not %2 hop")
@@ -1355,7 +1361,7 @@ Mash* Database::newMash(Mash* other, bool displace)
       sqlDatabase().commit();
    makeDirty();
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newMashSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1387,7 +1393,7 @@ Mash* Database::newMash(Recipe* parent, bool transact)
 
    makeDirty();
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newMashSignal(tmp);
+   emit newSignal(tmp);
 
    connect( tmp, SIGNAL(changed(QMetaProperty,QVariant)), parent, SLOT(acceptMashChange(QMetaProperty,QVariant)) );
    return tmp;
@@ -1456,7 +1462,7 @@ Misc* Database::newMisc(Misc* other)
    if ( tmp ) {
       makeDirty();
       emit changed( metaProperty("miscs"), QVariant() );
-      emit newMiscSignal(tmp);
+      emit newSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 could not %2 misc")
@@ -1487,7 +1493,7 @@ Recipe* Database::newRecipe()
    sqlDatabase().commit();
    makeDirty();
    emit changed( metaProperty("recipes"), QVariant() );
-   emit newRecipeSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1500,7 +1506,6 @@ bool Database::wantsVersion(Recipe* thing)
    // could modify an ancestor. My only question here is do I fork the recipe
    // or not
    QSqlQuery q(sqlDatabase());
-   qDebug() << Q_FUNC_INFO;
    QString queryExistence = QString("SELECT id from brewnote where recipe_id=%1").arg(thing->key());
 
    try {
@@ -1512,7 +1517,6 @@ bool Database::wantsVersion(Recipe* thing)
       Brewtarget::logE( QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
    }
    q.finish();
-   qDebug() << Q_FUNC_INFO << "Returning" << ret << "for id" << thing->key();
    return ret;
 }
 
@@ -1561,7 +1565,7 @@ Recipe* Database::newRecipe(Recipe* other, bool ancestor)
    sqlDatabase().commit();
    makeDirty();
    emit changed( metaProperty("recipes"), QVariant() );
-   emit newRecipeSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1584,7 +1588,7 @@ Style* Database::newStyle(Style* other)
 
    makeDirty();
    emit changed( metaProperty("styles"), QVariant() );
-   emit newStyleSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1607,7 +1611,7 @@ Water* Database::newWater(Water* other)
 
    makeDirty();
    emit changed( metaProperty("waters"), QVariant() );
-   emit newWaterSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1631,7 +1635,7 @@ Yeast* Database::newYeast(Yeast* other)
 
    makeDirty();
    emit changed( metaProperty("yeasts"), QVariant() );
-   emit newYeastSignal(tmp);
+   emit newSignal(tmp);
 
    return tmp;
 }
@@ -1695,6 +1699,58 @@ QString Database::getDbFileName()
    instance();
 
    return dbFileName;
+}
+
+// Attempts to determine if the given object is in a recipe. It will have to
+// do this in two different passes, depending on if there is a childTable
+Recipe* Database::inRecipe(BeerXMLElement* object, int key)
+{
+   QString findIt, tableToSearch, idToReturn;
+   const QMetaObject* meta = object->metaObject();
+   Brewtarget::DBTable table = classNameToTable.value(meta->className());
+   int ndx = meta->indexOfClassInfo("prefix");
+   QString fKey;
+  
+   // recipes are easy
+   if ( QStringLiteral("Recipe") == meta->className())
+      return allRecipes[key];
+
+   QSqlQuery q(sqlDatabase());
+   try {
+      if ( ndx == -1 )
+         throw QString("could not locate classInfo for prefix on %1").arg(meta->className());
+
+      fKey = QString("%1_id").arg(meta->classInfo(ndx).value());
+
+      // if we have an in_recipe table, use it.
+      if ( Database::tableToChildTable.contains(table) ) {
+         tableToSearch = QString("%1_in_recipe").arg(meta->classInfo(ndx).value());
+         idToReturn = QString("recipe_id");
+      }
+      // if we don't, it means the recipe points to the thing. Maybe.
+      else {
+         tableToSearch = QStringLiteral("recipe");
+         idToReturn = QString("id");
+      }
+      
+      findIt = QString("select %1 from %2 where %3=%4")
+         .arg(idToReturn)
+         .arg(tableToSearch)
+         .arg(fKey)
+         .arg(key);
+      if ( ! q.exec(findIt ) )
+         throw QString("Could not execute query %1").arg(findIt);
+
+      if ( ! q.next() )
+         return 0;
+
+      int recKey = q.record().value(0).toInt();
+      return allRecipes[recKey];
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 : %2 %3").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
+   }
+   return 0;
 }
 
 // Cthulhu weeps (and we lose 2 SAN points)
@@ -4041,7 +4097,7 @@ Equipment* Database::equipmentFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("equipments"), QVariant() );
-      emit newEquipmentSignal(ret);
+      emit newSignal(ret);
    }
 
    return ret;
@@ -4116,7 +4172,7 @@ Fermentable* Database::fermentableFromXml( QDomNode const& node, Recipe* parent 
    if( createdNew )
    {
       emit changed( metaProperty("fermentables"), QVariant() );
-      emit newFermentableSignal(ret);
+      emit newSignal(ret);
    }
 
    return ret;
@@ -4274,7 +4330,7 @@ Hop* Database::hopFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("hops"), QVariant() );
-      emit newHopSignal(ret);
+      emit newSignal(ret);
    }
    return ret;
 }
@@ -4361,7 +4417,7 @@ Mash* Database::mashFromXml( QDomNode const& node, Recipe* parent )
    blockSignals(false);
 
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newMashSignal(ret);
+   emit newSignal(ret);
    emit ret->mashStepsChanged();
 
    return ret;
@@ -4551,7 +4607,7 @@ Misc* Database::miscFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("miscs"), QVariant() );
-      emit newMiscSignal(ret);
+      emit newSignal(ret);
    }
    return ret;
 }
@@ -4656,7 +4712,7 @@ Recipe* Database::recipeFromXml( QDomNode const& node )
       ret->recalcAll();
       blockSignals(false);
 
-      emit newRecipeSignal(ret);
+      emit newSignal(ret);
 
       return ret;
    }
@@ -4741,7 +4797,7 @@ Style* Database::styleFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("styles"), QVariant() );
-      emit newStyleSignal(ret);
+      emit newSignal(ret);
    }
 
    return ret;
@@ -4791,7 +4847,7 @@ Water* Database::waterFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("waters"), QVariant() );
-      emit newWaterSignal(ret);
+      emit newSignal(ret);
    }
 
    return ret;
@@ -4893,7 +4949,7 @@ Yeast* Database::yeastFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("yeasts"), QVariant() );
-      emit newYeastSignal(ret);
+      emit newSignal(ret);
    }
 
    return ret;
@@ -5530,3 +5586,17 @@ void Database::copyDatabase( Brewtarget::DBTypes oldType, Brewtarget::DBTypes ne
    }
 }
 
+// I don't like this, but I've written worse. I need these so the templates
+// can do this w/o me having to pass the key hash in
+void Database::addToHash( BrewNote* whatever ) { allBrewNotes.insert(whatever->key(), whatever); }
+void Database::addToHash( Equipment* whatever ) { allEquipments.insert(whatever->key(), whatever); }
+void Database::addToHash( Fermentable* whatever ) { allFermentables.insert(whatever->key(), whatever); }
+void Database::addToHash( Hop* whatever ) { allHops.insert(whatever->key(), whatever); }
+void Database::addToHash( Instruction* whatever ) { allInstructions.insert(whatever->key(), whatever); }
+void Database::addToHash( Mash* whatever ) { allMashs.insert(whatever->key(), whatever); }
+void Database::addToHash( MashStep* whatever ) { allMashSteps.insert(whatever->key(), whatever); }
+void Database::addToHash( Misc* whatever ) { allMiscs.insert(whatever->key(), whatever); }
+void Database::addToHash( Recipe* whatever ) { allRecipes.insert(whatever->key(), whatever); }
+void Database::addToHash( Style* whatever ) { allStyles.insert(whatever->key(), whatever); }
+void Database::addToHash( Water* whatever ) { allWaters.insert(whatever->key(), whatever); }
+void Database::addToHash( Yeast* whatever ) { allYeasts.insert(whatever->key(), whatever); }
