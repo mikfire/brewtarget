@@ -25,6 +25,7 @@
 #include <QObject>
 #include "water.h"
 #include "brewtarget.h"
+#include "database.h"
 
 QHash<QString,QString> Water::tagToProp = Water::tagToPropHash();
 
@@ -75,6 +76,11 @@ Water::Water()
 }
 
 //================================"SET" METHODS=================================
+void Water::set( const char* prop_name, const char* col_name, QVariant value )
+{
+   Database::instance().modifyIngredient(this,prop_name, col_name, value);
+}
+
 void Water::setName( const QString &var )
 {
    set("name", "name", var);

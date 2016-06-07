@@ -135,6 +135,8 @@ signals:
 private:
    Misc();
    Misc(Misc const& other);
+
+   void set( const char* prop_name, const char* col_name, QVariant value );
    
    bool isValidType( const QString &var );
    bool isValidUse( const QString &var );

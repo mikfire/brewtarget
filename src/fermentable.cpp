@@ -27,6 +27,7 @@
 #include <QDebug>
 #include "fermentable.h"
 #include "brewtarget.h"
+#include "database.h"
 
 QStringList Fermentable::types = QStringList() << "Grain" << "Sugar" << "Extract" << "Dry Extract" << "Adjunct";
 QHash<QString,QString> Fermentable::tagToProp = Fermentable::tagToPropHash();
@@ -299,7 +300,6 @@ bool Fermentable::isMashed() const { return get("is_mashed").toBool(); }
 bool Fermentable::isExtract() { return ((type() == Extract) || (type() == Dry_Extract)); }
 bool Fermentable::isSugar() { return (type() == Sugar); }
 
-
 double Fermentable::equivSucrose_kg() const
 {
    double ret = amount_kg() * yield_pct() * (1.0-moisture_pct()/100.0) / 100.0;
@@ -311,13 +311,12 @@ double Fermentable::equivSucrose_kg() const
       return ret;
 }
 
-// disabled per-cell work
-/*
-unitDisplay Fermentable::displayUnit() const  { return (unitDisplay)get("display_unit").toInt(); }
-unitScale Fermentable::displayScale() const { return (unitScale)get("display_scale").toInt(); }
-*/
-
 // Set
+void Fermentable::set( const char* prop_name, const char* col_name, QVariant value )
+{
+   Database::instance().modifyIngredient(this,prop_name, col_name, value);
+}
+
 void Fermentable::setName( const QString& str )
 {
    set("name", "name", str);
@@ -465,13 +464,3 @@ bool Fermentable::isValidType( const QString& str )
    return (types.indexOf(str) >= 0);
 }
 
-// disabled per-cell work
-/*
-void Fermentable::setDisplayUnit( unitDisplay unit ) 
-{ 
-   set("displayUnit", "display_unit", unit); 
-   set("displayScale", "display_scale", noScale);
-}
-
-void Fermentable::setDisplayScale( unitScale scale ) { set("displayScale", "display_scale", scale); }
-*/

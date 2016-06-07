@@ -5497,15 +5497,21 @@ void Database::copyDatabase( Brewtarget::DBTypes oldType, Brewtarget::DBTypes ne
 
 // I don't like this, but I've written worse. I need these so the templates
 // can do this w/o me having to pass the key hash in
-void Database::addToHash( BrewNote* whatever ) { allBrewNotes.insert(whatever->key(), whatever); }
-void Database::addToHash( Equipment* whatever ) { allEquipments.insert(whatever->key(), whatever); }
-void Database::addToHash( Fermentable* whatever ) { allFermentables.insert(whatever->key(), whatever); }
-void Database::addToHash( Hop* whatever ) { allHops.insert(whatever->key(), whatever); }
-void Database::addToHash( Instruction* whatever ) { allInstructions.insert(whatever->key(), whatever); }
-void Database::addToHash( Mash* whatever ) { allMashs.insert(whatever->key(), whatever); }
 void Database::addToHash( MashStep* whatever ) { allMashSteps.insert(whatever->key(), whatever); }
-void Database::addToHash( Misc* whatever ) { allMiscs.insert(whatever->key(), whatever); }
-void Database::addToHash( Recipe* whatever ) { allRecipes.insert(whatever->key(), whatever); }
-void Database::addToHash( Style* whatever ) { allStyles.insert(whatever->key(), whatever); }
-void Database::addToHash( Water* whatever ) { allWaters.insert(whatever->key(), whatever); }
-void Database::addToHash( Yeast* whatever ) { allYeasts.insert(whatever->key(), whatever); }
+
+// If you've followed the evolution, newWhatever automatically handles the
+// allWhatever hash for me. So I can do this in a single line. These cannot
+// be templates because of the name. We cannot collapse the newWhatever
+// methods, because we have to handle the ... well, now do we?
+Equipment*   Database::clone(Equipment* donor)   { return newEquipment(donor); }
+Fermentable* Database::clone(Fermentable* donor) { return newFermentable(donor); }
+Hop*         Database::clone(Hop* donor)         { return newHop(donor); }
+Mash*        Database::clone(Mash* donor)        { return newMash(donor); }
+Misc*        Database::clone(Misc* donor)        { return newMisc(donor); }
+Style*       Database::clone(Style* donor)       { return newStyle(donor); }
+Water*       Database::clone(Water* donor)       { return newWater(donor); }
+Yeast*       Database::clone(Yeast* donor)       { return newYeast(donor); }
+
+// This one will need more work. We will need to arrange to get the mash
+// step's parent mash
+// MashStep* Database::clone(MashStep* donor) { return newMashStep(donor) }

@@ -172,6 +172,7 @@ signals:
 private:
    Yeast();
    Yeast(Yeast const& other);
+   void set( const char* prop_name, const char* col_name, QVariant value );
    
    static QStringList types;
    static QStringList forms;
