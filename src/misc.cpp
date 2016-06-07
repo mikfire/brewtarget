@@ -29,6 +29,7 @@
 #include <QDomText>
 #include <QObject>
 #include <QDebug>
+#include "database.h"
 
 QStringList Misc::uses = QStringList() << "Boil" << "Mash" << "Primary" << "Secondary" << "Bottling";
 QStringList Misc::types = QStringList() << "Spice" << "Fining" << "Water Agent" << "Herb" << "Flavor" << "Other";
@@ -126,6 +127,11 @@ double Misc::inventory() const
 }
 
 //============================"SET" METHODS=====================================
+void Misc::set( const char* prop_name, const char* col_name, QVariant value )
+{
+   Database::instance().modifyIngredient(this,prop_name, col_name, value);
+}
+
 void Misc::setName( const QString& var )
 {
    set( "name", "name", var );

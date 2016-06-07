@@ -345,59 +345,39 @@ public:
    {
       // Yog-Sothoth is the gate. Yog-Sothoth is the key and guardian of the
       // gate. Past, present, future, all are one in Yog-Sothoth
-      Recipe* parent;
-      Recipe* spawn;
+      Recipe *parent, *spawn;
       const QMetaObject* meta;
       Brewtarget::DBTable table;
       int ndx;
-      T* ingSpawn;
-      QString propname;
-      // I need this to force the templates to work for copy, but I don't care
-      // beyong that. Is it evil? Hell yes.  Yog-Sothoth knows the gate.
-      QHash<int,T*> nowhereHash; 
+      T* ingClone;
 
       parent = inRecipe(ing,ing->key());
 
       // If the ingredient is in a recipe, and that recipe needs a version
       if ( parent && wantsVersion(parent) ) {
+         qDebug() << Q_FUNC_INFO << "cloning";
          // Create a copy of the recipe, less the ingredient we are modifying
-         spawn = filterIngredientFromSpawn(parent, ing,false);
-         // Add a copy of the ingredient we want to change to the new recipe.
-         // This is the magic step, really.
-         ingSpawn = addIngredientToRecipe( spawn, ing, false, &nowhereHash);
-         // Since we don't know which hash to use, we have to add it in
-         // manually. This has to happen early.
-         addToHash(ingSpawn);
-
-         // Do some book keeping, mostly because we need to find the signal
-         // name
-         meta  = ingSpawn->metaObject();
-         ndx   = meta->indexOfClassInfo("signal");
-         propname = meta->classInfo(ndx).value();
-
-
-         emit newSignal(ingSpawn);
-         emit changed( metaProperty("recipes"), QVariant() );
-         emit newSignal(spawn);
-         emit spawned(parent,spawn);
+         spawn = filterIngredientFromSpawn(parent, ing);
+         // Clone what we want to modify. Believe it or not, this is sort of
+         // the magic step. 
+         ingClone = clone(ing);
+         // Add the clone to the recipe and don't copy it, because we already
+         // did
+         addToRecipe(spawn, ingClone, true);
       }
       // If the ingredient isn't in a recipe, or the recipe doesn't want a
       // version
       else {
-         ingSpawn = ing;
+         ingClone = ing;
       }
 
-      meta = ingSpawn->metaObject();
+      meta = ingClone->metaObject();
       table = classNameToTable.value(meta->className());
       ndx   = meta->indexOfProperty( property );
-      propname = meta->classInfo(meta->indexOfClassInfo("signal")).value();
 
-      updateEntry( table, ingSpawn->key(), dbCol, value, meta->property(ndx), ingSpawn, notify);
+      updateEntry( table, ingClone->key(), dbCol, value, meta->property(ndx), ingClone, notify);
 
-      emit changed( metaProperty(propname.toLatin1().data()), QVariant());
    }
-
-
 
    //! Get the recipe that this \b note is part of.
    Recipe* getParentRecipe( BrewNote const* note );
@@ -1009,18 +989,19 @@ private:
 
    Recipe* inRecipe(BeerXMLElement* object, int key);
 
-   void addToHash( BrewNote* whatever );
-   void addToHash( Equipment* whatever );
-   void addToHash( Fermentable* whatever );
-   void addToHash( Hop* whatever );
-   void addToHash( Instruction* whatever );
-   void addToHash( Mash* whatever );
    void addToHash( MashStep* whatever );
-   void addToHash( Misc* whatever );
-   void addToHash( Recipe* whatever );
-   void addToHash( Style* whatever );
-   void addToHash( Water* whatever );
-   void addToHash( Yeast* whatever );
+
+   Equipment*   clone(Equipment* donor);
+   Fermentable* clone(Fermentable* donor);
+   Hop*         clone(Hop* donor);
+//   Instruction* clone(Instruction* donor);
+   Mash*        clone(Mash* donor);
+//   MashStep*    clone(MashStep* donor);
+   Misc*        clone(Misc* donor);
+   Style*       clone(Style* donor);
+   Water*       clone(Water* donor);
+   Yeast*       clone(Yeast* donor);
+
 };
 
 #endif   /* _DATABASE_H */

@@ -142,11 +142,6 @@ public:
    bool recommendMash() const;
    double ibuGalPerLb() const;
 
-   /* disabled per-cell
-   unitDisplay displayUnit() const;
-   unitScale displayScale() const;
-   */
-
    // Calculated getters.
    double equivSucrose_kg() const;
 
@@ -205,6 +200,7 @@ signals:
 private:
    Fermentable();
    Fermentable( Fermentable const& other );
+   void set( const char* prop_name, const char* col_name, QVariant value );
    
    static bool isValidType( const QString& str );
    static QStringList types;

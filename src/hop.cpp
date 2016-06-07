@@ -115,6 +115,13 @@ Hop::Hop( Hop const& other )
 }
 
 //============================="SET" METHODS====================================
+
+// This may not work
+void Hop::set( const char* prop_name, const char* col_name, QVariant value )
+{
+   Database::instance().modifyIngredient(this,prop_name, col_name, value);
+}
+
 void Hop::setName( const QString& str )
 {
    set("name","name",str);
