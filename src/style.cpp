@@ -21,6 +21,7 @@
 #include "brewtarget.h"
 #include "style.h"
 #include <QDebug>
+#include "database.h"
 
 QStringList Style::types = QStringList() << "Lager" << "Ale" << "Mead" << "Wheat" << "Mixed" << "Cider";
 QHash<QString,QString> Style::tagToProp = Style::tagToPropHash();

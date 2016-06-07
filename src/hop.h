@@ -164,6 +164,7 @@ private:
    Hop( Hop const& other );
    
    void setDefaults();
+   void set( const char* prop_name, const char* col_name, QVariant value );
 
    static bool isValidUse(const QString& str);
    static bool isValidType(const QString& str);

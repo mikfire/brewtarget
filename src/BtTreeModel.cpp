@@ -266,26 +266,34 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
    if ( !rootItem || !index.isValid() || index.column() < 0 || index.column() >= maxColumns)
       return QVariant();
 
-   if ( role == Qt::ToolTipRole )
-      return toolTipData(index);
-
-   if ( role != Qt::DisplayRole && role != Qt::EditRole && role != Qt::DecorationRole)
-      return QVariant();
-
    BtTreeItem* itm = item(index);
-   if ( role == Qt::DecorationRole && index.column() == 0) 
-   {
-      if ( itm->type() == BtTreeItem::FOLDER )
-         return QIcon(":images/folder.png");
-      else if ( treeMask == RECIPEMASK ) {
-         Recipe *tmp = itm->recipe();
-         if ( tmp && tmp->hasAncestors() ) 
-            return QIcon(":images/circle.png");
-      }
-      return QVariant();
-   }
+   Recipe* tmp = 0;
+   if ( treeMask == RECIPEMASK && index.column() == 0)
+      tmp = itm->recipe();
 
-   return itm->data(index.column());
+   QFont font;
+   switch( role ) {
+      case Qt::ToolTipRole:
+         return toolTipData(index);
+         break;
+      case Qt::DisplayRole:
+         if ( tmp && tmp->hasAncestors() )
+            return QString("%1 [ver%2]").arg( itm->data(index.column()).toString() ).arg(tmp->ancestors().size());
+         return itm->data(index.column());
+         break;
+      case Qt::DecorationRole:
+         if ( index.column() == 0 && itm->type() == BtTreeItem::FOLDER )
+            return QIcon(":images/folder.png");
+         break;
+      case Qt::FontRole:
+         if ( tmp && tmp->hasAncestors() ) 
+            font.setBold(true);
+         return font;
+         break;
+      default:
+         break;
+   }
+   return QVariant();
 }
 
 QVariant BtTreeModel::toolTipData(const QModelIndex &index) const
@@ -1107,13 +1115,6 @@ QModelIndex BtTreeModel::createFolderTree( QStringList dirs, BtTreeItem* parent,
 
       pItem->insertChildren(i, 1, BtTreeItem::FOLDER);
       pItem->child(i)->setData(BtTreeItem::FOLDER, temp);
-
-      // Insert the item into the tree. If it fails, bug out
-      //if ( ! insertRow(i, ndx, temp, BtTreeItem::FOLDER) )
-      //{
-      //   emit layoutChanged();
-      //   return QModelIndex();
-      //}
 
       // Set the parent item to point to the newly created tree
       pItem = pItem->child(i);

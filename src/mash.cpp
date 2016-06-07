@@ -28,6 +28,7 @@
 #include <QDomElement>
 #include <QDomText>
 #include <QObject>
+#include "database.h"
 
 QHash<QString,QString> Mash::tagToProp = Mash::tagToPropHash();
 

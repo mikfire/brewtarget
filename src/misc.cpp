@@ -29,6 +29,7 @@
 #include <QDomText>
 #include <QObject>
 #include <QDebug>
+#include "database.h"
 
 QStringList Misc::uses = QStringList() << "Boil" << "Mash" << "Primary" << "Secondary" << "Bottling";
 QStringList Misc::types = QStringList() << "Spice" << "Fining" << "Water Agent" << "Herb" << "Flavor" << "Other";

@@ -25,6 +25,7 @@
 #include <QObject>
 #include "water.h"
 #include "brewtarget.h"
+#include "database.h"
 
 QHash<QString,QString> Water::tagToProp = Water::tagToPropHash();
 
