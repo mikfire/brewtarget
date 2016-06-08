@@ -1001,6 +1001,8 @@ private:
    Style*       clone(Style* donor);
    Water*       clone(Water* donor);
    Yeast*       clone(Yeast* donor);
+   BeerXMLElement* clone(BeerXMLElement* donor);
+   void addToRecipe(Recipe* rec, BeerXMLElement* bxml, bool noCopy = false, bool transact = true );
 
 };
 

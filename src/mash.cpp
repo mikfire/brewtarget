@@ -28,7 +28,6 @@
 #include <QDomElement>
 #include <QDomText>
 #include <QObject>
-#include "database.h"
 
 QHash<QString,QString> Mash::tagToProp = Mash::tagToPropHash();
 
@@ -60,11 +59,6 @@ bool operator==(Mash &m1, Mash &m2)
 Mash::Mash()
    : BeerXMLElement()
 {
-}
-
-void Mash::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
 }
 
 void Mash::setName( const QString& var )

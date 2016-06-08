@@ -25,7 +25,6 @@
 #include <QObject>
 #include "hop.h"
 #include "brewtarget.h"
-#include "database.h"  // oh this is likely a bad idear
 
 QStringList Hop::types = QStringList() << "Bittering" << "Aroma" << "Both";
 QStringList Hop::forms = QStringList() << "Leaf" << "Pellet" << "Plug";
@@ -81,29 +80,6 @@ bool Hop::isValidForm(const QString& str)
    return (forms.indexOf(str) >= 0);
 }
 
-/*
-void Hop::setDefaults()
-{
-   name = "";
-   use = USEBOIL;
-   notes = "";
-   type = TYPEBOTH;
-   form = FORMPELLET;
-   origin = "";
-   substitutes = "";
-   
-   alpha_pct = 0.0;
-   amount_kg = 0.0;
-   time_min = 0.0;
-   beta_pct = 0.0;
-   hsi_pct = 0.0;
-   humulene_pct = 0.0;
-   caryophyllene_pct = 0.0;
-   cohumulone_pct = 0.0;
-   myrcene_pct = 0.0;
-}
-*/
-
 Hop::Hop()
    : BeerXMLElement()
 {
@@ -115,13 +91,6 @@ Hop::Hop( Hop const& other )
 }
 
 //============================="SET" METHODS====================================
-
-// This may not work
-void Hop::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Hop::setName( const QString& str )
 {
    set("name","name",str);
@@ -150,7 +119,7 @@ void Hop::setAmount_kg( double num )
    }
    else
    {
-      Database::instance().modifyIngredient(this,"amount_kg", "amount", num);
+      set("amount_kg", "amount", num);
    }
 }
 

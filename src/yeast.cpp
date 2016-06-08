@@ -26,7 +26,6 @@
 #include <QObject>
 #include "yeast.h"
 #include "brewtarget.h"
-#include "database.h"
 
 QStringList Yeast::types = QStringList() << "Ale" << "Lager" << "Wheat" << "Wine" << "Champagne";
 QStringList Yeast::forms = QStringList() << "Liquid" << "Dry" << "Slant" << "Culture";
@@ -131,11 +130,6 @@ const QString Yeast::flocculationStringTr() const
 }
 
 //============================="SET" METHODS====================================
-void Yeast::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Yeast::setName( const QString& var )
 {
    set("name", "name", var);

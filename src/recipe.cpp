@@ -1774,6 +1774,7 @@ void Recipe::recalcOgFg()
    {
       _og = Brewtarget::toDouble(this,"og","Recipe::recalcOgFg()");
       _fg = Brewtarget::toDouble(this,"fg","Recipe::recalcOgFg()");
+
    }
 
    // Find out how much sugar we have.
@@ -1850,13 +1851,13 @@ void Recipe::recalcOgFg()
    if ( _og != tmp_og ) 
    {
       _og     = tmp_og;
-      // NOTE: We don't want to do this on the first load of the recipe. The
-      // _og is initialized to 1, and we calculate that to be something
-      // different. So this code is being triggered and the OG and FG are
-      // being updated for no good reason.
-      // NOTE: We are we recalculating all of these on load? Shouldn't we be
-      // reading these values from the database somehow?
-      set( "og", "og", _og, false );
+      // NOTE: We don't want to do this on the first load of the recipe. We
+      // read the og and fg from the db, but we still need to calculate all
+      // the other values. So if we get here and we are still initializing,
+      // don't set anything. If we have initialized and we get here, then by
+      // all means write to the db.
+      if ( ! _uninitializedCalcs ) 
+         set( "og", "og", _og, false );
       emit changed( metaProperty("og"), _og );
       emit changed( metaProperty("points"), (_og-1.0)*1e3 );
    }
@@ -1864,7 +1865,8 @@ void Recipe::recalcOgFg()
    if ( tmp_fg != _fg ) 
    {
       _fg     = tmp_fg;
-      set( "fg", "fg", _fg, false );
+      if ( ! _uninitializedCalcs ) 
+         set( "fg", "fg", _fg, false );
       emit changed( metaProperty("fg"), _fg );
    }
 }

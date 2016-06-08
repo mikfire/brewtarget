@@ -43,7 +43,7 @@ class Yeast : public BeerXMLElement
    Q_OBJECT
    Q_CLASSINFO("signal", "yeasts")
    Q_CLASSINFO("prefix", "yeast")
-   
+
    friend class Database;
 public:
    //! \brief What beverage the yeast is for.
@@ -53,9 +53,9 @@ public:
    //! \brief How flocculant the strain is.
    enum Flocculation {Low, Medium, High, Very_High}; // NOTE: BeerXML expects a space in "Very High", but not possible with enum. What to do?
    Q_ENUMS( Type Form Flocculation )
-   
+
    virtual ~Yeast() {}
-   
+
    //! \brief The name.
    Q_PROPERTY( QString name READ name WRITE setName NOTIFY changedName )
    //! \brief The \c Type.
@@ -102,7 +102,7 @@ public:
    Q_PROPERTY( int maxReuse READ maxReuse WRITE setMaxReuse /*NOTIFY changed*/ /*changedMaxReuse*/ )
    //! \brief Whether the yeast is added to secondary or primary.
    Q_PROPERTY( bool addToSecondary READ addToSecondary WRITE setAddToSecondary /*NOTIFY changed*/ /*changedAddToSecondary*/ )
-   
+
    // Setters
    void setName( const QString& var );
    void setType( Type t );
@@ -121,7 +121,7 @@ public:
    void setTimesCultured( int var );
    void setMaxReuse( int var );
    void setAddToSecondary( bool var );
-   
+
    // Getters
    QString name() const;
    Type type() const;
@@ -146,7 +146,7 @@ public:
    int timesCultured() const;
    int maxReuse() const;
    bool addToSecondary() const;
-   
+
 signals:
 
    //! \brief Emitted when \c name() changes.
@@ -172,8 +172,7 @@ signals:
 private:
    Yeast();
    Yeast(Yeast const& other);
-   void set( const char* prop_name, const char* col_name, QVariant value );
-   
+
    static QStringList types;
    static QStringList forms;
    static QStringList flocculations;
@@ -182,8 +181,7 @@ private:
    bool isValidType(const QString& str) const;
    bool isValidForm(const QString& str) const;
    bool isValidFlocculation(const QString& str) const;
-   //void setDefaults();
-   
+
    static QHash<QString,QString> tagToProp;
    static QHash<QString,QString> tagToPropHash();
 };

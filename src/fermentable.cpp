@@ -27,7 +27,6 @@
 #include <QDebug>
 #include "fermentable.h"
 #include "brewtarget.h"
-#include "database.h"
 
 QStringList Fermentable::types = QStringList() << "Grain" << "Sugar" << "Extract" << "Dry Extract" << "Adjunct";
 QHash<QString,QString> Fermentable::tagToProp = Fermentable::tagToPropHash();
@@ -77,138 +76,6 @@ Fermentable::Fermentable( Fermentable const& other )
         : BeerXMLElement( other )
 {
 }
-
-/*
-void Fermentable::fromNode(const QDomNode& fermentableNode)
-{
-   QDomNode node, child;
-   QDomText textNode;
-   QString property, value;
-   
-   setDefaults();
-   
-   for( node = fermentableNode.firstChild(); ! node.isNull(); node = node.nextSibling() )
-   {
-      if( ! node.isElement() )
-      {
-         Brewtarget::log(Brewtarget::WARNING, QObject::tr("Node at line %1 is not an element.").arg(textNode.lineNumber()) );
-         continue;
-      }
-      
-      child = node.firstChild();
-      if( child.isNull() || ! child.isText() )
-         continue;
-      
-      property = node.nodeName();
-      textNode = child.toText();
-      value = textNode.nodeValue();
-      
-      if( property == "NAME" )
-      {
-         name = value;
-      }
-      else if( property == "VERSION" )
-      {
-         if( version != getInt(textNode) )
-            Brewtarget::log(Brewtarget::ERROR, QObject::tr("FERMENTABLE says it is not version %1. Line %2").arg(version).arg(textNode.lineNumber()) );
-      }
-      else if( property == "TYPE" )
-      {
-         int ndx = types.indexOf(value);
-         if( ndx < 0 )
-            Brewtarget::log(Brewtarget::ERROR, QObject::tr("%1 is not a valid type for FERMENTABLE. Line %2").arg(value).arg(textNode.lineNumber()) );
-         else
-            type = static_cast<Fermentable::Type>( ndx );
-      }
-      else if( property == "AMOUNT" )
-      {
-         setAmount_kg(getDouble(textNode));
-      }
-      else if( property == "YIELD" )
-      {
-         setYield_pct(getDouble(textNode));
-      }
-      else if( property == "COLOR" )
-      {
-         setColor_srm(getDouble(textNode));
-      }
-      else if( property == "ADD_AFTER_BOIL" )
-      {
-         setAddAfterBoil(getBool(textNode));
-      }
-      else if( property == "ORIGIN" )
-      {
-         setOrigin(value);
-      }
-      else if( property == "SUPPLIER" )
-      {
-         setSupplier(value);
-      }
-      else if( property == "NOTES" )
-      {
-         setNotes(value);
-      }
-      else if( property == "COARSE_FINE_DIFF" )
-      {
-         setCoarseFineDiff_pct(getDouble(textNode));
-      }
-      else if( property == "MOISTURE" )
-      {
-         setMoisture_pct(getDouble(textNode));
-      }
-      else if( property == "DIASTATIC_POWER" )
-      {
-         setDiastaticPower_lintner(getDouble(textNode));
-      }
-      else if( property == "PROTEIN" )
-      {
-         setProtein_pct(getDouble(textNode));
-      }
-      else if( property == "MAX_IN_BATCH" )
-      {
-         setMaxInBatch_pct(getDouble(textNode));
-      }
-      else if( property == "RECOMMEND_MASH" )
-      {
-         setRecommendMash(getBool(textNode));
-      }
-      else if( property == "IS_MASHED" )
-      {
-         setIsMashed(getBool(textNode));
-      }
-      else if( property == "IBU_GAL_PER_LB" )
-      {
-         setIbuGalPerLb(getDouble(textNode));
-      }
-      else
-         Brewtarget::log(Brewtarget::WARNING, QObject::tr("Unsupported FERMENTABLE property: %1. Line %2").arg(property).arg(node.lineNumber()) );
-   }
-}
-*/
-
-/*
-void Fermentable::setDefaults()
-{
-   name = "";
-   type = TYPEGRAIN;
-   amount_kg = 0.0;
-   yield_pct = 0.0;
-   color_srm = 0.0;
-
-   addAfterBoil = false;
-   origin = "";
-   supplier = "";
-   notes = "";
-   coarseFineDiff_pct = 0.0;
-   moisture_pct = 0.0;
-   diastaticPower_lintner = 0.0;
-   protein_pct = 0.0;
-   maxInBatch_pct = 0.0;
-   recommendMash = false;
-   isMashed = false;
-   ibuGalPerLb = 0.0;
-}
-*/
 
 // Get
 const QString Fermentable::name() const { return get("name").toString(); }
@@ -312,11 +179,6 @@ double Fermentable::equivSucrose_kg() const
 }
 
 // Set
-void Fermentable::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Fermentable::setName( const QString& str )
 {
    set("name", "name", str);
