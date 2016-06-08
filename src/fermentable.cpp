@@ -27,7 +27,6 @@
 #include <QDebug>
 #include "fermentable.h"
 #include "brewtarget.h"
-#include "database.h"
 
 QStringList Fermentable::types = QStringList() << "Grain" << "Sugar" << "Extract" << "Dry Extract" << "Adjunct";
 QHash<QString,QString> Fermentable::tagToProp = Fermentable::tagToPropHash();

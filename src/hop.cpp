@@ -25,7 +25,6 @@
 #include <QObject>
 #include "hop.h"
 #include "brewtarget.h"
-#include "database.h"  // oh this is likely a bad idear
 
 QStringList Hop::types = QStringList() << "Bittering" << "Aroma" << "Both";
 QStringList Hop::forms = QStringList() << "Leaf" << "Pellet" << "Plug";
@@ -114,7 +113,7 @@ void Hop::setAmount_kg( double num )
    }
    else
    {
-      Database::instance().modifyIngredient(this,"amount_kg", "amount", num);
+      set("amount_kg", "amount", num);
    }
 }
 

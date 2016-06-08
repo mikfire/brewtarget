@@ -106,8 +106,6 @@ private:
    Water();
    Water( Water const& other );
 
-   void set( const char* prop_name, const char* col_name, QVariant value );
-   
    static QHash<QString,QString> tagToProp;
    static QHash<QString,QString> tagToPropHash();
 };

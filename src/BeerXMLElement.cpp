@@ -249,12 +249,22 @@ QString BeerXMLElement::text(QDate const& val)
 void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant const& value, bool notify )
 {
    if (prop_name != NULL && col_name != NULL) {
-    // Get the meta property.
-    int ndx = metaObject()->indexOfProperty(prop_name);
 
-    // Should schedule an update of the appropriate entry in table,
-    // then use prop to emit its notification signal.
-    Database::instance().updateEntry( _table, _key, col_name, value, metaObject()->property(ndx), this, notify );
+      if ( this->metaObject()->className() == QStringLiteral("Recipe") ) {
+         // Get the meta property.
+         qDebug() << Q_FUNC_INFO << this->metaObject()->className() << "prop_name" << prop_name;
+         int ndx = metaObject()->indexOfProperty(prop_name);
+
+         // Should schedule an update of the appropriate entry in table,
+         // then use prop to emit its notification signal.
+         Database::instance().updateEntry( _table, _key, col_name, value, metaObject()->property(ndx), this, notify );
+      }
+      else {
+         // Should schedule an update of the appropriate entry in table,
+         // then use prop to emit its notification signal.
+         qDebug() << Q_FUNC_INFO << this->metaObject()->className() << "prop_name" << prop_name;
+         Database::instance().modifyIngredient( this, prop_name, col_name, value);
+      }
    }
 }
 

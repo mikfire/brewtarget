@@ -1808,6 +1808,7 @@ void Recipe::recalcOgFg()
    {
       _og = Brewtarget::toDouble(this,"og","Recipe::recalcOgFg()");
       _fg = Brewtarget::toDouble(this,"fg","Recipe::recalcOgFg()");
+
    }
 
    // Find out how much sugar we have.
@@ -1884,30 +1885,23 @@ void Recipe::recalcOgFg()
    if ( _og != tmp_og ) 
    {
       _og     = tmp_og;
-      // NOTE: We don't want to do this on the first load of the recipe.
-      // NOTE: We are we recalculating all of these on load? Shouldn't we be
-      // reading these values from the database somehow?
-      //
-      // GSG: Yes we can, but until the code is added to intialize these calculated
-      // values from the database, we can calculate them on load. They should be
-      // the same as the database values since the database values were set with
-      // these functions in the first place.
-      if (!_uninitializedCalcs)
-      {
-        set( "og", "og", _og, false );
-        emit changed( metaProperty("og"), _og );
-        emit changed( metaProperty("points"), (_og-1.0)*1e3 );
-      }
+      // NOTE: We don't want to do this on the first load of the recipe. We
+      // read the og and fg from the db, but we still need to calculate all
+      // the other values. So if we get here and we are still initializing,
+      // don't set anything. If we have initialized and we get here, then by
+      // all means write to the db.
+      if ( ! _uninitializedCalcs ) 
+         set( "og", "og", _og, false );
+      emit changed( metaProperty("og"), _og );
+      emit changed( metaProperty("points"), (_og-1.0)*1e3 );
    }
 
    if ( tmp_fg != _fg ) 
    {
       _fg     = tmp_fg;
-      if (!_uninitializedCalcs)
-      {
-        set( "fg", "fg", _fg, false );
-        emit changed( metaProperty("fg"), _fg );
-      }
+      if ( ! _uninitializedCalcs ) 
+         set( "fg", "fg", _fg, false );
+      emit changed( metaProperty("fg"), _fg );
    }
 }
 

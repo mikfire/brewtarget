@@ -26,7 +26,6 @@
 #include <QObject>
 #include "yeast.h"
 #include "brewtarget.h"
-#include "database.h"
 
 QStringList Yeast::types = QStringList() << "Ale" << "Lager" << "Wheat" << "Wine" << "Champagne";
 QStringList Yeast::forms = QStringList() << "Liquid" << "Dry" << "Slant" << "Culture";

@@ -5541,6 +5541,60 @@ Style*       Database::clone(Style* donor)       { return newStyle(donor); }
 Water*       Database::clone(Water* donor)       { return newWater(donor); }
 Yeast*       Database::clone(Yeast* donor)       { return newYeast(donor); }
 
+// These next two are here to make things compile. Even though set is
+// always called from the inherited name space (e.g., Hop), the compiler
+// doesn't know that when it's building the templates. So we put these here to
+// reduce copy/paste code elsewhere. They are, by the way, 100% functional.
+// Just not used.
+BeerXMLElement* Database::clone(BeerXMLElement* donor)
+{
+   QString className = donor->metaObject()->className();
+
+   qDebug() << Q_FUNC_INFO;
+   if ( className == QStringLiteral("Equipment") )
+      return newEquipment( qobject_cast<Equipment*>(donor));
+   else if ( className == QStringLiteral("Fermentable") )
+      return newFermentable( qobject_cast<Fermentable*>(donor));
+   else if ( className == QStringLiteral("Hop") )
+      return newHop( qobject_cast<Hop*>(donor));
+   else if ( className == QStringLiteral("Mash") )
+      return newMash( qobject_cast<Mash*>(donor));
+   else if ( className == QStringLiteral("Misc") )
+      return newMisc( qobject_cast<Misc*>(donor));
+   else if ( className == QStringLiteral("Style") )
+      return newStyle( qobject_cast<Style*>(donor));
+   else if ( className == QStringLiteral("Water") )
+      return newWater( qobject_cast<Water*>(donor));
+   else if ( className == QStringLiteral("Yeast") )
+      return newYeast( qobject_cast<Yeast*>(donor));
+   else
+      return 0;
+}
+
+void Database::addToRecipe(Recipe* rec, BeerXMLElement* bxml, bool noCopy, bool transact )
+{
+   QString className = bxml->metaObject()->className();
+
+   qDebug() << Q_FUNC_INFO;
+   if ( className == QStringLiteral("Equipment") )
+      addToRecipe( rec, qobject_cast<Equipment*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Fermentable") )
+      addToRecipe( rec, qobject_cast<Fermentable*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Hop") )
+      addToRecipe( rec, qobject_cast<Hop*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Mash") )
+      addToRecipe( rec, qobject_cast<Mash*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Misc") )
+      addToRecipe( rec, qobject_cast<Misc*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Style") )
+      addToRecipe( rec, qobject_cast<Style*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Water") )
+      addToRecipe( rec, qobject_cast<Water*>(bxml), noCopy, transact);
+   else if ( className == QStringLiteral("Yeast") )
+      addToRecipe( rec, qobject_cast<Yeast*>(bxml), noCopy, transact);
+}
+
+
 // This one will need more work. We will need to arrange to get the mash
 // step's parent mash
 // MashStep* Database::clone(MashStep* donor) { return newMashStep(donor) }
