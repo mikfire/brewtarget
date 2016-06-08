@@ -21,7 +21,6 @@
 #include "brewtarget.h"
 #include "style.h"
 #include <QDebug>
-#include "database.h"
 
 QStringList Style::types = QStringList() << "Lager" << "Ale" << "Mead" << "Wheat" << "Mixed" << "Cider";
 QHash<QString,QString> Style::tagToProp = Style::tagToPropHash();
@@ -70,12 +69,6 @@ Style::Style()
 }
 
 //==============================="SET" METHODS==================================
-
-void Style::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Style::setName( const QString& var )
 {
    set( "name", "name", var );

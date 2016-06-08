@@ -149,7 +149,6 @@ private:
    Equipment( Equipment const& other);
    
    // Calculate the boil size.
-   void set( const char* prop_name, const char* col_name, QVariant value );
    void doCalculations();
    
    static QHash<QString,QString> tagToProp;

@@ -121,11 +121,6 @@ private:
    Mash();
    Mash( Mash const& other );
    
-   // Get via the relational relationship.
-   //QVector<MashStep *> mashSteps;
-  
-   void set( const char* prop_name, const char* col_name, QVariant value );
-   
    static QHash<QString,QString> tagToProp;
    static QHash<QString,QString> tagToPropHash();
 

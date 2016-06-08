@@ -25,7 +25,6 @@
 #include <QObject>
 #include "water.h"
 #include "brewtarget.h"
-#include "database.h"
 
 QHash<QString,QString> Water::tagToProp = Water::tagToPropHash();
 
@@ -55,32 +54,12 @@ bool operator==(Water &w1, Water &w2)
    return w1.name() == w2.name();
 }
 
-/*
-void Water::setDefaults()
-{
-   name = "";
-   amount_l = 0.0;
-   calcium_ppm = 0.0;
-   bicarbonate_ppm = 0.0;
-   chloride_ppm = 0.0;
-   sodium_ppm = 0.0;
-   magnesium_ppm = 0.0;
-   ph = 7.0;
-   notes = "";
-}
-*/
-
 Water::Water()
    : BeerXMLElement()
 {
 }
 
 //================================"SET" METHODS=================================
-void Water::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Water::setName( const QString &var )
 {
    set("name", "name", var);

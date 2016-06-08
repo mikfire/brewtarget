@@ -1816,6 +1816,7 @@ void Recipe::recalcOgFg()
    {
       _og = Brewtarget::toDouble(this,"og","Recipe::recalcOgFg()");
       _fg = Brewtarget::toDouble(this,"fg","Recipe::recalcOgFg()");
+
    }
 
    // Find out how much sugar we have.
@@ -1903,9 +1904,9 @@ void Recipe::recalcOgFg()
       if (!_uninitializedCalcs)
       {
         set( "og", "og", _og, false );
-        emit changed( metaProperty("og"), _og );
-        emit changed( metaProperty("points"), (_og-1.0)*1e3 );
       }
+      emit changed( metaProperty("og"), _og );
+      emit changed( metaProperty("points"), (_og-1.0)*1e3 );
    }
 
    if ( tmp_fg != _fg ) 
@@ -1914,8 +1915,8 @@ void Recipe::recalcOgFg()
       if (!_uninitializedCalcs)
       {
         set( "fg", "fg", _fg, false );
-        emit changed( metaProperty("fg"), _fg );
       }
+      emit changed( metaProperty("fg"), _fg );
    }
 }
 

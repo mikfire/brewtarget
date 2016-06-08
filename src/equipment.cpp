@@ -25,7 +25,6 @@
 #include "equipment.h"
 #include "brewtarget.h"
 #include "HeatCalculations.h"
-#include "database.h"
 
 QHash<QString,QString> Equipment::tagToProp = Equipment::tagToPropHash();
 
@@ -216,11 +215,6 @@ void Equipment::fromNode(const QDomNode& equipmentNode)
 */
 
 //============================"SET" METHODS=====================================
-void Equipment::set( const char* prop_name, const char* col_name, QVariant value )
-{
-   Database::instance().modifyIngredient(this,prop_name, col_name, value);
-}
-
 void Equipment::setName( const QString &var )
 {
    set( "name", "name", var );
