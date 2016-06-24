@@ -277,8 +277,10 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
          return toolTipData(index);
          break;
       case Qt::DisplayRole:
-         if ( tmp && tmp->hasAncestors() )
-            return QString("%1 [ver%2]").arg( itm->data(index.column()).toString() ).arg(tmp->ancestors().size());
+         // If we have a recipe and if the recipe has ancestors, then append
+         // the recipe count to the name
+         if ( tmp && (tmp->hasAncestors() || itm->showMe()) )
+            return QString("%1 [v%2]").arg( itm->data(index.column()).toString() ).arg(tmp->ancestors().size());
          return itm->data(index.column());
          break;
       case Qt::DecorationRole:
@@ -286,7 +288,7 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
             return QIcon(":images/folder.png");
          break;
       case Qt::FontRole:
-         if ( tmp && tmp->hasAncestors() ) 
+         if ( tmp && tmp->hasAncestors() && ! itm->showMe()) 
             font.setBold(true);
          return font;
          break;
@@ -1346,7 +1348,6 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
 
    QDataStream stream( &encodedData, QIODevice::ReadOnly);
    int oType, id;
-   QList<int> droppedIds;
    QString target = ""; 
    QString name = "";
 
@@ -1403,6 +1404,9 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
             return false;
       }
 
+      // Wow. This is the work of this method. It sets a folder. I would have
+      // expected ... more? And this is where I will need to worry about
+      // making a recipe an ancestor of another.
       if ( oType != BtTreeItem::FOLDER ) 
          elem->setFolder(target);
       else 
@@ -1414,7 +1418,6 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
          renameFolder(victim, target);
       }
    }
-
    return true;
 }
 
@@ -1436,9 +1439,21 @@ Qt::DropActions BtTreeModel::supportedDropActions() const
 // ===================== RECIPE VERSION STUFF ==============================
 // =========================================================================
 
+bool BtTreeModel::showChild(QModelIndex child) const
+{
+   BtTreeItem* node = item(child);
+   return node->showMe();
+}
+
+void BtTreeModel::setShowChild(QModelIndex child, bool val)
+{
+   BtTreeItem* node = item(child);
+   node->setShowMe(val);
+}
+
 void BtTreeModel::showVersions(QModelIndex ndx)
 {
-   QModelIndex pIndex;
+   QModelIndex cIndex;
    QList<Recipe*> ancestors;
    BtTreeItem* node = item(ndx);
 
@@ -1461,6 +1476,12 @@ void BtTreeModel::showVersions(QModelIndex ndx)
          continue;
       if ( ! insertRow(j, ndx, ancestor, BtTreeItem::RECIPE) )
          Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
+
+      cIndex = findElement(ancestor,node);
+      setShowChild(cIndex,true);
+      // Interesting that this has to happen here. I need to think about this
+      // more, because I would like to issue just one signal instead of X
+      emit dataChanged(cIndex,cIndex);
 
       // Ok. Now, we need to get the brewnotes added to each recipe
       // make sure we tell addBrewNoteSubTree not to recurse the ancestors

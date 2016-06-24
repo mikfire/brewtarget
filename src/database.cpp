@@ -859,12 +859,12 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
    sqlDatabase().commit();
    makeDirty();
    // Emit all our signals
-   if ( notify  ) { 
+   if ( notify  ) {
       emit changed( metaProperty("recipes"), QVariant() );
       emit newSignal(tmp);
       emit spawned(other,tmp);
    }
-   
+
    return tmp;
 }
 
@@ -1737,7 +1737,7 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
    Brewtarget::DBTable table = classNameToTable.value(meta->className());
    int ndx = meta->indexOfClassInfo("prefix");
    QString fKey;
-  
+
    // recipes are easy
    if ( QStringLiteral("Recipe") == meta->className())
       return allRecipes[key];
@@ -1759,7 +1759,7 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
          tableToSearch = QStringLiteral("recipe");
          idToReturn = QString("id");
       }
-      
+
       findIt = QString("select %1 from %2 where %3=%4")
          .arg(idToReturn)
          .arg(tableToSearch)
@@ -2556,8 +2556,9 @@ QList<Recipe*> Database::recipes()
 {
    QList<Recipe*> tmp;
    // This is gonna kill me.
-   getElements( tmp, QString("deleted=%1 and display = %2").arg(Brewtarget::dbFalse()).arg(Brewtarget::dbTrue()),
-                     Brewtarget::RECTABLE, allRecipes );
+   // Filters handle the display thing upstream. I think I want ... oh lord. I
+   // was right, this is going to kill me
+   getElements( tmp, QString("deleted=%1").arg(Brewtarget::dbFalse()), Brewtarget::RECTABLE, allRecipes );
    return tmp;
 }
 

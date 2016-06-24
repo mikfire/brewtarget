@@ -163,7 +163,6 @@ public:
       //! And the standard number of columns
       STYLENUMCOLS
    };
-
    enum FOLDERITEM {
       //! Name
       FOLDERNAMECOL,
@@ -174,8 +173,6 @@ public:
       //! and the standard for the number of columns
       FOLDERNUMCOLS
    };
-
-   
    /*! 
     * This enum lists the different things that we can store in an item
     */
@@ -251,6 +248,10 @@ public:
    //! \brief returns the name. 
    QString name();
 
+   //! \brief
+   bool showMe();
+   void setShowMe(bool val);
+
 private:
    /*!  Keep a pointer to the parent tree item. */
    BtTreeItem* parentItem;
@@ -261,6 +262,8 @@ private:
    int _type;
    /*! the data associated with this item */
    QObject* _thing;
+   /*! sometimes an item needs to override the display() */
+   bool _showMe;
 
    /*! helper functions to get the information from the item */
    QVariant dataRecipe(int column);
