@@ -330,7 +330,8 @@ bool BtTreeView::multiSelected()
    return hasRecipe && hasSomethingElse;
 }
 
-void BtTreeView::newIngredient() {
+void BtTreeView::newIngredient()
+{
 
    QString folder;
    QModelIndexList indexes = selectionModel()->selectedRows();
@@ -372,9 +373,7 @@ void BtTreeView::showVersions()
       // I hear a noise at the door, as of some immense slippery body
       // lumbering against it
       foreach(QModelIndex selected, indexes) {
-         Recipe* thisOne = recipe(selected);
          // make sure we see the ancestors in an interesting way
-         _filter->addAncestors( thisOne->ancestors() );
          _model->showVersions(_filter->mapToSource(selected));
       }
    }

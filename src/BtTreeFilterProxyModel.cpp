@@ -59,12 +59,13 @@ bool BtTreeFilterProxyModel::lessThan(const QModelIndex &left,
 
 bool BtTreeFilterProxyModel::lessThanRecipe(BtTreeModel* model, const QModelIndex &left, const QModelIndex &right) const
 {
-   // This is a little awkward.
+   // We don't want to sort brewnotes in with the recipes
    if ( model->type(left) == BtTreeItem::BREWNOTE ||
         model->type(right) == BtTreeItem::BREWNOTE )
       return false;
 
    // As the models get more complex, so does the sort algorithm
+   // This logic chain basically ensures that folders get sorted first.
    if ( model->type(left) == BtTreeItem::FOLDER && model->type(right) == BtTreeItem::RECIPE)
    {
       BtFolder* leftFolder = model->folder(left);
@@ -90,8 +91,9 @@ bool BtTreeFilterProxyModel::lessThanRecipe(BtTreeModel* model, const QModelInde
    Recipe* rightRecipe = model->recipe(right);
 
    // Yog-Sothoth knows the gate.
-   if ( ancestor_override.contains( leftRecipe ) &&
-        ancestor_override.contains( rightRecipe ) ) {
+   // The challenge here is to know if we are displaying ancestors for this
+   // recipe, and to sort them properly
+   if ( model->showChild(left) && model->showChild(right) ) {
       return leftRecipe->key() > rightRecipe->key();
    }
 
@@ -377,12 +379,9 @@ bool BtTreeFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex 
    // the ancestor's keys are put in the override list. If the keys are in the
    // override list, I wanna see them
    if ( treeMask == BtTreeModel::RECIPEMASK && thing ) {
-      if ( ancestor_override.size() > 0 ) {
-         Recipe* bar = model->recipe(child);
-
-         if ( bar && ancestor_override.contains(bar) )
-            return true;
-      }
+      // This logic looks weird, but I need it. Basically, if showChild is
+      // false, default to the display() value.
+      return model->showChild(child) || thing->display();
    }
    return thing->display();
 

@@ -2517,8 +2517,9 @@ QList<Recipe*> Database::recipes()
 {
    QList<Recipe*> tmp;
    // This is gonna kill me.
-   getElements( tmp, QString("deleted=%1 and display = %2").arg(Brewtarget::dbFalse()).arg(Brewtarget::dbTrue()), 
-                     Brewtarget::RECTABLE, allRecipes );
+   // Filters handle the display thing upstream. I think I want ... oh lord. I
+   // was right, this is going to kill me 
+   getElements( tmp, QString("deleted=%1").arg(Brewtarget::dbFalse()), Brewtarget::RECTABLE, allRecipes );
    return tmp;
 }
 

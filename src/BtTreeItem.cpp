@@ -49,7 +49,7 @@ bool operator==(BtTreeItem& lhs, BtTreeItem& rhs)
 }
 
 BtTreeItem::BtTreeItem(int _type, BtTreeItem *parent)
-   : parentItem(parent), _thing(0)
+   : parentItem(parent), _thing(0), _showMe(false)
 {
    setType(_type);
 }
@@ -485,3 +485,6 @@ QString BtTreeItem::name()
    }
    return QString();
 }
+
+bool BtTreeItem::showMe() { return _showMe; }
+void BtTreeItem::setShowMe(bool val) { _showMe = val; }
