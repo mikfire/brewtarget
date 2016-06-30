@@ -194,6 +194,7 @@ private slots:
    // can hold .. anything, including other folders. So I need the most generic
    // pointer I can get. I hope this works.
    void folderChanged(QString name);
+   void versionedRecipe(Recipe* anc, Recipe* dec);
 
    //! \brief This is as best as I can see to do it. Qt signaling mechanism is
    //   doing, as I recall, string compares on the signatures. Sigh.
@@ -219,6 +220,7 @@ private slots:
 
 signals:
    void expandFolder(BtTreeModel::TypeMasks kindofThing, QModelIndex fIdx);
+   void recipeSpawn(Recipe* dec);
 
 private:
    //! \brief Loads the tree. 
@@ -263,6 +265,7 @@ private:
 
    //! \brief convenience function to add brewnotes to a recipe as a subtree
    void addBrewNoteSubTree(Recipe* rec, int i, BtTreeItem* parent, bool recurse = true);
+   void makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec);
 
    void setShowChild(QModelIndex child, bool val);
 

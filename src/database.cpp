@@ -1555,9 +1555,30 @@ bool Database::wantsVersion(Recipe* thing)
    return ret;
 }
 
-// TODO: Oh my. This the entire thing should be transacted. It took some work
-// to get all the addToRecipe methods to play nice.
-// 
+void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact) 
+{
+   if ( transact )
+      sqlDatabase().transaction();
+
+   try {
+      QSqlQuery q(sqlDatabase());
+      ancestor->setDisplay(false);
+      QString set_ancestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(ancestor->key()).arg(descendant->key());
+      if ( ! q.exec(set_ancestor) ) 
+         throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
+      q.finish();
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
+      if ( transact )
+         sqlDatabase().rollback();
+      throw;
+   }
+   if ( transact )
+      sqlDatabase().commit();
+
+}
+
 Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 {
    Recipe* tmp;
@@ -1582,14 +1603,8 @@ Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 
       // if other is an ancestor of our new recipe, 
       // set display to false on the ancestor and link the two together
-      if ( ancestor ) {
-         QSqlQuery q(sqlDatabase());
-         other->setDisplay(false);
-         QString setAncestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(other->key()).arg(tmp->key());
-         if ( ! q.exec(setAncestor) ) 
-            throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
-         q.finish();
-      }
+      if ( ancestor )
+         setAncestor(tmp,other,false);
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
