@@ -177,15 +177,6 @@ void HopDialog::addHop(const QModelIndex& index)
    
    Hop *hop = hopTableModel->getHop(translated.row());
 
-   // this may be harder.
-   qDebug() << Q_FUNC_INFO << "testing to see if I want a version";
-   if ( Database::instance().wantsVersion(mainWindow->currentRecipe()) ) {
-      qDebug() << Q_FUNC_INFO << "yup. I wanted a version";
-   }
-   else {
-      qDebug() << Q_FUNC_INFO << "nope. I didn't want a version";
-   }
-
    Database::instance().addToRecipe( mainWindow->currentRecipe(), hop );
 }
 

@@ -471,6 +471,7 @@ public:
 
    bool isConverted();
    bool wantsVersion(Recipe* thing);
+   void setAncestor(Recipe* descendant, Recipe* ancestor, bool transact = true);
 
    //! \brief Figures out what databases we are copying to and from, opens what
    //   needs opens and then calls the appropriate workhorse to get it done. 

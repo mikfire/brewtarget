@@ -625,11 +625,15 @@ void BtTreeView::expandFolder(BtTreeModel::TypeMasks kindaThing, QModelIndex fId
    if ( kindaThing & _type && fIdx.isValid() && ! isExpanded(_filter->mapFromSource(fIdx) ))
       setExpanded(_filter->mapFromSource(fIdx),true);
 }
+
+void BtTreeView::versionedRecipe(Recipe* dec) { emit recipeSpawn(dec); }
+
 // Bad form likely
 
 RecipeTreeView::RecipeTreeView(QWidget *parent)
    : BtTreeView(parent, BtTreeModel::RECIPEMASK)
 {
+   connect( _model, SIGNAL(recipeSpawn(Recipe*)), this, SLOT(versionedRecipe(Recipe*)));
 }
 
 EquipmentTreeView::EquipmentTreeView(QWidget *parent)
