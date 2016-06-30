@@ -204,7 +204,7 @@ QModelIndex BtTreeModel::parent(const QModelIndex &index) const
 QModelIndex BtTreeModel::first()
 {
    QModelIndex parent;
-   BtTreeItem* pItem; 
+   BtTreeItem* pItem;
 
    // get the first item in the list, which is the place holder
    pItem = rootItem->child(0);
@@ -220,7 +220,7 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
 
    if ( treeMask == FOLDERMASK )
       maxColumns = BtTreeItem::FOLDERNUMCOLS;
-   else 
+   else
       maxColumns = _maxColumns;
 
    if ( !rootItem || !index.isValid() || index.column() < 0 || index.column() >= maxColumns)
@@ -248,7 +248,7 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
             return QIcon(":images/folder.png");
          break;
       case Qt::FontRole:
-         if ( tmp && tmp->hasAncestors() && ! itm->showMe()) 
+         if ( tmp && tmp->hasAncestors() && ! itm->showMe())
             font.setBold(true);
          return font;
          break;
@@ -309,7 +309,7 @@ QVariant BtTreeModel::headerData(int section, Qt::Orientation orientation, int r
       return styleHeader(section);
    case FOLDERMASK:
       return folderHeader(section);
-   default: 
+   default:
       return QVariant();
    }
 }
@@ -430,7 +430,7 @@ QVariant BtTreeModel::styleHeader(int section) const
 
 QVariant BtTreeModel::folderHeader(int section) const
 {
-   switch(section) 
+   switch(section)
    {
       case BtTreeItem::FOLDERNAMECOL:
          return QVariant(tr("Name"));
@@ -456,7 +456,7 @@ bool BtTreeModel::insertRow(int row, const QModelIndex &parent, QObject* victim,
 
    beginInsertRows(parent,row,row);
    success = pItem->insertChildren(row,1,type);
-   if ( victim && success ) 
+   if ( victim && success )
    {
       type = victimType == -1 ? type : victimType;
       BtTreeItem* added = pItem->child(row);
@@ -471,7 +471,7 @@ bool BtTreeModel::removeRows(int row, int count, const QModelIndex &parent)
 {
    BtTreeItem *pItem = item(parent);
    bool success = true;
-    
+
    beginRemoveRows(parent, row, row + count -1 );
    success = pItem->removeChildren(row,count);
    endRemoveRows();
@@ -600,7 +600,7 @@ void BtTreeModel::loadTreeModel()
       // If we have brewnotes, set them up here.
       if ( treeMask & RECIPEMASK )
          addBrewNoteSubTree(qobject_cast<Recipe*>(elem),i,local);
-      
+
       observeElement(elem);
    }
 }
@@ -739,21 +739,21 @@ int BtTreeModel::mask()
 void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
 {
    bool failed = false;
-   while ( ! toBeCopied.isEmpty() ) 
+   while ( ! toBeCopied.isEmpty() )
    {
       QPair<QModelIndex,QString> thisPair = toBeCopied.takeFirst();
       QModelIndex ndx = thisPair.first;
       QString name = thisPair.second;
 
-      switch ( type(ndx) ) 
+      switch ( type(ndx) )
       {
          case BtTreeItem::EQUIPMENT:
             Equipment *copyKit,  *oldKit;
             oldKit = equipment(ndx);
             copyKit = Database::instance().newEquipment(oldKit); // Create a deep copy.
-            if ( copyKit) 
+            if ( copyKit)
                copyKit->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::FERMENTABLE:
@@ -762,7 +762,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyFerm = Database::instance().newFermentable(oldFerm); // Create a deep copy.
             if ( copyFerm )
                copyFerm->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::HOP:
@@ -771,7 +771,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyHop = Database::instance().newHop(oldHop); // Create a deep copy.
             if ( copyHop )
                copyHop->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::MISC:
@@ -780,7 +780,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyMisc = Database::instance().newMisc(oldMisc); // Create a deep copy.
             if ( copyMisc )
                copyMisc->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::RECIPE:
@@ -789,7 +789,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyRec = Database::instance().newRecipe(oldRec); // Create a deep copy.
             if ( copyRec )
                copyRec->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::STYLE:
@@ -798,7 +798,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyStyle = Database::instance().newStyle(oldStyle); // Create a deep copy.
             if ( copyStyle )
                copyStyle->setName(name);
-            else 
+            else
                failed = true;
             break;
          case BtTreeItem::YEAST:
@@ -807,7 +807,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
             copyYeast = Database::instance().newYeast(oldYeast); // Create a deep copy.
             if ( copyYeast )
                copyYeast->setName(name);
-            else 
+            else
                failed = true;
             break;
          default:
@@ -815,7 +815,7 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
       }
       if ( failed ) {
          QMessageBox::warning(0,
-                              tr("Could not copy"), 
+                              tr("Could not copy"),
                               tr("There was an unexpected error creating %1").arg(name));
          return;
       }
@@ -826,10 +826,10 @@ void BtTreeModel::deleteSelected(QModelIndexList victims)
 {
    QModelIndexList toBeDeleted = victims; // trust me
 
-   while ( ! toBeDeleted.isEmpty() ) 
+   while ( ! toBeDeleted.isEmpty() )
    {
       QModelIndex ndx = toBeDeleted.takeFirst();
-      switch ( type(ndx) ) 
+      switch ( type(ndx) )
       {
          case BtTreeItem::EQUIPMENT:
             Database::instance().remove( equipment(ndx) );
@@ -874,7 +874,7 @@ void BtTreeModel::deleteSelected(QModelIndexList victims)
 // recipe, remove it from the parent and add it to the target folder.
 // It is not easy. Indexes are ephemeral things. We MUST calculate the insert
 // index after we have removed the recipe. BAD THINGS happen otherwise.
-// 
+//
 void BtTreeModel::folderChanged(QString name)
 {
    BeerXMLElement* test = qobject_cast<BeerXMLElement*>(sender());
@@ -896,7 +896,7 @@ void BtTreeModel::folderChanged(QString name)
    // If the parent isn't valid, its the root
    if ( ! pIndex.isValid() )
       pIndex = createIndex(0,0,rootItem->child(0));
-   
+
    int i = item(ndx)->childNumber();
 
    // Remove it
@@ -915,7 +915,7 @@ void BtTreeModel::folderChanged(QString name)
       newNdx = createIndex(0,0,rootItem->child(0));
       expand = false;
    }
-   
+
    BtTreeItem* local = item(newNdx);
    int j = local->childCount();
 
@@ -933,7 +933,7 @@ void BtTreeModel::folderChanged(QString name)
    return;
 }
 
-bool BtTreeModel::addFolder(QString name) 
+bool BtTreeModel::addFolder(QString name)
 {
    return findFolder(name, rootItem->child(0), true).isValid();
 }
@@ -951,9 +951,9 @@ bool BtTreeModel::removeFolder(QModelIndex ndx)
 
    BtTreeItem* start = item(ndx);
 
-   // Remove the victim. 
+   // Remove the victim.
    i = start->childNumber();
-   return removeRows(i, 1, pInd); 
+   return removeRows(i, 1, pInd);
 }
 
 QModelIndexList BtTreeModel::allChildren(QModelIndex ndx)
@@ -977,7 +977,7 @@ QModelIndexList BtTreeModel::allChildren(QModelIndex ndx)
       {
          BtTreeItem* next = target->child(i);
          // If a folder, push it onto the folders stack for later processing
-         if ( next->type() == BtTreeItem::FOLDER ) 
+         if ( next->type() == BtTreeItem::FOLDER )
             folders.append(next);
          else // Leafnode
             leafNodes.append(createIndex(i,0,next));
@@ -989,7 +989,7 @@ QModelIndexList BtTreeModel::allChildren(QModelIndex ndx)
 bool BtTreeModel::renameFolder(BtFolder* victim, QString newName)
 {
    QModelIndex ndx = findFolder(victim->fullPath(), 0, false);
-   QModelIndex pInd; 
+   QModelIndex pInd;
    QString targetPath = newName % "/" % victim->name();
    QPair<QString,BtTreeItem*> f;
    QList<QPair<QString, BtTreeItem*> > folders;
@@ -1028,7 +1028,7 @@ bool BtTreeModel::renameFolder(BtFolder* victim, QString newName)
          // don't move it, so we need to get the item beyond that.
          BtTreeItem* next = target->child(src);
          // If a folder, push it onto the folders stack for latter processing
-         if ( next->type() == BtTreeItem::FOLDER ) 
+         if ( next->type() == BtTreeItem::FOLDER )
          {
             QPair<QString,BtTreeItem*> newTarget;
             newTarget.first = targetPath % "/" % next->name();
@@ -1040,16 +1040,16 @@ bool BtTreeModel::renameFolder(BtFolder* victim, QString newName)
             next->thing()->setFolder(targetPath);
       }
    }
-   // Last thing is to remove the victim. 
+   // Last thing is to remove the victim.
    i = start->childNumber();
-   return removeRows(i, 1, pInd); 
+   return removeRows(i, 1, pInd);
 }
 
 QModelIndex BtTreeModel::createFolderTree( QStringList dirs, BtTreeItem* parent, QString pPath)
 {
    BtTreeItem* pItem = parent;
 
-   // Start the loop. We are going to return ndx at the end, 
+   // Start the loop. We are going to return ndx at the end,
    // so we need to declare and initialize outside of the loop
    QModelIndex ndx = createIndex(pItem->childCount(),0,pItem);
 
@@ -1131,7 +1131,7 @@ QModelIndex BtTreeModel::findFolder( QString name, BtTreeItem* parent, bool crea
          if ( kid->folder()->isFolder(targetPath) )
          {
             // If there are no more subtrees to look for, we found it
-            if ( dirs.isEmpty() ) 
+            if ( dirs.isEmpty() )
                return createIndex(i,0,kid);
             // Otherwise, we found a parent folder in our path
             else
@@ -1166,7 +1166,7 @@ QModelIndex BtTreeModel::findFolder( QString name, BtTreeItem* parent, bool crea
    }
 
    // If we weren't supposed to create, we drop to here and return an empty
-   // index. 
+   // index.
    return QModelIndex();
 }
 
@@ -1179,11 +1179,11 @@ void BtTreeModel::elementChanged()
    BeerXMLElement* d = qobject_cast<BeerXMLElement*>(sender());
    if( !d )
       return;
-   
+
    QModelIndex ndxLeft = findElement(d);
    if( ! ndxLeft.isValid() )
       return;
-   
+
    QModelIndex ndxRight = createIndex(ndxLeft.row(), columnCount(ndxLeft)-1, ndxLeft.internalPointer());
    emit dataChanged( ndxLeft, ndxRight );
 }
@@ -1208,7 +1208,7 @@ void BtTreeModel::elementAdded(BeerXMLElement* victim)
    QModelIndex pIdx;
    int lType = _type;
 
-   if ( ! victim->display() ) 
+   if ( ! victim->display() )
       return;
 
    if ( qobject_cast<BrewNote*>(victim) )
@@ -1281,7 +1281,7 @@ void BtTreeModel::observeElement(BeerXMLElement* d)
 
    if ( qobject_cast<BrewNote*>(d) )
       connect( d, SIGNAL(brewDateChanged(QDateTime)), this, SLOT(elementChanged()) );
-   else 
+   else
    {
       connect( d, SIGNAL(changedName(QString)), this, SLOT(elementChanged()) );
       connect( d, SIGNAL(changedFolder(QString)), this, SLOT(folderChanged(QString)));
@@ -1293,7 +1293,7 @@ void BtTreeModel::observeElement(BeerXMLElement* d)
 // ===================== DRAG AND DROP STUFF ===============================
 // =========================================================================
 
-bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, 
+bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
                                int row, int column, const QModelIndex &parent)
 {
    QByteArray encodedData;
@@ -1308,7 +1308,7 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
 
    QDataStream stream( &encodedData, QIODevice::ReadOnly);
    int oType, id;
-   QString target = ""; 
+   QString target = "";
    QString name = "";
    BeerXMLElement* something;
 
@@ -1317,26 +1317,26 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
 
    if ( isFolder(parent) )
       target = folder(parent)->fullPath();
-   else 
+   else
    {
       something = thing(parent);
 
       // Did you know there's a space between elements in a tree, and you can
       // actually drop things there? If somebody drops something there, don't
       // do anything
-      if ( ! something ) 
+      if ( ! something )
          return false;
 
       target = something->folder();
    }
- 
+
    // Pull the stream apart and do that which needs done. Late binding ftw!
    while( !stream.atEnd() )
    {
       QString text;
       stream >> oType >> id >> name;
       BeerXMLElement* elem;
-      switch(oType) 
+      switch(oType)
       {
          case BtTreeItem::RECIPE:
             elem = Database::instance().recipe(id);
@@ -1375,7 +1375,7 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
       else if ( oType != BtTreeItem::FOLDER ) {
          elem->setFolder(target);
       }
-      else 
+      else
       {
          // I need the actual folder object that got dropped.
          BtFolder* victim = new BtFolder;
@@ -1417,11 +1417,11 @@ void BtTreeModel::setShowChild(QModelIndex child, bool val)
    node->setShowMe(val);
 }
 
-// do not call up any that you can not put down
-void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec) 
+// One of those creatures wrote you once, 'do not call up any that you can not put down'
+void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec)
 {
    // if you try to make something an ancestor of itself, return
-   if ( dec == anc ) 
+   if ( dec == anc )
       return;
 
    // I need the recipes the beerxmlements refer to
@@ -1450,7 +1450,7 @@ void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec)
    addBrewNoteSubTree(descendant, decNdx.row(), node->parent(),true);
 }
 
-void BtTreeModel::orphanRecipe(QModelIndex ndx) 
+void BtTreeModel::orphanRecipe(QModelIndex ndx)
 {
    BtTreeItem* node = item(ndx);
    BtTreeItem* pNode = node->parent();
@@ -1469,7 +1469,7 @@ void BtTreeModel::orphanRecipe(QModelIndex ndx)
    // This looks weird, but I think it will do what I need -- basically set
    // the ancestor_id to itself and reload the ancestors array
    orphan->setAncestor(orphan);
-   // Display all of its brewnotes 
+   // Display all of its brewnotes
    addBrewNoteSubTree(orphan, ndx.row(), pNode, false);
 
    // Now, we need to get busy on the ancestors
@@ -1535,7 +1535,7 @@ void BtTreeModel::showAncestors(QModelIndex ndx)
    foreach( Recipe* ancestor, ancestors ) {
 
       int j= node->childCount();
-      if ( ancestor == descendant ) 
+      if ( ancestor == descendant )
          continue;
       if ( ! insertRow(j, ndx, ancestor, BtTreeItem::RECIPE) )
          Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
