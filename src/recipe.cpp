@@ -1313,6 +1313,15 @@ QList<Recipe*> Recipe::ancestors()
    return _ancestors;
 }
 
+void Recipe::loadAncestors() 
+{
+   QList<Recipe*> tmp;
+
+   foreach( int ancestor, Database::instance().ancestoralIds(this) )
+      tmp.append( Database::instance().recipe(ancestor) );
+   _ancestors = tmp;
+}
+
 bool Recipe::hasAncestors()
 { 
    // the way I've written this is that every recipe is its own ancestor. So
@@ -1320,6 +1329,17 @@ bool Recipe::hasAncestors()
    return ancestors().size() > 1;
 }
 
+void Recipe::setAncestor(Recipe* ancestor) {
+   // do nothing if we don't get an ancestor
+   if ( ! ancestor )
+      return;
+
+   // Marking an ancestor does two things -- it first sets the ancestor's
+   // display to false, and then sets the ancestoral flag.
+   Database::instance().setAncestor(this,ancestor);
+   loadAncestors();
+
+}
 
 //==============================Getters===================================
 QString Recipe::type()             const { return get("type").toString(); }

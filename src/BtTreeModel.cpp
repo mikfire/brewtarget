@@ -62,6 +62,8 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          // Brewnotes need love too!
          connect( &(Database::instance()), SIGNAL(newSignal(BrewNote*)),this, SLOT(elementAdded(BrewNote*)));
          connect( &(Database::instance()), SIGNAL(deletedSignal(BrewNote*)),this, SLOT(elementRemoved(BrewNote*)));
+         // Some versioning stuff too
+         connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
          _type = BtTreeItem::RECIPE;
          _mimeType = "application/x-brewtarget-recipe";
          break;
@@ -1350,6 +1352,7 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
    int oType, id;
    QString target = ""; 
    QString name = "";
+   BeerXMLElement* something;
 
    if ( ! parent.isValid() )
       return false;
@@ -1358,15 +1361,15 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
       target = folder(parent)->fullPath();
    else 
    {
-      BeerXMLElement* _thing = thing(parent);
+      something = thing(parent);
 
       // Did you know there's a space between elements in a tree, and you can
       // actually drop things there? If somebody drops something there, don't
       // do anything
-      if ( ! _thing ) 
+      if ( ! something ) 
          return false;
 
-      target = _thing->folder();
+      target = something->folder();
    }
  
    // Pull the stream apart and do that which needs done. Late binding ftw!
@@ -1407,8 +1410,13 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
       // Wow. This is the work of this method. It sets a folder. I would have
       // expected ... more? And this is where I will need to worry about
       // making a recipe an ancestor of another.
-      if ( oType != BtTreeItem::FOLDER ) 
+      if ( oType == BtTreeItem::RECIPE && isRecipe(parent) ) {
+         // This is going to get hard.
+         makeAncestors(elem,something);
+      }
+      else if ( oType != BtTreeItem::FOLDER ) {
          elem->setFolder(target);
+      }
       else 
       {
          // I need the actual folder object that got dropped.
@@ -1449,6 +1457,55 @@ void BtTreeModel::setShowChild(QModelIndex child, bool val)
 {
    BtTreeItem* node = item(child);
    node->setShowMe(val);
+}
+
+// One of those creatures wrote you once, 'do not call up any that you can not put down'
+void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec) 
+{
+   // if you try to make something an ancestor of itself, return
+   if ( dec == anc ) 
+      return;
+
+   // I need the recipes the beerxmlements refer to
+   Recipe *descendant = qobject_cast<Recipe*>(dec);
+   Recipe *ancestor = qobject_cast<Recipe*>(anc);
+
+   // Get the index in the list of the ancestor
+   QModelIndex ancNdx = findElement(anc);
+
+   // Remove the ancestor from the tree
+   removeRows(ancNdx.row(),1,this->parent(ancNdx));
+
+   // This does the database work: sets ancestor->display( false ) and links
+   // the index
+   descendant->setAncestor(ancestor);
+
+   // Now we need to find the descendant in the tree. This has to be done
+   // after we removed the rows.
+   QModelIndex decNdx = findElement(dec);
+   BtTreeItem* node = item(decNdx);
+
+   // Add the ancestor's brewnotes to the descendant
+   addBrewNoteSubTree(descendant, decNdx.row(), node->parent(),true);
+
+   // And let the world know something changed
+   emit dataChanged(decNdx,decNdx);
+}
+
+void BtTreeModel::versionedRecipe(Recipe* anc, Recipe* dec)
+{
+   QModelIndex ancNdx = findElement(anc);
+
+   // First, we remove the ancestor from the tree
+   removeRows(ancNdx.row(),1,this->parent(ancNdx));
+
+   // Now we need to find the descendant in the tree. This has to be done
+   // after we removed the rows.
+   QModelIndex decNdx = findElement(dec);
+
+   emit dataChanged(decNdx,decNdx);
+   emit recipeSpawn(dec);
+
 }
 
 void BtTreeModel::showVersions(QModelIndex ndx)

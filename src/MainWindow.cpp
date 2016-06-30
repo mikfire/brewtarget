@@ -529,20 +529,20 @@ MainWindow::MainWindow(QWidget* parent)
    connect( tabWidget_ingredients, SIGNAL( setMiscs(QList<Misc*>) ), this, SLOT(droppedRecipeMisc(QList<Misc*>)));
    connect( tabWidget_ingredients, SIGNAL( setYeasts(QList<Yeast*>) ), this, SLOT(droppedRecipeYeast(QList<Yeast*>)));
 
+   // Recipe versions
+   connect( treeView_recipe, SIGNAL(recipeSpawn(Recipe*)), this, SLOT(versionedRecipe(Recipe*)));
    // No connections from the database yet? Oh FSM, that probably means I'm
    // doing it wrong again.
    connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
    connect( &(Database::instance()), SIGNAL( isUnsavedChanged(bool)), this, SLOT( updateUnsavedStatus(bool)));
-   connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
 }
 
 // I think I may actually want to catch this here instead of in the tree,
 // mostly so I can invalidate but only after I've updated all the rest.
 
-void MainWindow::versionedRecipe(Recipe* ancestor, Recipe* descendant)
+void MainWindow::versionedRecipe(Recipe* descendant)
 {
    setRecipe(descendant);
-   treeView_recipe->filter()->invalidate();
 }
 
 void MainWindow::setupShortCuts()

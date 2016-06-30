@@ -252,7 +252,6 @@ void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant 
 
       if ( this->metaObject()->className() == QStringLiteral("Recipe") ) {
          // Get the meta property.
-         qDebug() << Q_FUNC_INFO << this->metaObject()->className() << "prop_name" << prop_name;
          int ndx = metaObject()->indexOfProperty(prop_name);
 
          // Should schedule an update of the appropriate entry in table,
@@ -262,7 +261,6 @@ void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant 
       else {
          // Should schedule an update of the appropriate entry in table,
          // then use prop to emit its notification signal.
-         qDebug() << Q_FUNC_INFO << this->metaObject()->className() << "prop_name" << prop_name;
          Database::instance().modifyIngredient( this, prop_name, col_name, value);
       }
    }

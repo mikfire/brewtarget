@@ -199,11 +199,9 @@ public:
    Q_PROPERTY( QList<Recipe*> ancestors READ ancestors /*WRITE*/ /*NOTIFY changed*/ STORED false )
    
    // Relational setters.
-   // NOTE: do these add/remove methods belong here? Should they only exist in Database?
-   // One method to bring them all and in darkness bind them
+   // One remove method to bring them all and in darkness bind them
    void remove( BeerXMLElement *var);
 
-   // And you do know what happens next right?
    void addHop( Hop *var );
    void addFermentable( Fermentable* var );
    void addMisc( Misc* var );
@@ -221,6 +219,9 @@ public:
    void insertInstruction( Instruction* ins, int pos );
    //! \brief Automagically generate a list of instructions.
    void generateInstructions();
+   //! \brief convenience method for setting a recipe's ancestor
+   void setAncestor(Recipe* ancestor);
+   void loadAncestors();
    /*!
     * Finds the next ingredient to add that has a time
     * less than time. Changes time to be the time of the found
@@ -228,6 +229,7 @@ public:
     * in the form "Add %1 to %2 at %3".
     */
    QString nextAddToBoil(double& time);
+
 
    // Getters
    QString type() const;
