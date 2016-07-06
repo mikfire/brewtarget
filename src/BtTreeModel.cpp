@@ -98,6 +98,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Misc*)),this, SLOT(elementRemoved(Misc*)));
          _type = BtTreeItem::MISC;
          _mimeType = "application/x-brewtarget-ingredient";
+         _maxColumns = BtTreeItem::MISCNUMCOLS;
          break;
       case STYLEMASK:
          rootItem->insertChildren(items,1,BtTreeItem::STYLE);
@@ -501,7 +502,7 @@ QModelIndex BtTreeModel::findElement(BeerXMLElement* thing, BtTreeItem* parent)
 
    folders.append(pItem);
 
-   // Recursion. Wonderful.
+   // Recursing without recursion. How fun.
    while ( ! folders.isEmpty() )
    {
       BtTreeItem* target = folders.takeFirst();
@@ -617,7 +618,7 @@ void BtTreeModel::addBrewNoteSubTree(Recipe* rec, int i, BtTreeItem* parent, boo
       // will do that here too
       if ( ! insertRow(j, createIndex(i,0,temp), note, BtTreeItem::BREWNOTE) )
       {
-         Brewtarget::logW("Brewnote insert failed in loadTreeModel()");
+         Brewtarget::logW(QString("%1 insert failed").arg(Q_FUNC_INFO));
          continue;
       }
       observeElement(note);
@@ -1416,7 +1417,7 @@ void BtTreeModel::setShowChild(QModelIndex child, bool val)
    node->setShowMe(val);
 }
 
-// One of those creatures wrote you once, 'do not call up any that you can not put down'
+// do not call up any that you can not put down
 void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec) 
 {
    // if you try to make something an ancestor of itself, return
@@ -1442,11 +1443,53 @@ void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec)
    QModelIndex decNdx = findElement(dec);
    BtTreeItem* node = item(decNdx);
 
+   // This is a little awkward. If we don't remove all the brewnotes from the
+   // descendant, we get dupes.
+   removeRows(0,node->childCount(),decNdx);
    // Add the ancestor's brewnotes to the descendant
    addBrewNoteSubTree(descendant, decNdx.row(), node->parent(),true);
+}
 
-   // And let the world know something changed
-   emit dataChanged(decNdx,decNdx);
+void BtTreeModel::orphanRecipe(QModelIndex ndx) 
+{
+   BtTreeItem* node = item(ndx);
+   BtTreeItem* pNode = node->parent();
+   QModelIndex pIndex = parent(ndx);
+
+   // I need the recipe referred to by the index
+   Recipe *orphan = recipe(ndx);
+   // And I need its immediate ancestor. Remember, the ancestor list always
+   // has the recipe in it, so we need to reference the second item
+   Recipe *ancestor = orphan->ancestors().at(1);
+
+   // Deal with the soon-to-be orphan first
+   // Remove all the rows associated with the orphan
+   removeRows(0,node->childCount(),ndx);
+
+   // This looks weird, but I think it will do what I need -- basically set
+   // the ancestor_id to itself and reload the ancestors array
+   orphan->setAncestor(orphan);
+   // Display all of its brewnotes 
+   addBrewNoteSubTree(orphan, ndx.row(), pNode, false);
+
+   // Now, we need to get busy on the ancestors
+   // Mark the ancestor as visible and unlock him
+   ancestor->setDisplay(true);
+   ancestor->setLocked(false);
+   // Put the ancestor into the tree
+   if ( ! insertRow(pIndex.row(), pIndex, ancestor, BtTreeItem::RECIPE) )
+      Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
+
+   // Find the ancestor in the tree
+   QModelIndex ancNdx = findElement(ancestor);
+   if ( ! ancNdx.isValid() ) {
+      qDebug() << Q_FUNC_INFO << "Bugger. Couldn't find the ancestor";
+   }
+
+   // Add the ancestor's brewnotes to the descendant
+   addBrewNoteSubTree(ancestor,ancNdx.row(),pNode);
+
+   return;
 }
 
 void BtTreeModel::versionedRecipe(Recipe* anc, Recipe* dec)
@@ -1465,7 +1508,7 @@ void BtTreeModel::versionedRecipe(Recipe* anc, Recipe* dec)
 
 }
 
-void BtTreeModel::showVersions(QModelIndex ndx)
+void BtTreeModel::showAncestors(QModelIndex ndx)
 {
    QModelIndex cIndex;
    QList<Recipe*> ancestors;
@@ -1481,10 +1524,16 @@ void BtTreeModel::showVersions(QModelIndex ndx)
    Recipe *descendant = recipe(ndx);
    ancestors = descendant->ancestors();
 
-   // first, add the brewnotes for this version back
+   // add the brewnotes for this version back
    addBrewNoteSubTree(descendant, ndx.row(), node->parent(),false);
 
+   // set showChild on the leaf descendant. I use this for drawing the menus
+   setShowChild(ndx,true);
+
+   // Now loop through the ancestors. The nature of the list is that the
+   // nearest ancestors will be first
    foreach( Recipe* ancestor, ancestors ) {
+
       int j= node->childCount();
       if ( ancestor == descendant ) 
          continue;
@@ -1497,10 +1546,41 @@ void BtTreeModel::showVersions(QModelIndex ndx)
       // more, because I would like to issue just one signal instead of X
       emit dataChanged(cIndex,cIndex);
 
-      // Ok. Now, we need to get the brewnotes added to each recipe
+      // Now, we need to get the brewnotes added to each recipe
       // make sure we tell addBrewNoteSubTree not to recurse the ancestors
       addBrewNoteSubTree(ancestor, j, node, false);
    }
-
 }
 
+void BtTreeModel::hideAncestors(QModelIndex ndx)
+{
+   QModelIndex cIndex;
+   QList<Recipe*> ancestors;
+   BtTreeItem* node = item(ndx);
+
+   // this is going to be clever. I just wish I knew more than that.
+   if ( ! ndx.isValid() )
+      return;
+
+   // Uh. Ok. Let's see if we can remove the existing children
+   removeRows(0,node->childCount(),ndx);
+
+   Recipe *descendant = recipe(ndx);
+   ancestors = descendant->ancestors();
+
+   // first, add all the brewnotes back to the parent
+   addBrewNoteSubTree(descendant, ndx.row(), node->parent());
+
+   // set showChild on the leaf descendant. I use this for drawing the menus
+   setShowChild(ndx,false);
+
+   // We have already removed the children. I think we just need to mark each
+   // as invisible again.
+   foreach( Recipe* ancestor, ancestors ) {
+      cIndex = findElement(ancestor,node);
+      setShowChild(cIndex,false);
+      // Interesting that this has to happen here. I need to think about this
+      // more, because I would like to issue just one signal instead of X
+      emit dataChanged(cIndex,cIndex);
+   }
+}
