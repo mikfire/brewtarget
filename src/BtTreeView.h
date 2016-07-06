@@ -100,6 +100,7 @@ public:
    //! \brief gets the type of the item at \c index. 
    int type(const QModelIndex &index);
 
+   void enableDelete(bool enable);
    //! returns true if a recipe and an ingredient (hop, equipment, etc.) are selected at the same time
    bool multiSelected();
 
@@ -147,6 +148,7 @@ private:
    BtTreeFilterProxyModel* _filter;
    BtTreeModel::TypeMasks _type;
    QMenu* _contextMenu, *subMenu;
+   QAction* _deleteAction;
    QPoint dragStart;
    QWidget* _editor;
 

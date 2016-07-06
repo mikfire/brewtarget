@@ -1138,6 +1138,11 @@ void Recipe::setKegPrimingFactor( double var )
    set( "kegPrimingFactor", "keg_priming_factor", tmp );
 }
 
+void Recipe::setLocked( bool var )
+{
+   set( "locked", "locked", var );
+}
+
 //==========================Calculated Getters============================
 
 double Recipe::og()
@@ -1344,6 +1349,7 @@ void Recipe::setAncestor(Recipe* ancestor) {
    // Marking an ancestor does two things -- it first sets the ancestor's
    // display to false, and then sets the ancestoral flag.
    Database::instance().setAncestor(this,ancestor);
+   ancestor->setLocked(true);
    loadAncestors();
 
 }
@@ -1358,6 +1364,7 @@ QString Recipe::tasteNotes()       const { return get("taste_notes").toString();
 QString Recipe::primingSugarName() const { return get("priming_sugar_name").toString(); }
 
 bool Recipe::forcedCarbonation()   const { return get("forced_carb").toBool(); }
+bool Recipe::locked()              const { return get("locked").toBool(); }
 
 double Recipe::batchSize_l()       const { return get("batch_size").toDouble(); }
 double Recipe::boilSize_l()        const { return get("boil_size").toDouble(); }
