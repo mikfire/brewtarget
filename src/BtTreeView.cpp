@@ -365,7 +365,7 @@ void BtTreeView::newIngredient()
 
 }
 
-void BtTreeView::showVersions()
+void BtTreeView::showAncestors()
 {
    if ( _type == BtTreeModel::RECIPEMASK ) {
       QModelIndexList indexes = selectionModel()->selectedRows();
@@ -374,15 +374,43 @@ void BtTreeView::showVersions()
       // lumbering against it
       foreach(QModelIndex selected, indexes) {
          // make sure we see the ancestors in an interesting way
-         _model->showVersions(_filter->mapToSource(selected));
+         _model->showAncestors(_filter->mapToSource(selected));
       }
    }
 }
 
-void BtTreeView::enableDelete(bool enable)
+void BtTreeView::hideAncestors()
 {
-   _deleteAction->setEnabled(enable);
+   if ( _type == BtTreeModel::RECIPEMASK ) {
+      QModelIndexList indexes = selectionModel()->selectedRows();
+
+      // I hear a noise at the door, as of some immense slippery body
+      // lumbering against it
+      foreach(QModelIndex selected, indexes) {
+         // make sure we see the ancestors in an interesting way
+         _model->hideAncestors(_filter->mapToSource(selected));
+      }
+   }
 }
+
+void BtTreeView::orphanRecipe()
+{
+   if ( _type == BtTreeModel::RECIPEMASK ) {
+      QModelIndexList indexes = selectionModel()->selectedRows();
+
+      // I hear a noise at the door, as of some immense slippery body
+      // lumbering against it
+      foreach(QModelIndex selected, indexes) {
+         // make sure we see the ancestors in an interesting way
+         _model->orphanRecipe(_filter->mapToSource(selected));
+      }
+   }
+}
+
+void BtTreeView::enableDelete(bool enable) { _deleteAction->setEnabled(enable); }
+void BtTreeView::enableShowAncestor(bool enable) { _showAncestorAction->setEnabled(enable); }
+void BtTreeView::enableHideAncestor(bool enable) { _hideAncestorAction->setEnabled(enable); }
+void BtTreeView::enableOrphan(bool enable) { _orphanAction->setEnabled(enable); }
 
 void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 {
@@ -391,12 +419,12 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 
    _contextMenu = new QMenu(this);
    subMenu = new QMenu(this);
+   _versionMenu = new QMenu(this);
 
    _editor = editor;
 
    _newMenu->setTitle(tr("New"));
    _contextMenu->addMenu(_newMenu);
-   _contextMenu->addSeparator();
 
    switch(_type) 
    {
@@ -404,14 +432,22 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
       case BtTreeModel::RECIPEMASK:
          _newMenu->addAction(tr("Recipe"), editor, SLOT(newRecipe()));
 
+         // version menu
+         _versionMenu->setTitle("Ancestors");
+         _showAncestorAction = _versionMenu->addAction(tr("Show Ancestors"), this, SLOT(showAncestors()));
+         _hideAncestorAction = _versionMenu->addAction(tr("Hide Ancestors"), this, SLOT(hideAncestors()));
+         _orphanAction      = _versionMenu->addAction(tr("Orphan Recipe"), this, SLOT(orphanRecipe()));
+         _contextMenu->addMenu(_versionMenu);
+
+         _contextMenu->addSeparator();
          _contextMenu->addAction(tr("Brew It!"), top, SLOT(brewItHelper()));
-         _contextMenu->addAction(tr("Show versions"), this, SLOT(showVersions()));
          _contextMenu->addSeparator();
 
          subMenu->addAction(tr("Brew Again"), top, SLOT(brewAgainHelper()));
          subMenu->addAction(tr("Change date"), top, SLOT(changeBrewDate()));
          subMenu->addAction(tr("Recalculate eff"), top, SLOT(fixBrewNote()));
          subMenu->addAction(tr("Delete"), top, SLOT(deleteSelected()));
+
 
          break;
       case BtTreeModel::EQUIPMASK:
@@ -436,11 +472,13 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
          Brewtarget::logW(QString("BtTreeView::setupContextMenu unrecognized mask %1").arg(_type));
    }
 
+   _contextMenu->addSeparator();
    _newMenu->addAction(tr("Folder"), top, SLOT(newFolder()));
    // Copy
    _contextMenu->addAction(tr("Copy"), top, SLOT(copySelected()));
    // Delete. We need to save this action to make finding it later easier.
    _deleteAction = _contextMenu->addAction(tr("Delete"), top, SLOT(deleteSelected()));
+
    // export and import
    _contextMenu->addSeparator();
    _exportMenu->setTitle(tr("Export"));
@@ -448,14 +486,28 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
    _exportMenu->addAction(tr("To HTML"), top, SLOT(exportSelectedHtml()));
    _contextMenu->addMenu(_exportMenu);
    _contextMenu->addAction(tr("Import"), top, SLOT(importFiles()));
+
    
-}
+} 
 
 QMenu* BtTreeView::contextMenu(QModelIndex selected)
 {
    if ( type(selected) == BtTreeItem::BREWNOTE )
       return subMenu;
 
+   if ( type(selected) == BtTreeItem::RECIPE ) {
+      Recipe *rec = recipe(selected);
+      QModelIndex translated = _filter->mapToSource(selected);
+
+      enableDelete( ! rec->locked() );
+      // If we have ancestors and are showing then, enable hideAncestors
+      enableHideAncestor(rec->hasAncestors() && _model->showChild(translated));
+      // If we have ancestors and are not showing then, enable showAncestors
+      enableShowAncestor(rec->hasAncestors() && ! _model->showChild(translated));
+      // If we have ancestors and are not locked, we are a leaf node. Allow
+      // detachment
+      enableOrphan(rec->hasAncestors() && ! rec->locked() );
+   }
    return _contextMenu;
 }
 
