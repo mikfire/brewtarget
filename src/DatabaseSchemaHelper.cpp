@@ -27,7 +27,7 @@
 #include <QDebug>
 #include <QSqlError>
 
-const int DatabaseSchemaHelper::dbVersion = 7;
+const int DatabaseSchemaHelper::dbVersion = 8;
 
 // Commands and keywords
 QString DatabaseSchemaHelper::CREATETABLE("CREATE TABLE");
@@ -296,6 +296,7 @@ QString DatabaseSchemaHelper::colRecStyleId("style_id");
 QString DatabaseSchemaHelper::colRecMashId("mash_id");
 QString DatabaseSchemaHelper::colRecEquipId("equipment_id");
 QString DatabaseSchemaHelper::colRecAncestorId("ancestor_id");
+QString DatabaseSchemaHelper::colRecLocked("locked");
 
 QString DatabaseSchemaHelper::tableBtEquipment("bt_equipment");
 
@@ -462,6 +463,9 @@ bool DatabaseSchemaHelper::migrateNext(int oldVersion, QSqlDatabase db)
          break;
       case 6:
          ret &= migrate_to_7(q);
+         break;
+      case 7:
+         ret &= migrate_to_8(q);
          break;
       default:
          Brewtarget::logE(QString("Unknown version %1").arg(oldVersion));
@@ -1166,11 +1170,12 @@ bool DatabaseSchemaHelper::create_recipe(QSqlQuery q)
       colRecNotes        + SEP + TYPETEXT     + SEP + DEFAULT + SEP + "''"                               + COMMA +
       colRecTasteNotes   + SEP + TYPETEXT     + SEP + DEFAULT + SEP + "''"                               + COMMA +
       colRecTasteRating  + SEP + TYPEREAL     + SEP + DEFAULT + SEP + "0.0"                              + COMMA +
+      colRecLocked       + SEP + TYPEBOOLEAN  + SEP + DEFAULT + SEP + FALSE                              + COMMA +
       // Relational data-------------------------------------------------------
       colRecStyleId      + SEP + TYPEINTEGER                                                             + COMMA +
       colRecMashId       + SEP + TYPEINTEGER                                                             + COMMA +
       colRecEquipId      + SEP + TYPEINTEGER                                                             + COMMA +
-      colRecAncestorId      + SEP + TYPEINTEGER                                                             + COMMA +
+      colRecAncestorId   + SEP + TYPEINTEGER                                                             + COMMA +
       // Metadata--------------------------------------------------------------
       deleted                                                                                            + COMMA +
       display                                                                                            + COMMA +
@@ -1598,3 +1603,25 @@ bool DatabaseSchemaHelper::migrate_to_7(QSqlQuery q)
    return true;
 }
 
+bool DatabaseSchemaHelper::migrate_to_8(QSqlQuery q)
+{
+   QString addColumn     = ALTERTABLE + SEP + tableRecipe + SEP + ADDCOLUMN + SEP + colRecLocked + SEP + TYPEBOOLEAN  + SEP + DEFAULT + SEP + FALSE;
+   QString setColumn     = UPDATE + SEP + tableRecipe + SEP + SET + SEP + colRecLocked + SEP + "=" + SEP + FALSE;
+ 
+   try {
+      // Add the new field
+      if ( ! q.exec(addColumn) ) 
+         throw QString("Could not add column %1 to %2").arg(colRecLocked).arg(tableRecipe);
+
+      // Set the contents
+      if ( ! q.exec(setColumn) ) 
+         throw QString("Could not initialize column %1").arg(colRecLocked);
+
+   }
+   catch (QString e) {
+      Brewtarget::logE( QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
+      return false;
+   }
+
+   return true;
+}

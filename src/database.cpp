@@ -2021,12 +2021,14 @@ QMap<int, double> Database::getInventory(const Brewtarget::DBTable table) const
 
 // Add to recipe ==============================================================
 
+// Only spawn the recipe when the parent is unlocked -- aka, no branches --
+// and the recipe wants to be versioned
 Recipe* Database::breed(Recipe* parent)
 {
-   if ( wantsVersion(parent) )
+   if ( ! parent->locked() && wantsVersion(parent) )
       return newRecipe(parent,true);
-   else
-      return parent;
+
+   return parent;
 }
 
 void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transact )
@@ -2037,11 +2039,13 @@ void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transac
    if( e == 0 )
       return;
 
+   if ( rec->locked() ) 
+      return;
+
    if ( transact )
       sqlDatabase().transaction();
 
    try {
-
       spawn = breed(rec);
       // Make a copy of equipment.
       if ( ! noCopy ) {
@@ -2090,6 +2094,8 @@ void Database::addToRecipe( Recipe* rec, Fermentable* ferm, bool noCopy, bool tr
    Recipe* spawn;
    if ( ferm == 0 )
       return;
+   if ( rec->locked() ) 
+      return;
 
    try {
       spawn = breed(rec);
@@ -2114,6 +2120,9 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
 {
    Recipe* spawn;
    if ( ferms.size() == 0 )
+      return;
+
+   if ( rec->locked() ) 
       return;
 
    if ( transact ) {
@@ -2148,7 +2157,11 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
 
 void Database::addToRecipe( Recipe* rec, Hop* hop, bool noCopy, bool transact )
 {
-   Recipe *spawn;
+   Recipe *spawn; 
+
+   if ( rec->locked() ) 
+      return;
+
    try {
       spawn = breed(rec);
       Hop* newHop = addIngredientToRecipe<Hop>( spawn, hop, noCopy, &allHops, true, transact );
@@ -2172,7 +2185,10 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact, Hop* ex
    if ( hops.size() == 0 )
       return;
 
-   if ( transact )
+   if ( rec->locked() ) 
+      return;
+
+   if ( transact ) 
       sqlDatabase().transaction();
 
    try {
@@ -2206,7 +2222,10 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
    Mash* newMash = m;
    Recipe* spawn;
 
-   if ( transact )
+   if ( rec->locked() ) 
+      return;
+
+   if ( transact ) 
       sqlDatabase().transaction();
    // Make a copy of mash.
    // Making a copy of the mash isn't enough. We need a copy of the mashsteps
@@ -2247,6 +2266,10 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
 void Database::addToRecipe( Recipe* rec, Misc* m, bool noCopy, bool transact )
 {
    Recipe* spawn;
+
+   if ( rec->locked() ) 
+      return;
+
    try {
       spawn = breed(rec);
       addIngredientToRecipe( spawn, m, noCopy, &allMiscs, true, transact );
@@ -2270,7 +2293,10 @@ void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact, Misc*
    if ( miscs.size() == 0 )
       return;
 
-   if ( transact )
+   if ( rec->locked() ) 
+      return;
+
+   if ( transact ) 
       sqlDatabase().transaction();
 
    try {
@@ -2300,6 +2326,10 @@ void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact, Misc*
 void Database::addToRecipe( Recipe* rec, Water* w, bool noCopy, bool transact )
 {
    Recipe* spawn;
+
+   if ( rec->locked() ) 
+      return;
+
    try {
       spawn = breed(rec);
       addIngredientToRecipe( spawn, w, noCopy, &allWaters,true,transact );
@@ -2323,7 +2353,10 @@ void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
    if ( s == 0 )
       return;
 
-   if ( transact )
+   if ( rec->locked() ) 
+      return;
+
+   if ( transact ) 
       sqlDatabase().transaction();
 
    try {
@@ -2354,6 +2387,10 @@ void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
 void Database::addToRecipe( Recipe* rec, Yeast* y, bool noCopy, bool transact )
 {
    Recipe* spawn;
+
+   if ( rec->locked() ) 
+      return;
+
    try {
       spawn = breed(rec);
       Yeast* newYeast = addIngredientToRecipe<Yeast>( rec, y, noCopy, &allYeasts, true, transact );
@@ -2375,6 +2412,9 @@ void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact, Yea
 {
    Recipe* spawn;
    if ( yeasts.size() == 0 )
+      return;
+
+   if ( rec->locked() ) 
       return;
 
    if ( transact )

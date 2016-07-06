@@ -531,10 +531,19 @@ MainWindow::MainWindow(QWidget* parent)
 
    // Recipe versions
    connect( treeView_recipe, SIGNAL(recipeSpawn(Recipe*)), this, SLOT(versionedRecipe(Recipe*)));
+   connect( checkBox_locked, SIGNAL(stateChanged(int)), this, SLOT( lockRecipe(int)));
+
    // No connections from the database yet? Oh FSM, that probably means I'm
    // doing it wrong again.
    connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
    connect( &(Database::instance()), SIGNAL( isUnsavedChanged(bool)), this, SLOT( updateUnsavedStatus(bool)));
+
+   // I want to disable the fields so we know they are not modifiable. But I
+   // don't want them so greyed out that you can't read them. Mucking with the
+   // css seems the most reasonable way to do it.
+   QString tabDisabled = QString("QWidget:!enabled { color:#000000; background: #F0F0F0; }");
+   tab_recipe->setStyleSheet(tabDisabled);
+   tabWidget_ingredients->setStyleSheet(tabDisabled);
 }
 
 // I think I may actually want to catch this here instead of in the tree,
@@ -543,6 +552,67 @@ MainWindow::MainWindow(QWidget* parent)
 void MainWindow::versionedRecipe(Recipe* descendant)
 {
    setRecipe(descendant);
+}
+
+// When a recipe locks, many fields need to be disabled. This method handles
+// that
+void MainWindow::lockRecipe(int state)
+{
+   // Not sure how this could happen, but better safe than sigsegv'd
+   if ( ! recipeObs )
+      return;
+
+   // This looks a bit weird, but basically if I am locking the recipe (lock =
+   // true) I want to disable the fields (enable = false). If I am unlocking
+   // the recipe (lock=false), I want to enable the fields(enable=true).
+   bool lockIt = state == Qt::Checked;
+   bool enabled = ! lockIt;
+
+   // Lock/unlock the recipe, then disable/enable the fields. I am leaving the
+   // name field as editable. I may regret that later but if you are creating
+   // an inheritance tree, you may want to remove certain strings from an
+   // ancestors name.
+   recipeObs->setLocked(lockIt);
+
+   // I could disable tab_recipe, but it means you cannot unlock the recipe
+   // because that input field has been disabled
+   qWidget_styleBox->setEnabled(enabled);
+   qWidget_equipmentBox->setEnabled(enabled);
+   lineEdit_batchSize->setEnabled(enabled);
+   lineEdit_boilSize->setEnabled(enabled);
+   lineEdit_efficiency->setEnabled(enabled);
+   lineEdit_boilTime->setEnabled(enabled);
+
+   // Locked recipes cannot be deleted
+   treeView_recipe->enableDelete(enabled);
+   actionDeleteSelected->setEnabled(enabled);
+
+   treeView_recipe->setDragDropMode( lockIt ? QAbstractItemView::NoDragDrop : QAbstractItemView::DragDrop);
+
+   // This is getting slightly better. Still have to do each table, but four
+   // lines to disable the edits, dragdrop and deletes is pretty good.
+   fermentableTable->setEnabled(enabled);
+   pushButton_addFerm->setEnabled(enabled);
+   pushButton_removeFerm->setEnabled(enabled);
+   pushButton_editFerm->setEnabled(enabled);
+
+   hopTable->setEnabled(enabled);
+   pushButton_addHop->setEnabled(enabled);
+   pushButton_removeHop->setEnabled(enabled);
+   pushButton_editHop->setEnabled(enabled);
+
+   miscTable->setEnabled(enabled);
+   pushButton_addMisc->setEnabled(enabled);
+   pushButton_removeMisc->setEnabled(enabled);
+   pushButton_editMisc->setEnabled(enabled);
+
+   yeastTable->setEnabled(enabled);
+   pushButton_addYeast->setEnabled(enabled);
+   pushButton_removeYeast->setEnabled(enabled);
+   pushButton_editYeast->setEnabled(enabled);
+
+   // mashes are still outstanding, because I freaking have no clue what to do
+   // with them.
 }
 
 void MainWindow::setupShortCuts()
@@ -802,6 +872,19 @@ void MainWindow::setRecipe(Recipe* recipe)
 
    mashButton->setMash(recipeObs->mash());
    recipeScaler->setRecipe(recipeObs);
+
+   // Set the locked flag as required
+   checkBox_locked->setCheckState(recipe->locked() ? Qt::Checked : Qt::Unchecked);
+   lockRecipe(recipe->locked() ? Qt::Checked: Qt::Unchecked);
+   // Here's the fun bit. If the recipe is locked and display is false,
+   // then you have said "show versions" and we will not allow the recipe to
+   // be unlocked
+   if ( recipe->locked() && ! recipe->display() ) {
+      checkBox_locked->setEnabled(false);
+   }
+   else {
+      checkBox_locked->setEnabled(true);
+   }
 
    // If you don't connect this late, every previous set of an attribute
    // causes this signal to be slotted, which then causes showChanges() to be

@@ -133,6 +133,8 @@ public:
    Q_PROPERTY( double primingSugarEquiv READ primingSugarEquiv WRITE setPrimingSugarEquiv /*NOTIFY changed*/ /*changedPrimingSugarEquiv*/ )
    //! \brief The factor required to convert the amount of sugar required for bottles to keg (usually about 0.5).
    Q_PROPERTY( double kegPrimingFactor READ kegPrimingFactor WRITE setKegPrimingFactor /*NOTIFY changed*/ /*changedKegPrimingFactor*/ )
+   //! \brief Whether the recipe is locked against changes
+   Q_PROPERTY( bool locked READ locked WRITE setLocked /*NOTIFY changed*/ /*changedForcedCarbonation*/ )
   
    // Calculated stored properties.
    //! \brief The calculated OG.
@@ -260,6 +262,7 @@ public:
    double carbonationTemp_c() const;
    double primingSugarEquiv() const;
    double kegPrimingFactor() const;
+   bool locked() const;
    
    // Calculated getters.
    double points();
@@ -357,6 +360,7 @@ public slots:
    void setCarbonationTemp_c( double var );
    void setPrimingSugarEquiv( double var );
    void setKegPrimingFactor( double var );
+   void setLocked( bool var );
    
 private:
    

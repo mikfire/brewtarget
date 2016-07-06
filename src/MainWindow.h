@@ -273,6 +273,8 @@ public slots:
    void droppedRecipeYeast(QList<Yeast*>yeasts);
 
    void versionedRecipe(Recipe* descendant);
+   void lockRecipe(int state);
+
 protected:
    virtual void closeEvent(QCloseEvent* event);
 

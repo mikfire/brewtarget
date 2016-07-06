@@ -360,7 +360,7 @@ void BtTreeView::newIngredient()
          qobject_cast<YeastDialog*>(_editor)->newYeast(folder);
          break;
       default:
-         Brewtarget::logW(QString("BtTreeView::setupContextMenu unrecognized mask %1").arg(_type));
+         Brewtarget::logW(QString("%2 unrecognized mask %1").arg(_type).arg(Q_FUNC_INFO));
    }
 
 }
@@ -377,6 +377,11 @@ void BtTreeView::showVersions()
          _model->showVersions(_filter->mapToSource(selected));
       }
    }
+}
+
+void BtTreeView::enableDelete(bool enable)
+{
+   _deleteAction->setEnabled(enable);
 }
 
 void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
@@ -434,8 +439,8 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
    _newMenu->addAction(tr("Folder"), top, SLOT(newFolder()));
    // Copy
    _contextMenu->addAction(tr("Copy"), top, SLOT(copySelected()));
-   // Delete
-   _contextMenu->addAction(tr("Delete"), top, SLOT(deleteSelected()));
+   // Delete. We need to save this action to make finding it later easier.
+   _deleteAction = _contextMenu->addAction(tr("Delete"), top, SLOT(deleteSelected()));
    // export and import
    _contextMenu->addSeparator();
    _exportMenu->setTitle(tr("Export"));

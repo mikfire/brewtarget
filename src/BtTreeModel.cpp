@@ -66,6 +66,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
          _type = BtTreeItem::RECIPE;
          _mimeType = "application/x-brewtarget-recipe";
+         _maxColumns = BtTreeItem::RECIPENUMCOLS;
          break;
       case EQUIPMASK:
          rootItem->insertChildren(items,1,BtTreeItem::EQUIPMENT);
@@ -73,6 +74,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Equipment*)),this, SLOT(elementRemoved(Equipment*)));
          _type = BtTreeItem::EQUIPMENT;
          _mimeType = "application/x-brewtarget-recipe";
+         _maxColumns = BtTreeItem::EQUIPMENTNUMCOLS;
          break;
       case FERMENTMASK:
          rootItem->insertChildren(items,1,BtTreeItem::FERMENTABLE);
@@ -80,6 +82,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Fermentable*)),this, SLOT(elementRemoved(Fermentable*)));
          _type = BtTreeItem::FERMENTABLE;
          _mimeType = "application/x-brewtarget-ingredient";
+         _maxColumns = BtTreeItem::FERMENTABLENUMCOLS;
          break;
       case HOPMASK:
          rootItem->insertChildren(items,1,BtTreeItem::HOP);
@@ -87,6 +90,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Hop*)),this, SLOT(elementRemoved(Hop*)));
          _type = BtTreeItem::HOP;
          _mimeType = "application/x-brewtarget-ingredient";
+         _maxColumns = BtTreeItem::HOPNUMCOLS;
          break;
       case MISCMASK:
          rootItem->insertChildren(items,1,BtTreeItem::MISC);
@@ -101,6 +105,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Style*)),this, SLOT(elementRemoved(Style*)));
          _type = BtTreeItem::STYLE;
          _mimeType = "application/x-brewtarget-recipe";
+         _maxColumns = BtTreeItem::STYLENUMCOLS;
          break;
       case YEASTMASK:
          rootItem->insertChildren(items,1,BtTreeItem::YEAST);
@@ -108,6 +113,7 @@ BtTreeModel::BtTreeModel(BtTreeView *parent, TypeMasks type)
          connect( &(Database::instance()), SIGNAL(deletedSignal(Yeast*)),this, SLOT(elementRemoved(Yeast*)));
          _type = BtTreeItem::YEAST;
          _mimeType = "application/x-brewtarget-ingredient";
+         _maxColumns = BtTreeItem::YEASTNUMCOLS;
          break;
       default:
          Brewtarget::logW(QString("Invalid treemask: %1").arg(type));
@@ -148,30 +154,7 @@ int BtTreeModel::rowCount(const QModelIndex &parent) const
    return item(parent)->childCount();
 }
 
-int BtTreeModel::columnCount( const QModelIndex &parent) const
-{
-   switch(treeMask)
-   {
-   case RECIPEMASK:
-      return BtTreeItem::RECIPENUMCOLS;
-   case EQUIPMASK:
-      return BtTreeItem::EQUIPMENTNUMCOLS;
-   case FERMENTMASK:
-      return BtTreeItem::FERMENTABLENUMCOLS;
-   case HOPMASK:
-      return BtTreeItem::HOPNUMCOLS;
-   case MISCMASK:
-      return BtTreeItem::MISCNUMCOLS;
-   case YEASTMASK:
-      return BtTreeItem::YEASTNUMCOLS;
-   case STYLEMASK:
-      return BtTreeItem::STYLENUMCOLS;
-   default:
-      return 0;
-   }
-   // Backwards compatibility. This MUST be fixed before the code goes live.
-   return BtTreeItem::RECIPENUMCOLS;
-}
+int BtTreeModel::columnCount( const QModelIndex &parent) const { return _maxColumns; }
 
 Qt::ItemFlags BtTreeModel::flags(const QModelIndex &index) const
 {
@@ -234,36 +217,10 @@ QVariant BtTreeModel::data(const QModelIndex &index, int role) const
 {
    int maxColumns;
 
-   switch(treeMask)
-   {
-   case RECIPEMASK:
-      maxColumns = BtTreeItem::RECIPENUMCOLS;
-      break;
-   case EQUIPMASK:
-      maxColumns = BtTreeItem::EQUIPMENTNUMCOLS;
-      break;
-   case FERMENTMASK:
-      maxColumns = BtTreeItem::FERMENTABLENUMCOLS;
-      break;
-   case HOPMASK:
-      maxColumns = BtTreeItem::HOPNUMCOLS;
-      break;
-   case MISCMASK:
-      maxColumns = BtTreeItem::MISCNUMCOLS;
-      break;
-   case YEASTMASK:
-      maxColumns = BtTreeItem::YEASTNUMCOLS;
-      break;
-   case STYLEMASK:
-      maxColumns = BtTreeItem::STYLENUMCOLS;
-      break;
-   case FOLDERMASK:
+   if ( treeMask == FOLDERMASK )
       maxColumns = BtTreeItem::FOLDERNUMCOLS;
-      break;
-   default:
-      // Backwards compatibility. This MUST be fixed prior to releasing the code
-      maxColumns = BtTreeItem::RECIPENUMCOLS;
-   }
+   else 
+      maxColumns = _maxColumns;
 
    if ( !rootItem || !index.isValid() || index.column() < 0 || index.column() >= maxColumns)
       return QVariant();
