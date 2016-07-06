@@ -1527,7 +1527,9 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
 
    try {
       QSqlQuery q(sqlDatabase());
-      ancestor->setDisplay(false);
+      if ( ancestor != descendant ) 
+         ancestor->setDisplay(false);
+
       QString set_ancestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(ancestor->key()).arg(descendant->key());
       if ( ! q.exec(set_ancestor) ) 
          throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());

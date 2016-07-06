@@ -101,6 +101,9 @@ public:
    int type(const QModelIndex &index);
 
    void enableDelete(bool enable);
+   void enableShowAncestor(bool enable);
+   void enableHideAncestor(bool enable);
+   void enableOrphan(bool enable);
    //! returns true if a recipe and an ingredient (hop, equipment, etc.) are selected at the same time
    bool multiSelected();
 
@@ -138,7 +141,9 @@ private slots:
 
    void versionedRecipe(Recipe* dec);
 
-   void showVersions();
+   void showAncestors();
+   void hideAncestors();
+   void orphanRecipe();
 
 signals: 
    void recipeSpawn(Recipe* dec);
@@ -147,8 +152,8 @@ private:
    BtTreeModel* _model;
    BtTreeFilterProxyModel* _filter;
    BtTreeModel::TypeMasks _type;
-   QMenu* _contextMenu, *subMenu;
-   QAction* _deleteAction;
+   QMenu* _contextMenu, *subMenu, *_versionMenu;
+   QAction *_deleteAction, *_showAncestorAction, *_hideAncestorAction, *_orphanAction;
    QPoint dragStart;
    QWidget* _editor;
 
