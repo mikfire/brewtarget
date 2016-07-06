@@ -217,7 +217,8 @@ private:
    static QString colWaterMg;
    static QString colWaterPh;
    static QString colWaterNotes;
-   
+
+   // Mash 
    static QString tableMash;
    static QString colMashName;
    static QString colMashGrainTemp;
@@ -228,7 +229,8 @@ private:
    static QString colMashTunWeight;
    static QString colMashTunSpecificHeat;
    static QString colMashEquipAdjust;
-   
+
+   // MashSteps 
    static QString tableMashStep;
    static QString colMashStepType;
    static QString colMashStepInfAmount;
@@ -276,7 +278,8 @@ private:
    static QString colBNoteFinalVolume;
    static QString colBNoteNotes;
    static QString colBNoteRecipeId;
-   
+  
+   // Instructions 
    static QString tableInstruction;
    static QString colInsDirections;
    static QString colInsHasTimer;
@@ -284,6 +287,7 @@ private:
    static QString colInsCompleted;
    static QString colInsInterval;
    
+   // Recipes 
    static QString tableRecipe;
    static QString colRecType;
    static QString colRecBrewer;
@@ -317,6 +321,7 @@ private:
    static QString colRecMashId;
    static QString colRecEquipId;
    static QString colRecAncestorId;
+   static QString colRecLocked;
    
    static QString tableBtEquipment;
    static QString tableBtFermentable;
@@ -430,6 +435,7 @@ private:
    static bool migrate_to_5(QSqlQuery q);
    static bool migrate_to_6(QSqlQuery q);
    static bool migrate_to_7(QSqlQuery q);
+   static bool migrate_to_8(QSqlQuery q);
    
    static bool postgresAddConstraint(QSqlQuery q);
    static bool sqliteAddConstraint(QSqlQuery q);

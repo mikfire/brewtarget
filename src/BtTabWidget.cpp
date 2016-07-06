@@ -106,4 +106,3 @@ void BtTabWidget::dropEvent(QDropEvent *event)
 
    event->acceptProposedAction();
 }
-

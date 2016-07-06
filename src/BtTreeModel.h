@@ -274,6 +274,7 @@ private:
    TypeMasks treeMask;
    int _type;
    QString _mimeType;
+   int _maxColumns;
 
 };
 
