@@ -133,11 +133,9 @@ void Mash::setEquipAdjust( bool var )
 
 void Mash::removeAllMashSteps()
 {
-   int i, size;
-   QList<MashStep*> tmpSteps = mashSteps();
-   size = tmpSteps.size();
-   for( i = 0; i < size; ++i )
-      Database::instance().removeFrom(this, tmpSteps[i]);
+   foreach( MashStep* tmp, mashSteps() )
+      Database::instance().removeFrom(this, tmp);
+
    emit mashStepsChanged();
 }
 
@@ -158,36 +156,21 @@ bool Mash::equipAdjust()             const { return get("equip_adjust").toBool()
 // === other methods ===
 double Mash::totalMashWater_l()
 {
-   int i, size;
    double waterAdded_l = 0.0;
-   QList<MashStep*> steps = mashSteps();
-   MashStep* step;
    
-   size = steps.size();
-   for( i = 0; i < size; ++i )
-   {
-      step = steps[i];
-      
-      if( step->isInfusion() )
-         waterAdded_l += step->infuseAmount_l();
-   }
+   foreach( MashStep* step, mashSteps() )
+      waterAdded_l += step->isInfusion() ? step->infuseAmount_l() : 0.0;
    
    return waterAdded_l;
 }
 
 double Mash::totalTime()
 {
-   int i, size;
    double totalTime = 0.0;
-   QList<MashStep*> steps = mashSteps();
-   MashStep* mstep;
 
-   size = steps.size();
-   for( i = 0; i < size; ++i )
-   {
-      mstep = steps[i];
+   foreach( MashStep* mstep, mashSteps() )
       totalTime += mstep->stepTime_min();
-   }
+
    return totalTime;
 }
 

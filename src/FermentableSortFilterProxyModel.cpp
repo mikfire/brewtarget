@@ -44,25 +44,29 @@ bool FermentableSortFilterProxyModel::lessThan(const QModelIndex &left,
    switch( left.column() )
    {
       case FERMINVENTORYCOL:
+         leftDouble  = Brewtarget::qStringToSI(leftFermentable.toString(), unit);
+         rightDouble = Brewtarget::qStringToSI(rightFermentable.toString(),unit);
          // If the numbers are equal, compare the names and be done with it
-         if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == Brewtarget::qStringToSI(rightFermentable.toString(),unit))
+         if ( qFuzzyCompare(leftDouble,rightDouble) )
             return getName(right) < getName(left);
          // Show non-zero entries first.
-         else if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == 0.0 && this->sortOrder() == Qt::AscendingOrder)
+         else if (qFuzzyCompare(leftDouble,0.0) && this->sortOrder() == Qt::AscendingOrder)
             return false;
          else
-            return Brewtarget::qStringToSI(leftFermentable.toString(),unit) < Brewtarget::qStringToSI(rightFermentable.toString(),unit);
+            return leftDouble < rightDouble;
       case FERMAMOUNTCOL:
+         leftDouble  = Brewtarget::qStringToSI(leftFermentable.toString(), unit);
+         rightDouble = Brewtarget::qStringToSI(rightFermentable.toString(),unit);
          // If the numbers are equal, compare the names and be done with it
-         if (Brewtarget::qStringToSI(leftFermentable.toString(), unit) == Brewtarget::qStringToSI(rightFermentable.toString(),unit))
+         if ( qFuzzyCompare(leftDouble,rightDouble) )
             return getName(right) < getName(left);
          else
-            return Brewtarget::qStringToSI(leftFermentable.toString(),unit) < Brewtarget::qStringToSI(rightFermentable.toString(),unit);
+            return leftDouble < rightDouble;
       case FERMYIELDCOL:
          leftDouble = toDouble(leftFermentable);
          rightDouble = toDouble(rightFermentable);
 
-         if (leftDouble == rightDouble)
+         if (qFuzzyCompare(leftDouble,rightDouble))
             return getName(right) < getName(left);
          else
             return leftDouble < rightDouble;
@@ -70,7 +74,7 @@ bool FermentableSortFilterProxyModel::lessThan(const QModelIndex &left,
          leftDouble = toDouble(leftFermentable);
          rightDouble = toDouble(rightFermentable);
 
-         if (leftDouble == rightDouble)
+         if (qFuzzyCompare(leftDouble,rightDouble))
             return getName(right) < getName(left);
          else
             return leftDouble < rightDouble;

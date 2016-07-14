@@ -357,7 +357,8 @@ public:
       if ( parent && wantsVersion(parent) ) {
          qDebug() << Q_FUNC_INFO << "cloning";
          // Create a copy of the recipe, less the ingredient we are modifying
-         spawn = filterIngredientFromSpawn(parent, ing);
+         // and DO NOT signal completion
+         spawn = filterIngredientFromSpawn(parent, ing, false);
          // Clone what we want to modify. Believe it or not, this is sort of
          // the magic step. 
          ingClone = clone(ing);
@@ -377,6 +378,12 @@ public:
 
       updateEntry( table, ingClone->key(), dbCol, value, meta->property(ndx), ingClone, notify);
 
+      // Signal everything if we spawned
+      if ( parent && wantsVersion(parent) ) {
+         emit changed( metaProperty("recipes"), QVariant() );
+         emit newSignal(spawn);
+         emit spawned(parent,spawn);
+      }
    }
 
    //! Get the recipe that this \b note is part of.

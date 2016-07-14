@@ -111,13 +111,8 @@ void FermentableTableModel::addFermentable(Fermentable* ferm)
       return;
    // If we are observing the database, ensure that the ferm is undeleted and
    // fit to display.
-   if(
-      recObs == 0 &&
-      (
-         ferm->deleted() ||
-         !ferm->display()
-      )
-   )
+   if( recObs == 0 &&
+      ( ferm->deleted() || !ferm->display()))
       return;
 
    int size = fermObs.size();
@@ -134,10 +129,10 @@ void FermentableTableModel::addFermentables(QList<Fermentable*> ferms)
    QList<Fermentable*>::iterator i;
    QList<Fermentable*> tmp;
 
-   for( i = ferms.begin(); i != ferms.end(); i++ )
+   foreach( Fermentable* f, ferms )
    {
-      if( !fermObs.contains(*i) )
-         tmp.append(*i);
+      if( !fermObs.contains(f) )
+         tmp.append(f);
    }
 
    int size = fermObs.size();
@@ -146,10 +141,10 @@ void FermentableTableModel::addFermentables(QList<Fermentable*> ferms)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       fermObs.append(tmp);
 
-      for( i = tmp.begin(); i != tmp.end(); i++ )
+      foreach( Fermentable* f, tmp )
       {
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
-         totalFermMass_kg += (*i)->amount_kg();
+         connect( f, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
+         totalFermMass_kg += f->amount_kg();
       }
 
       endInsertRows();

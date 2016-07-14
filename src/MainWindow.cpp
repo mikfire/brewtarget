@@ -1338,28 +1338,17 @@ Yeast* MainWindow::selectedYeast()
 
 void MainWindow::removeSelectedFermentable()
 {
-    QModelIndexList selected = fermentableTable->selectionModel()->selectedIndexes();
-    QModelIndex viewIndex, modelIndex;
     QList<Fermentable *> itemsToRemove;
-    int size, i;
 
-    size = selected.size();
-
-    if( size == 0 )
-       return;
-
-    for(int i = 0; i < size; i++)
-    {
-        viewIndex = selected.at(i);
-        modelIndex = fermTableProxy->mapToSource(viewIndex);
-
+    foreach( QModelIndex viewIndex, fermentableTable->selectionModel()->selectedIndexes() ) {
+        QModelIndex modelIndex = fermTableProxy->mapToSource(viewIndex);
         itemsToRemove.append(fermTableModel->getFermentable(modelIndex.row()));
     }
 
-    for(i = 0; i < itemsToRemove.size(); i++)
+    foreach(Fermentable *f, itemsToRemove )
     {
-        fermTableModel->removeFermentable(itemsToRemove.at(i));
-        recipeObs->remove(itemsToRemove.at(i));
+        fermTableModel->removeFermentable(f);
+        recipeObs->remove(f);
     }
 }
 
@@ -1406,84 +1395,49 @@ void MainWindow::editSelectedYeast()
 
 void MainWindow::removeSelectedHop()
 {
-    QModelIndexList selected = hopTable->selectionModel()->selectedIndexes();
-    QModelIndex modelIndex, viewIndex;
     QList<Hop *> itemsToRemove;
-    int size, i;
 
-    size = selected.size();
-
-    if( size == 0 )
-       return;
-
-    for(int i = 0; i < size; i++)
-    {
-        viewIndex = selected.at(i);
-        modelIndex = hopTableProxy->mapToSource(viewIndex);
-
+    foreach( QModelIndex viewIndex, hopTable->selectionModel()->selectedIndexes() ) {
+        QModelIndex modelIndex = hopTableProxy->mapToSource(viewIndex);
         itemsToRemove.append(hopTableModel->getHop(modelIndex.row()));
     }
 
-    for(i = 0; i < itemsToRemove.size(); i++)
-    {
-        hopTableModel->removeHop(itemsToRemove.at(i));
-        recipeObs->remove(itemsToRemove.at(i));
+    foreach( Hop* h, itemsToRemove ) {
+        hopTableModel->removeHop(h);
+        recipeObs->remove(h);
     }
-
 }
 
 
 void MainWindow::removeSelectedMisc()
 {
-    QModelIndexList selected = miscTable->selectionModel()->selectedIndexes();
-    QModelIndex modelIndex, viewIndex;
     QList<Misc *> itemsToRemove;
-    int size, i;
 
-    size = selected.size();
-
-    if( size == 0 )
-       return;
-
-    for(int i = 0; i < size; i++)
-    {
-        viewIndex = selected.at(i);
-        modelIndex = miscTableProxy->mapToSource(viewIndex);
-
+    foreach( QModelIndex viewIndex, miscTable->selectionModel()->selectedIndexes() ) {
+        QModelIndex modelIndex = miscTableProxy->mapToSource(viewIndex);
         itemsToRemove.append(miscTableModel->getMisc(modelIndex.row()));
     }
 
-    for(i = 0; i < itemsToRemove.size(); i++)
-    {
-       miscTableModel->removeMisc(itemsToRemove.at(i));
-       recipeObs->remove(itemsToRemove.at(i));
+    foreach(Misc *m, itemsToRemove) {
+       miscTableModel->removeMisc(m);
+       recipeObs->remove(m);
     }
 }
 
 void MainWindow::removeSelectedYeast()
 {
-    QModelIndexList selected = yeastTable->selectionModel()->selectedIndexes();
-    QModelIndex modelIndex, viewIndex;
+    
     QList<Yeast *> itemsToRemove;
-    int size, i;
 
-    size = selected.size();
-
-    if( size == 0 )
-       return;
-
-    for(int i = 0; i < size; i++)
-    {
-        viewIndex = selected.at(i);
-        modelIndex = yeastTableProxy->mapToSource(viewIndex);
+    foreach( QModelIndex viewIndex, yeastTable->selectionModel()->selectedIndexes()) {
+        QModelIndex modelIndex = yeastTableProxy->mapToSource(viewIndex);
 
         itemsToRemove.append(yeastTableModel->getYeast(modelIndex.row()));
     }
 
-    for(i = 0; i < itemsToRemove.size(); i++)
-    {
-       yeastTableModel->removeYeast(itemsToRemove.at(i));
-       recipeObs->remove(itemsToRemove.at(i));
+    foreach( Yeast *y, itemsToRemove ) {
+       yeastTableModel->removeYeast(y);
+       recipeObs->remove(y);
     }
 }
 
@@ -1679,63 +1633,47 @@ void MainWindow::reduceInventory(){
       foreach(QModelIndex selected, indexes)
       {
          Recipe*   rec   = treeView_recipe->recipe(selected);
-         if( rec == 0 ){
+         if( rec == 0 ) {
             //try the parent recipe
             rec = treeView_recipe->recipe(treeView_recipe->parent(selected));
-            if( rec == 0 ){
+            if( rec == 0 )
                continue;
-            }
          }
 
          // Make sure everything is properly set and selected
          if( rec != recipeObs )
             setRecipe(rec);
 
-      int i = 0;
       //reduce fermentables
-      QList<Fermentable*> flist = rec->fermentables();
-      if(flist.size() > 0){
-         for( i = 0; static_cast<int>(i) < flist.size(); ++i )
-         {
-            double newVal=flist[i]->inventory() - flist[i]->amount_kg();
-            newVal = (newVal < 0) ? 0 : newVal;
-            flist[i]->setInventoryAmount(newVal);
-         }
+      foreach( Fermentable* f, rec->fermentables() )
+      {
+         double newVal = f->inventory() - f->amount_kg();
+         newVal = (newVal < 0) ? 0 : newVal;
+         f->setInventoryAmount(newVal);
       }
 
       //reduce misc
-      QList<Misc*> mlist = rec->miscs();
-      if(mlist.size() > 0){
-         for( i = 0; static_cast<int>(i) < mlist.size(); ++i )
-         {
-            double newVal=mlist[i]->inventory() - mlist[i]->amount();
-            newVal = (newVal < 0) ? 0 : newVal;
-            mlist[i]->setInventoryAmount(newVal);
-         }
+      foreach( Misc *m, rec->miscs() ) {
+         double newVal = m->inventory() - m->amount();
+         newVal = (newVal < 0) ? 0 : newVal;
+         m->setInventoryAmount(newVal);
       }
       //reduce hops
-      QList<Hop*> hlist = rec->hops();
-      if(hlist.size() > 0){
-         for( i = 0; static_cast<int>(i) < hlist.size(); ++i )
-         {
-            double newVal = hlist[i]->inventory() - hlist[i]->amount_kg();
-            newVal = (newVal < 0) ? 0 : newVal;
-            hlist[i]->setInventoryAmount(newVal);
-         }
+      foreach( Hop *h, rec->hops() )
+      {
+         double newVal = h->inventory() - h->amount_kg();
+         newVal = (newVal < 0) ? 0 : newVal;
+         h->setInventoryAmount(newVal);
       }
       //reduce yeast
-      QList<Yeast*> ylist = rec->yeasts();
-      if(ylist.size() > 0){
-         for( i = 0; static_cast<int>(i) < ylist.size(); ++i )
-         {
-            //Yeast inventory is done by quanta not amount
-            int newVal = ylist[i]->inventory() - 1;
-            newVal = (newVal < 0) ? 0 : newVal;
-            ylist[i]->setInventoryQuanta(newVal);
-         }
+      foreach( Yeast* y, rec->yeasts() ) 
+      {
+         //Yeast inventory is done by quanta not amount
+         int newVal = y->inventory() - 1;
+         newVal = (newVal < 0) ? 0 : newVal;
+         y->setInventoryQuanta(newVal);
       }
    }
-
 }
 
 // Need to make sure the recipe tree is active, I think
@@ -2305,9 +2243,8 @@ void MainWindow::exportSelected()
    dbase = doc.createElement("DATABASE");
    recipe = doc.createElement("RECIPES");
 
-   for(at = selected.begin(),end = selected.end(); at < end; ++at)
+   foreach( QModelIndex selection, selected ) 
    {
-      QModelIndex selection = *at;
       int type = active->type(selection);
 
       switch(type)

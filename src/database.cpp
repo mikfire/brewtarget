@@ -385,37 +385,32 @@ bool Database::load()
    QList<MashStep*>::iterator n;
 
 
-   for( i = allRecipes.begin(); i != allRecipes.end(); i++ )
+   foreach( Recipe* rec, allRecipes )
    {
-      Equipment* e = equipment(*i);
+      Equipment* e = equipment(rec);
       if( e )
       {
-         connect( e, SIGNAL(changed(QMetaProperty,QVariant)), *i, SLOT(acceptEquipChange(QMetaProperty,QVariant)) );
-         connect( e, SIGNAL(changedBoilSize_l(double)), *i, SLOT(setBoilSize_l(double)));
-         connect( e, SIGNAL(changedBoilTime_min(double)), *i, SLOT(setBoilTime_min(double)));
+         connect( e, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptEquipChange(QMetaProperty,QVariant)) );
+         connect( e, SIGNAL(changedBoilSize_l(double)), rec, SLOT(setBoilSize_l(double)));
+         connect( e, SIGNAL(changedBoilTime_min(double)), rec, SLOT(setBoilTime_min(double)));
       }
 
-      QList<Fermentable*> tmpF = fermentables(*i);
-      for( j = tmpF.begin(); j != tmpF.end(); ++j )
-         connect( *j, SIGNAL(changed(QMetaProperty,QVariant)), *i, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
+      foreach( Fermentable *ferm, fermentables(rec) ) 
+         connect( ferm, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
 
-      QList<Hop*> tmpH = hops(*i);
-      for( k = tmpH.begin(); k != tmpH.end(); ++k )
-         connect( *k, SIGNAL(changed(QMetaProperty,QVariant)), *i, SLOT(acceptHopChange(QMetaProperty,QVariant)) );
+      foreach( Hop *h, hops(rec) ) 
+         connect( h, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptHopChange(QMetaProperty,QVariant)) );
 
-      QList<Yeast*> tmpY = yeasts(*i);
-      for( l = tmpY.begin(); l != tmpY.end(); ++l )
-         connect( *l, SIGNAL(changed(QMetaProperty,QVariant)), *i, SLOT(acceptYeastChange(QMetaProperty,QVariant)) );
+      foreach( Yeast *y, yeasts(rec) )
+         connect( y, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptYeastChange(QMetaProperty,QVariant)) );
 
-      connect( mash(*i), SIGNAL(changed(QMetaProperty,QVariant)), *i, SLOT(acceptMashChange(QMetaProperty,QVariant)) );
+      connect( mash(rec), SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptMashChange(QMetaProperty,QVariant)) );
    }
 
-   QList<Mash*> tmpM = mashs();
-   for( m = tmpM.begin(); m != tmpM.end(); ++m )
+   foreach ( Mash *m, mashs() )
    {
-      QList<MashStep*> tmpMS = mashSteps(*m);
-      for( n=tmpMS.begin(); n != tmpMS.end(); ++n)
-         connect( *n, SIGNAL(changed(QMetaProperty,QVariant)), *m, SLOT(acceptMashStepChange(QMetaProperty,QVariant)) );
+      foreach( MashStep *ms, mashSteps(m) )
+         connect( ms, SIGNAL(changed(QMetaProperty,QVariant)), m, SLOT(acceptMashStepChange(QMetaProperty,QVariant)) );
    }
 
    // The database MUST be saved if we created from scratch.
@@ -474,16 +469,16 @@ void Database::convertFromXml()
       dir.cd("obsolete");
 
       QStringList oldFiles = QStringList() << "database.xml" << "mashs.xml" << "recipes.xml";
-      for ( int i = 0; i < oldFiles.size(); ++i )
+      foreach( QString oldFile, oldFiles )
       {
-         QFile oldXmlFile(Brewtarget::getUserDataDir().filePath(oldFiles[i]));
+         QFile oldXmlFile(Brewtarget::getUserDataDir().filePath(oldFile));
          // If the old file exists, import.
          if( oldXmlFile.exists() )
          {
             importFromXML( oldXmlFile.fileName() );
 
             // Move to obsolete/ directory.
-            if( oldXmlFile.copy(dir.filePath(oldFiles[i])) )
+            if( oldXmlFile.copy(dir.filePath(oldFile)) )
                oldXmlFile.remove();
 
             // Let us know something was converted
@@ -785,20 +780,15 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
          addToRecipe( tmp, other->equipment(), false, false);
       }
       if ( ing->metaObject()->className() != QStringLiteral("Mash") ) {
+         qDebug() << Q_FUNC_INFO << "adding mash";
          addToRecipe( tmp, other->mash(), false, false);
       }
       if ( ing->metaObject()->className() != QStringLiteral("Style") ) {
          addToRecipe( tmp, other->style(), false, false);
       }
 
-      // Yeast is an ancestor of our new recipe, 
-      // set display to false on the ancestor and link the two together
-      QSqlQuery q(sqlDatabase());
-      other->setDisplay(false);
-      QString setAncestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(other->key()).arg(tmp->key());
-      if ( ! q.exec(setAncestor) ) 
-         throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
-      q.finish();
+      // other is an ancestor of our new recipe, 
+      setAncestor(tmp,other,false);
    }
    catch (QString e) {
       Brewtarget::logE( QString("%1 %2").arg(Q_FUNC_INFO).arg(e));
@@ -1552,7 +1542,7 @@ Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 
    sqlDatabase().transaction();
    try {
-      tmp = copy<Recipe>(other, true, &allRecipes);
+      tmp = copy(other, true, &allRecipes);
 
       // Copy fermentables, hops, miscs and yeasts. We've the convenience
       // methods, so use them? And now I have to instruct all of them to not do
@@ -1680,14 +1670,11 @@ void Database::deleteRecord( Brewtarget::DBTable table, BeerXMLElement* object )
 // idea.
 void Database::duplicateMashSteps(Mash *oldMash, Mash *newMash)
 {
-   QList<MashStep*> tmpMS = mashSteps(oldMash);
-   QList<MashStep*>::iterator ms;
-
    try {
-      for( ms=tmpMS.begin(); ms != tmpMS.end(); ++ms)
+      foreach( MashStep *ms, mashSteps(oldMash) )
       {
          // Copy the old mash step.
-         MashStep* newStep = copy<MashStep>(*ms,true,&allMashSteps);
+         MashStep* newStep = copy(ms,true,&allMashSteps);
 
          // Put it in the new mash.
          sqlUpdate( Brewtarget::MASHSTEPTABLE,
@@ -3294,8 +3281,6 @@ void Database::toXml( Mash* a, QDomDocument& doc, QDomNode& parent )
    QDomElement tmpNode;
    QDomText tmpText;
 
-   int i, size;
-
    mashNode = doc.createElement("MASH");
 
    tmpNode = doc.createElement("NAME");
@@ -3314,10 +3299,8 @@ void Database::toXml( Mash* a, QDomDocument& doc, QDomNode& parent )
    mashNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("MASH_STEPS");
-   QList<MashStep*> mashSteps = a->mashSteps();
-   size = mashSteps.size();
-   for( i = 0; i < size; ++i )
-      toXml( mashSteps[i], doc, tmpNode);
+   foreach( MashStep* ms, a->mashSteps() )
+      toXml( ms, doc, tmpNode);
    mashNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("NOTES");
@@ -3484,8 +3467,6 @@ void Database::toXml( Recipe* a, QDomDocument& doc, QDomNode& parent )
    QDomElement tmpNode;
    QDomText tmpText;
 
-   int i;
-
    recipeNode = doc.createElement("RECIPE");
 
    tmpNode = doc.createElement("NAME");
@@ -3533,33 +3514,28 @@ void Database::toXml( Recipe* a, QDomDocument& doc, QDomNode& parent )
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("HOPS");
-   QList<Hop*> hops = a->hops();
-   for( i = 0; i < hops.size(); ++i )
-      toXml( hops[i], doc, tmpNode);
+   foreach( Hop* h, a->hops() )
+      toXml( h, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("FERMENTABLES");
-   QList<Fermentable*> ferms = a->fermentables();
-   for( i = 0; i < ferms.size(); ++i )
-      toXml( ferms[i], doc, tmpNode);
+   foreach( Fermentable *f, a->fermentables() )
+      toXml( f, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("MISCS");
-   QList<Misc*> miscs = a->miscs();
-   for( i = 0; i < miscs.size(); ++i )
-      toXml( miscs[i], doc, tmpNode);
+   foreach( Misc* m, a->miscs() )
+      toXml( m, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("YEASTS");
-   QList<Yeast*> yeasts = a->yeasts();
-   for( i = 0; i < yeasts.size(); ++i )
-      toXml( yeasts[i], doc, tmpNode);
+   foreach( Yeast *y, a->yeasts() )
+      toXml( y, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("WATERS");
-   QList<Water*> waters = a->waters();
-   for( i = 0; i < waters.size(); ++i )
-      toXml( waters[i], doc, tmpNode);
+   foreach( Water *w, a->waters() )
+      toXml( w, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    Mash* mash = a->mash();
@@ -3567,15 +3543,13 @@ void Database::toXml( Recipe* a, QDomDocument& doc, QDomNode& parent )
       toXml( mash, doc, recipeNode);
 
    tmpNode = doc.createElement("INSTRUCTIONS");
-   QList<Instruction*> instructions = a->instructions();
-   for( i = 0; i < instructions.size(); ++i )
-      toXml( instructions[i], doc, tmpNode);
+   foreach( Instruction *i, a->instructions() )
+      toXml( i, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("BREWNOTES");
-   QList<BrewNote*> brewNotes = a->brewNotes();
-   for(i=0; i < brewNotes.size(); ++i)
-      toXml(brewNotes[i], doc, tmpNode);
+   foreach( BrewNote *b, a->brewNotes() )
+      toXml(b, doc, tmpNode);
    recipeNode.appendChild(tmpNode);
 
    tmpNode = doc.createElement("ASST_BREWER");

@@ -107,11 +107,11 @@ void WaterTableModel::addWaters(QList<Water*> waters)
 {
    QList<Water*>::iterator i;
    QList<Water*> tmp;
-   
-   for( i = waters.begin(); i != waters.end(); i++ )
+  
+   foreach( Water* i, waters ) 
    {
-      if( !waterObs.contains(*i) )
-         tmp.append(*i);
+      if( !waterObs.contains(i) )
+         tmp.append(i);
    }
    
    int size = waterObs.size();
@@ -120,8 +120,8 @@ void WaterTableModel::addWaters(QList<Water*> waters)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       waterObs.append(tmp);
       
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
+      foreach( Water* i, tmp ) 
+         connect( i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
       
       endInsertRows();
    }

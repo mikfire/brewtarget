@@ -452,13 +452,6 @@ void HopTableModel::setDisplayUnit(int column, Unit::unitDisplay displayUnit)
    Brewtarget::setOption(attribute,displayUnit,this->objectName(),Brewtarget::UNIT);
    Brewtarget::setOption(attribute,Unit::noScale,this->objectName(),Brewtarget::SCALE);
 
-   /* Disabled cell-specific code
-   for (int i = 0; i < rowCount(); ++i )
-   {
-      row = getHop(i);
-      row->setDisplayUnit(Unit::noUnit);
-   }
-   */
 }
 
 // Setting the scale should clear any cell-level scaling options
@@ -472,14 +465,6 @@ void HopTableModel::setDisplayScale(int column, Unit::unitScale displayScale)
       return;
 
    Brewtarget::setOption(attribute,displayScale,this->objectName(),Brewtarget::SCALE);
-
-   /* disabled cell-specific code
-   for (int i = 0; i < rowCount(); ++i )
-   {
-      row = getHop(i);
-      row->setDisplayScale(Unit::noScale);
-   }
-   */
 }
 
 QString HopTableModel::generateName(int column) const

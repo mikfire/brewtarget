@@ -239,38 +239,6 @@ void Yeast::setAddToSecondary( bool var )
 
 //========================OTHER METHODS=========================================
 
-bool Yeast::isValidType(const QString& str) const
-{
-   static const QString types[] = {"Ale", "Lager", "Wheat", "Wine", "Champagne"};
-   unsigned int i, size = 5;
-   
-   for( i = 0; i < size; ++i )
-      if( str == types[i] )
-         return true;
-   
-   return false;
-}
-
-bool Yeast::isValidForm(const QString& str) const
-{
-   static const QString forms[] = {"Liquid", "Dry", "Slant", "Culture"};
-   unsigned int i, size=4;
-   
-   for( i = 0; i < size; ++i )
-      if( str == forms[i] )
-         return true;
-   
-   return false;
-}
-
-bool Yeast::isValidFlocculation(const QString& str) const
-{
-   static const QString floc[] = {"Low", "Medium", "High", "Very High"};
-   unsigned int i, size=4;
-   
-   for( i = 0; i < size; ++i )
-      if( str == floc[i] )
-         return true;
-   
-   return false;
-}
+bool Yeast::isValidType(const QString& str) const { return types.contains(str); }
+bool Yeast::isValidForm(const QString& str) const { return forms.contains(str); }
+bool Yeast::isValidFlocculation(const QString& str) const { return flocculations.contains(str); }

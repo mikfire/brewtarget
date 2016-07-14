@@ -110,10 +110,10 @@ void MiscTableModel::addMiscs(QList<Misc*> miscs)
    QList<Misc*>::iterator i;
    QList<Misc*> tmp;
 
-   for( i = miscs.begin(); i != miscs.end(); i++ )
+   foreach( Misc *i, miscs )
    {
-      if( !miscObs.contains(*i) )
-         tmp.append(*i);
+      if( !miscObs.contains(i) )
+         tmp.append(i);
    }
 
    int size = miscObs.size();
@@ -122,8 +122,8 @@ void MiscTableModel::addMiscs(QList<Misc*> miscs)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       miscObs.append(tmp);
 
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
+      foreach( Misc *i, tmp )
+         connect( i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
 
       endInsertRows();
    }

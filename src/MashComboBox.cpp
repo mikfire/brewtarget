@@ -61,8 +61,8 @@ void MashComboBox::removeAllMashs()
    QList<Mash*> tmpMashs(mashObs);
    int i;
    
-   for( i = 0; i < tmpMashs.size(); ++i )
-      removeMash(tmpMashs[i]);
+   foreach( Mash* m, mashObs )
+      removeMash(m);
 }
 
 void MashComboBox::changed(QMetaProperty prop, QVariant /*val*/)
@@ -98,15 +98,14 @@ void MashComboBox::repopulateList()
    
    QList<Mash*> tmpMashs(mashObs);
    size = tmpMashs.size();
-   for( i = 0; i < size; ++i )
-      removeMash( tmpMashs[i] );
+   for(Mash *m, mashObs)
+      removeMash(m);
    
    tmpMashs.clear();
    tmpMashs = Database::instance().mashs();
    
-   size = tmpMashs.size();
-   for( i = 0; i < size; ++i )
-      addMash(tmpMashs[i]);
+   foreach( Mash *m, tmpMashs )
+      addMash(m);
    
    setCurrentIndex(-1);
 }
