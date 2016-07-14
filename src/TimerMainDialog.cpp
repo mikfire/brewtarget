@@ -251,6 +251,7 @@ void TimerMainDialog::on_loadRecipesButton_clicked()
     QString note;
     hops = recipe->hops();
     foreach (Hop* h, hops) {
+       // Oh. This cannot be a good idea?
         if (h->use() == 2) { //2 = Boil addition -- Hop::Use enum
             note = tr("%1 of %2").arg(Brewtarget::displayAmount(h->amount_kg(), "TimerNote", "hop_amount", Units::kilograms)).arg(h->name());
             int newTime = h->time_min() * 60;

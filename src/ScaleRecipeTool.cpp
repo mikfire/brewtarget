@@ -65,8 +65,6 @@ void ScaleRecipeTool::scale(Equipment* equip, double newEff)
    if( recObs == 0 || equip == 0 )
       return;
    
-   int i, size;
-   
    // Calculate volume ratio
    double currentBatchSize_l = recObs->batchSize_l();
    double newBatchSize_l = equip->batchSize_l();
@@ -82,71 +80,30 @@ void ScaleRecipeTool::scale(Equipment* equip, double newEff)
    recObs->setEfficiency_pct(newEff);
    recObs->setBoilTime_min(equip->boilTime_min());
    
-   QList<Fermentable*> ferms = recObs->fermentables();
-   size = ferms.size();
-   for( i = 0; i < size; ++i )
+   foreach( Fermentable* ferm, recObs->fermentables() )
    {
-      Fermentable* ferm = ferms[i];
-      // NOTE: why the hell do we need this?
-      if( ferm == 0 )
-         continue;
-      
       if( !ferm->isSugar() && !ferm->isExtract() ) {
          ferm->setAmount_kg(ferm->amount_kg() * effRatio * volRatio);
-      } else {
+      }
+      else {
          ferm->setAmount_kg(ferm->amount_kg() * volRatio);
       }
    }
    
-   QList<Hop*> hops = recObs->hops();
-   size = hops.size();
-   for( i = 0; i < size; ++i )
-   {
-      Hop* hop = hops[i];
-      // NOTE: why the hell do we need this?
-      if( hop == 0 )
-         continue;
-      
+   foreach(Hop* hop, recObs->hops() )
       hop->setAmount_kg(hop->amount_kg() * volRatio);
-   }
-   
-   QList<Misc*> miscs = recObs->miscs();
-   size = miscs.size();
-   for( i = 0; i < size; ++i )
-   {
-      Misc* misc = miscs[i];
-      // NOTE: why the hell do we need this?
-      if( misc == 0 )
-         continue;
-      
+ 
+   foreach( Misc* misc, recObs->miscs() )
       misc->setAmount( misc->amount() * volRatio );
-   }
-   
-   QList<Water*> waters = recObs->waters();
-   size = waters.size();
-   for( i = 0; i < size; ++i )
-   {
-      Water* water = waters[i];
-      // NOTE: why the hell do we need this?
-      if( water == 0 )
-         continue;
-      
+  
+   foreach( Water* water,recObs->waters() )
       water->setAmount_l(water->amount_l() * volRatio);
-   }
-   
+
    Mash* mash = recObs->mash();
    if( mash == 0 )
       return;
    
-   QList<MashStep*> mashSteps = mash->mashSteps();
-   size = mashSteps.size();
-   for( i = 0; i < size; ++i )
-   {
-      MashStep* step = mashSteps[i];
-      // NOTE: why the hell do we need this?
-      if( step == 0 )
-         continue;
-      
+   foreach( MashStep* step, mash->mashSteps()  ) {
       // Reset all these to zero so that the user
       // will know to re-run the mash wizard.
       step->setDecoctionAmount_l(0);

@@ -387,7 +387,7 @@ QString BrewDayScrollWidget::buildTitleTable(bool includeImage)
 QString BrewDayScrollWidget::buildInstructionTable()
 {
    QString middle;
-   int i, j, size;
+   int i, j;
 
    middle += QString("<h2>%1</h2>").arg(tr("Instructions"));
    middle += QString("<table id=\"steps\">");
@@ -398,14 +398,12 @@ QString BrewDayScrollWidget::buildInstructionTable()
 
    QList<Instruction*> instructions = recObs->instructions();
    QList<MashStep*> mashSteps = recObs->mash()->mashSteps();
-   size = instructions.size();
-   for( i = 0; i < size; ++i )
+   
+   foreach( Instruction *ins, instructions )
    {
       QString stepTime, tmp;
       QList<QString> reagents;
       
-      Instruction* ins = instructions[i];
-
       if (ins->interval())
          stepTime = Brewtarget::displayAmount(ins->interval(), Units::minutes, 0);
       else
@@ -441,7 +439,7 @@ QString BrewDayScrollWidget::buildInstructionTable()
          tmp = ins->directions();
       }
 
-      QString altTag = i % 2 ? "alt" : "norm";
+      QString altTag = ins->instructionNumber() % 2 ? "alt" : "norm";
 
       middle += QString("<tr class=\"%1\"><td class=\"check\"></td><td class=\"time\">%2</td><td align=\"step\">%3 : %4</td></tr>")
                .arg(altTag)

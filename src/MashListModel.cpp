@@ -52,11 +52,11 @@ void MashListModel::addMashes(QList<Mash*> m)
 {
    QList<Mash*>::iterator i;
    QList<Mash*> tmp;
-   
-   for( i = m.begin(); i != m.end(); i++ )
+  
+   foreach( Mash *i, m ) 
    {
-      if( !mashes.contains(*i) && (*i)->display() && ! (*i)->deleted())
-         tmp.append(*i);
+      if( !mashes.contains(i) && i->display() )
+         tmp.append(i);
    }
    
    int size = mashes.size();
@@ -65,8 +65,8 @@ void MashListModel::addMashes(QList<Mash*> m)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       mashes.append(tmp);
       
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(mashChanged(QMetaProperty,QVariant)) );
+      foreach( Mash *i, tmp ) 
+         connect( i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(mashChanged(QMetaProperty,QVariant)) );
       
       endInsertRows();
    }

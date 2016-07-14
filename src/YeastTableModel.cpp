@@ -120,10 +120,10 @@ void YeastTableModel::addYeasts(QList<Yeast*> yeasts)
    QList<Yeast*>::iterator i;
    QList<Yeast*> tmp;
 
-   for( i = yeasts.begin(); i != yeasts.end(); i++ )
+   foreach( Yeast* i, yeasts )
    {
-      if( !yeastObs.contains(*i) )
-         tmp.append(*i);
+      if( !yeastObs.contains(i) )
+         tmp.append(i);
    }
 
    int size = yeastObs.size();
@@ -132,8 +132,8 @@ void YeastTableModel::addYeasts(QList<Yeast*> yeasts)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       yeastObs.append(tmp);
 
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
+      foreach( Yeast* i, tmp )
+         connect( i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(changed(QMetaProperty,QVariant)) );
 
       endInsertRows();
    }

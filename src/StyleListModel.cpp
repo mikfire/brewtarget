@@ -50,11 +50,11 @@ void StyleListModel::addStyles(QList<Style*> s)
 {
    QList<Style*>::iterator i;
    QList<Style*> tmp;
-   
-   for( i = s.begin(); i != s.end(); i++ )
+  
+   foreach( Style *i, s)  
    {
-      if( !styles.contains(*i) )
-         tmp.append(*i);
+      if( !styles.contains(i) )
+         tmp.append(i);
    }
    
    int size = styles.size();
@@ -63,8 +63,8 @@ void StyleListModel::addStyles(QList<Style*> s)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       styles.append(tmp);
       
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(styleChanged(QMetaProperty,QVariant)) );
+      foreach( Style *i, tmp)  
+         connect( i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(styleChanged(QMetaProperty,QVariant)) );
       
       endInsertRows();
    }

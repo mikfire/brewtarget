@@ -249,18 +249,21 @@ QString BeerXMLElement::text(QDate const& val)
 void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant const& value, bool notify )
 {
    if (prop_name != NULL && col_name != NULL) {
+      QString cName = this->metaObject()->className();
 
-      if ( this->metaObject()->className() == QStringLiteral("Recipe") ) {
+      // Oddly, changing something on a recipe or a mash doesn't cause a
+      // version. So if we are changing a recipe, just do the oldskool
+      // updateEntry.
+      if (  cName == QStringLiteral("Recipe") ||
+            cName == QStringLiteral("Mash")    ) {
          // Get the meta property.
          int ndx = metaObject()->indexOfProperty(prop_name);
 
-         // Should schedule an update of the appropriate entry in table,
-         // then use prop to emit its notification signal.
          Database::instance().updateEntry( _table, _key, col_name, value, metaObject()->property(ndx), this, notify );
       }
+      // Everything else can
+      // version a recipe, so use modifyIngredient instead
       else {
-         // Should schedule an update of the appropriate entry in table,
-         // then use prop to emit its notification signal.
          Database::instance().modifyIngredient( this, prop_name, col_name, value);
       }
    }
