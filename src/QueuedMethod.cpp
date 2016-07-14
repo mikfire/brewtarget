@@ -35,8 +35,6 @@ QueuedMethod::QueuedMethod(
      _chainedMethod(),
      _obj(obj),
      _methodName(methodName),
-     //_retName(ret.name()),
-     //_retData(ret.data()),
      _arg0Name(arg0.name()),
      _arg0Data(arg0.data())
 {

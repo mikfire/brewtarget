@@ -53,15 +53,12 @@ void EquipmentListModel::addEquipments(QList<Equipment*> equips)
    QList<Equipment*>::iterator i;
    QList<Equipment*> tmp;
    
-   for( i = equips.begin(); i != equips.end(); i++ )
+   foreach( Equipment *e, equips ) 
    {
       // if the equipment is not already in the list and
-      // if the equipment has not been deleted and
       // if the equipment is to be displayed, then append it
-      if( !equipments.contains(*i) &&
-          !(*i)->deleted()         &&  
-           (*i)->display() )
-         tmp.append(*i);
+      if( !equipments.contains(e) && e->display() )
+         tmp.append(e);
    }
    
    int size = equipments.size();
@@ -70,8 +67,8 @@ void EquipmentListModel::addEquipments(QList<Equipment*> equips)
       beginInsertRows( QModelIndex(), size, size+tmp.size()-1 );
       equipments.append(tmp);
    
-      for( i = tmp.begin(); i != tmp.end(); i++ )
-         connect( *i, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(equipChanged(QMetaProperty,QVariant)) );
+      foreach( Equipment *e, tmp )
+         connect( e, SIGNAL(changed(QMetaProperty,QVariant)), this, SLOT(equipChanged(QMetaProperty,QVariant)) );
    
       endInsertRows();
    }
