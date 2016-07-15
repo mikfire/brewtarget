@@ -398,7 +398,7 @@ public:
       // Signal everything if we spawned
       if ( parent && wantsVersion(parent) ) {
          emit changed( metaProperty("recipes"), QVariant() );
-         emit newSignal(spawn);
+         emit createdSignal(spawn);
          emit spawned(parent,spawn);
       }
    }
@@ -503,17 +503,17 @@ public:
 signals:
    void changed(QMetaProperty prop, QVariant value);
 
-   void newSignal(BrewNote*);
-   void newSignal(Equipment*);
-   void newSignal(Fermentable*);
-   void newSignal(Hop*);
-   void newSignal(Mash*);
-   void newSignal(MashStep*);
-   void newSignal(Misc*);
-   void newSignal(Recipe*);
-   void newSignal(Style*);
-   void newSignal(Water*);
-   void newSignal(Yeast*);
+   void createdSignal(BrewNote*);
+   void createdSignal(Equipment*);
+   void createdSignal(Fermentable*);
+   void createdSignal(Hop*);
+   void createdSignal(Mash*);
+   void createdSignal(MashStep*);
+   void createdSignal(Misc*);
+   void createdSignal(Recipe*);
+   void createdSignal(Style*);
+   void createdSignal(Water*);
+   void createdSignal(Yeast*);
 
    void deletedSignal(Equipment*);
    void deletedSignal(Fermentable*);

@@ -388,10 +388,10 @@ bool Database::load()
          connect( e, SIGNAL(changedBoilTime_min(double)), rec, SLOT(setBoilTime_min(double)));
       }
 
-      foreach( Fermentable *ferm, fermentables(rec) ) 
+      foreach( Fermentable *ferm, fermentables(rec) )
          connect( ferm, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptFermChange(QMetaProperty,QVariant)) );
 
-      foreach( Hop *h, hops(rec) ) 
+      foreach( Hop *h, hops(rec) )
          connect( h, SIGNAL(changed(QMetaProperty,QVariant)), rec, SLOT(acceptHopChange(QMetaProperty,QVariant)) );
 
       foreach( Yeast *y, yeasts(rec) )
@@ -837,7 +837,7 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
          addToRecipe( tmp, other->style(), false, false);
       }
 
-      // other is an ancestor of our new recipe, 
+      // other is an ancestor of our new recipe,
       setAncestor(tmp,other,false);
    }
    catch (QString e) {
@@ -851,7 +851,7 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
    // Emit all our signals
    if ( notify  ) {
       emit changed( metaProperty("recipes"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
       emit spawned(other,tmp);
    }
 
@@ -1061,8 +1061,9 @@ QList<int> Database::ancestoralIds(Recipe const* descendant)
       QString("select r.id from ancestor a, recipe r where a.id = r.id");
 
    // That is a recursive query.
-   // The first select initializes the chain, so we get the id and ancestor_id of the current recipe.
-   // The UNION ALL does the recursive bit, where we find all the ancestors, making sure we stop when recipe.id = ancestor_id
+   // The first select initializes the chain, so we get the id and ancestor_id
+   // of the current recipe.  The UNION ALL does the recursive bit, where we
+   // find all the ancestors, making sure we stop when recipe.id = ancestor_id
    // The last select runs it and collects the information we want
    QSqlQuery q( sqlDatabase() );
    try {
@@ -1211,7 +1212,7 @@ BrewNote* Database::newBrewNote(BrewNote* other, bool signal)
       if ( signal )
       {
          emit changed( metaProperty("brewNotes"), QVariant() );
-         emit newSignal(tmp);
+         emit createdSignal(tmp);
       }
 
    }
@@ -1242,7 +1243,7 @@ BrewNote* Database::newBrewNote(Recipe* parent, bool signal)
    if ( signal )
    {
       emit changed( metaProperty("brewNotes"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
    }
 
    return tmp;
@@ -1259,7 +1260,7 @@ Equipment* Database::newEquipment(Equipment* other)
 
    if ( tmp ) {
       emit changed( metaProperty("equipments"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 couldn't copy %2").arg(Q_FUNC_INFO).arg(other->name()));
@@ -1279,7 +1280,7 @@ Fermentable* Database::newFermentable(Fermentable* other)
 
    if ( tmp ) {
       emit changed( metaProperty("fermentables"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 couldn't copy %2").arg(Q_FUNC_INFO).arg(other->name()));
@@ -1299,7 +1300,7 @@ Hop* Database::newHop(Hop* other)
 
    if ( tmp ) {
       emit changed( metaProperty("hops"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 could not %2 hop")
@@ -1390,7 +1391,7 @@ Mash* Database::newMash(Mash* other, bool displace)
    if ( other )
       sqlDatabase().commit();
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -1421,7 +1422,7 @@ Mash* Database::newMash(Recipe* parent, bool transact)
       sqlDatabase().commit();
 
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    connect( tmp, SIGNAL(changed(QMetaProperty,QVariant)), parent, SLOT(acceptMashChange(QMetaProperty,QVariant)) );
    return tmp;
@@ -1488,7 +1489,7 @@ Misc* Database::newMisc(Misc* other)
 
    if ( tmp ) {
       emit changed( metaProperty("miscs"), QVariant() );
-      emit newSignal(tmp);
+      emit createdSignal(tmp);
    }
    else {
       Brewtarget::logE( QString("%1 could not %2 misc")
@@ -1518,7 +1519,7 @@ Recipe* Database::newRecipe()
 
    sqlDatabase().commit();
    emit changed( metaProperty("recipes"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -1545,19 +1546,36 @@ bool Database::wantsVersion(Recipe* thing)
    return ret;
 }
 
-void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact) 
+void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
 {
    if ( transact )
       sqlDatabase().transaction();
 
    try {
       QSqlQuery q(sqlDatabase());
-      if ( ancestor != descendant ) 
-         ancestor->setDisplay(false);
 
       QString set_ancestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(ancestor->key()).arg(descendant->key());
-      if ( ! q.exec(set_ancestor) ) 
+
+      // If we are creating a descendant the ancestor is not displayed and
+      // locked.  When we orphan the recipe, the ancestor is the descendant,
+      // we display it and unlock it.
+      QString set_display = QString("update recipe set display = %1 where id = %2")
+         .arg( ancestor == descendant ? Brewtarget::dbTrue() : Brewtarget::dbFalse())
+         .arg( ancestor->key() );
+      QString set_locked  = QString("update recipe set locked = %1 where id = %2")
+         .arg( ancestor == descendant ? Brewtarget::dbFalse() : Brewtarget::dbTrue())
+         .arg( ancestor->key() );
+
+      if ( ! q.exec(set_ancestor) )
          throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
+
+
+      if ( ! q.exec(set_display) )
+         throw QString("Could not set ancestor's display flag (%1)").arg(q.lastError().text());
+
+      if ( ! q.exec(set_locked) )
+         throw QString("Could not lock ancestor (%1)").arg(q.lastError().text());
+
       q.finish();
    }
    catch (QString e) {
@@ -1606,7 +1624,7 @@ Recipe* Database::newRecipe(Recipe* other, bool ancestor)
 
    sqlDatabase().commit();
    emit changed( metaProperty("recipes"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -1628,7 +1646,7 @@ Style* Database::newStyle(Style* other)
    }
 
    emit changed( metaProperty("styles"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -1650,7 +1668,7 @@ Water* Database::newWater(Water* other)
    }
 
    emit changed( metaProperty("waters"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -1672,7 +1690,7 @@ Yeast* Database::newYeast(Yeast* other)
    }
 
    emit changed( metaProperty("yeasts"), QVariant() );
-   emit newSignal(tmp);
+   emit createdSignal(tmp);
 
    return tmp;
 }
@@ -2028,7 +2046,7 @@ void Database::addToRecipe( Recipe* rec, Equipment* e, bool noCopy, bool transac
    if( e == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    if ( transact )
@@ -2083,7 +2101,7 @@ void Database::addToRecipe( Recipe* rec, Fermentable* ferm, bool noCopy, bool tr
    Recipe* spawn;
    if ( ferm == 0 )
       return;
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    try {
@@ -2111,7 +2129,7 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
    if ( ferms.size() == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    if ( transact ) {
@@ -2146,9 +2164,9 @@ void Database::addToRecipe( Recipe* rec, QList<Fermentable*>ferms, bool transact
 
 void Database::addToRecipe( Recipe* rec, Hop* hop, bool noCopy, bool transact )
 {
-   Recipe *spawn; 
+   Recipe *spawn;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    try {
@@ -2174,10 +2192,10 @@ void Database::addToRecipe( Recipe* rec, QList<Hop*>hops, bool transact, Hop* ex
    if ( hops.size() == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
-   if ( transact ) 
+   if ( transact )
       sqlDatabase().transaction();
 
    try {
@@ -2211,10 +2229,10 @@ void Database::addToRecipe( Recipe* rec, Mash* m, bool noCopy, bool transact )
    Mash* newMash = m;
    Recipe* spawn;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
-   if ( transact ) 
+   if ( transact )
       sqlDatabase().transaction();
    // Make a copy of mash.
    // Making a copy of the mash isn't enough. We need a copy of the mashsteps
@@ -2256,7 +2274,7 @@ void Database::addToRecipe( Recipe* rec, Misc* m, bool noCopy, bool transact )
 {
    Recipe* spawn;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    try {
@@ -2282,10 +2300,10 @@ void Database::addToRecipe( Recipe* rec, QList<Misc*>miscs, bool transact, Misc*
    if ( miscs.size() == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
-   if ( transact ) 
+   if ( transact )
       sqlDatabase().transaction();
 
    try {
@@ -2316,7 +2334,7 @@ void Database::addToRecipe( Recipe* rec, Water* w, bool noCopy, bool transact )
 {
    Recipe* spawn;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    try {
@@ -2342,10 +2360,10 @@ void Database::addToRecipe( Recipe* rec, Style* s, bool noCopy, bool transact )
    if ( s == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
-   if ( transact ) 
+   if ( transact )
       sqlDatabase().transaction();
 
    try {
@@ -2377,7 +2395,7 @@ void Database::addToRecipe( Recipe* rec, Yeast* y, bool noCopy, bool transact )
 {
    Recipe* spawn;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    try {
@@ -2403,7 +2421,7 @@ void Database::addToRecipe( Recipe* rec, QList<Yeast*>yeasts, bool transact, Yea
    if ( yeasts.size() == 0 )
       return;
 
-   if ( rec->locked() ) 
+   if ( rec->locked() )
       return;
 
    if ( transact )
@@ -4167,7 +4185,7 @@ Equipment* Database::equipmentFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("equipments"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
 
    return ret;
@@ -4242,7 +4260,7 @@ Fermentable* Database::fermentableFromXml( QDomNode const& node, Recipe* parent 
    if( createdNew )
    {
       emit changed( metaProperty("fermentables"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
 
    return ret;
@@ -4400,7 +4418,7 @@ Hop* Database::hopFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("hops"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
    return ret;
 }
@@ -4487,7 +4505,7 @@ Mash* Database::mashFromXml( QDomNode const& node, Recipe* parent )
    blockSignals(false);
 
    emit changed( metaProperty("mashs"), QVariant() );
-   emit newSignal(ret);
+   emit createdSignal(ret);
    emit ret->mashStepsChanged();
 
    return ret;
@@ -4677,7 +4695,7 @@ Misc* Database::miscFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("miscs"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
    return ret;
 }
@@ -4782,7 +4800,7 @@ Recipe* Database::recipeFromXml( QDomNode const& node )
       ret->recalcAll();
       blockSignals(false);
 
-      emit newSignal(ret);
+      emit createdSignal(ret);
 
       return ret;
    }
@@ -4867,7 +4885,7 @@ Style* Database::styleFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("styles"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
 
    return ret;
@@ -4917,7 +4935,7 @@ Water* Database::waterFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("waters"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
 
    return ret;
@@ -5019,7 +5037,7 @@ Yeast* Database::yeastFromXml( QDomNode const& node, Recipe* parent )
    if( createdNew )
    {
       emit changed( metaProperty("yeasts"), QVariant() );
-      emit newSignal(ret);
+      emit createdSignal(ret);
    }
 
    return ret;

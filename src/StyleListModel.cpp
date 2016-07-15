@@ -26,7 +26,7 @@
 StyleListModel::StyleListModel(QWidget* parent)
    : QAbstractListModel(parent), recipe(0)
 {
-   connect( &(Database::instance()), SIGNAL(newSignal(Style*)), this, SLOT(addStyle(Style*)) );
+   connect( &(Database::instance()), SIGNAL(createdSignal(Style*)), this, SLOT(addStyle(Style*)) );
    connect( &(Database::instance()), SIGNAL(deletedSignal(Style*)), this, SLOT(removeStyle(Style*)) );
    repopulateList();
 }

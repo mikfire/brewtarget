@@ -104,7 +104,7 @@ void YeastTableModel::observeDatabase(bool val)
       observeRecipe(0);
 
       removeAll();
-      connect( &(Database::instance()), SIGNAL(newSignal(Yeast*)), this, SLOT(addYeast(Yeast*)) );
+      connect( &(Database::instance()), SIGNAL(createdSignal(Yeast*)), this, SLOT(addYeast(Yeast*)) );
       connect( &(Database::instance()), SIGNAL(deletedSignal(Yeast*)), this, SLOT(removeYeast(Yeast*)) );
       addYeasts( Database::instance().yeasts() );
    }

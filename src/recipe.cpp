@@ -1291,12 +1291,9 @@ void Recipe::setAncestor(Recipe* ancestor) {
    if ( ! ancestor )
       return;
 
-   // Marking an ancestor does two things -- it first sets the ancestor's
-   // display to false, and then sets the ancestoral flag.
+   // Marking an ancestor does three things -- it first sets the ancestor's
+   // display to false, locks the ancestor and then sets the ancestoral id
    Database::instance().setAncestor(this,ancestor);
-   if ( ancestor != this ) {
-      ancestor->setLocked(true);
-   }
    loadAncestors();
 
 }
@@ -1422,7 +1419,7 @@ void Recipe::recalcColor_srm()
 
    ret = ColorMethods::mcuToSrm(mcu);
  
-   if ( qFuzzyCompare(_color_srm,ret) ) 
+   if ( ! qFuzzyCompare(_color_srm,ret) ) 
    {
       _color_srm = ret;
       if (!_uninitializedCalcs)
@@ -1452,7 +1449,7 @@ void Recipe::recalcIBU()
       // Conversion factor for lb/gal to kg/l = 8.34538.
       ibus += f->ibuGalPerLb() * (f->amount_kg() / batchSize_l()) / 8.34538;
 
-   if ( qFuzzyCompare(ibus,_IBU) ) 
+   if ( ! qFuzzyCompare(ibus,_IBU) ) 
    {
       _IBU = ibus;
       if (!_uninitializedCalcs)
@@ -1533,7 +1530,7 @@ void Recipe::recalcVolumeEstimates()
    else
       tmp_pbv = batchSize_l(); // Give up.
 
-   if ( qFuzzyCompare(tmp_wfm,_wortFromMash_l) )
+   if ( ! qFuzzyCompare(tmp_wfm,_wortFromMash_l) )
    {
       _wortFromMash_l = tmp_wfm;
       if (!_uninitializedCalcs)
@@ -1542,7 +1539,7 @@ void Recipe::recalcVolumeEstimates()
       }
    }
 
-   if ( qFuzzyCompare(tmp_bv,_boilVolume_l) )
+   if ( ! qFuzzyCompare(tmp_bv,_boilVolume_l) )
    {
       _boilVolume_l = tmp_bv;
       if (!_uninitializedCalcs)
@@ -1551,7 +1548,7 @@ void Recipe::recalcVolumeEstimates()
       }
    }
    
-   if ( qFuzzyCompare(tmp_fv,_finalVolume_l) )
+   if ( ! qFuzzyCompare(tmp_fv,_finalVolume_l) )
    {
       _finalVolume_l = tmp_fv;
       if (!_uninitializedCalcs)
@@ -1560,7 +1557,7 @@ void Recipe::recalcVolumeEstimates()
       }
    }
 
-   if ( qFuzzyCompare(tmp_pbv,_postBoilVolume_l) )
+   if ( ! qFuzzyCompare(tmp_pbv,_postBoilVolume_l) )
    {
       _postBoilVolume_l = tmp_pbv;
       if (!_uninitializedCalcs)
@@ -1580,7 +1577,7 @@ void Recipe::recalcGrainsInMash_kg()
          ret += ferm->amount_kg();
    }
 
-   if ( qFuzzyCompare(ret,_grainsInMash_kg) ) 
+   if ( ! qFuzzyCompare(ret,_grainsInMash_kg) ) 
    {
       _grainsInMash_kg = ret;
       if (!_uninitializedCalcs)
@@ -1597,7 +1594,7 @@ void Recipe::recalcGrains_kg()
    foreach( Fermentable* ferm, fermentables() )
       ret += ferm->amount_kg();
 
-   if ( qFuzzyCompare(ret,_grains_kg) ) 
+   if ( ! qFuzzyCompare(ret,_grains_kg) ) 
    {
       _grains_kg = ret;
       if (!_uninitializedCalcs)
@@ -1650,7 +1647,7 @@ void Recipe::recalcCalories()
    if ( tmp < 0 )
       tmp = 0;
 
-   if ( qFuzzyCompare(tmp,_calories) ) 
+   if ( ! qFuzzyCompare(tmp,_calories) ) 
    {
       _calories = tmp;
       if (!_uninitializedCalcs)
@@ -1728,7 +1725,7 @@ void Recipe::recalcBoilGrav()
 
    ret = Algorithms::PlatoToSG_20C20C( Algorithms::getPlato(sugar_kg, boilSize_l()) );
  
-   if ( qFuzzyCompare(ret,_boilGrav) )
+   if ( ! qFuzzyCompare(ret,_boilGrav) )
    {
       _boilGrav = ret;
       if (!_uninitializedCalcs)
@@ -1821,7 +1818,7 @@ void Recipe::recalcOgFg()
       if( yeast->attenuation_pct() > attenuation_pct )
          attenuation_pct = yeast->attenuation_pct();
    }
-   if( qFuzzyCompare(attenuation_pct,0.0) ) // This means we have yeast, but they neglected to provide attenuation percentages.
+   if( ! qFuzzyCompare(attenuation_pct,0.0) ) // This means we have yeast, but they neglected to provide attenuation percentages.
       attenuation_pct = 75.0; // 75% is an average attenuation.
    
    if ( ! qFuzzyCompare(nonFermetableSugars_kg,0.0) )
@@ -1838,7 +1835,7 @@ void Recipe::recalcOgFg()
       _fg_fermentable = tmp_fg;
    }
    
-   if ( qFuzzyCompare(_og,tmp_og) ) 
+   if ( ! qFuzzyCompare(_og,tmp_og) ) 
    {
       _og     = tmp_og;
       // NOTE: We don't want to do this on the first load of the recipe. We
@@ -1852,7 +1849,7 @@ void Recipe::recalcOgFg()
       emit changed( metaProperty("points"), (_og-1.0)*1e3 );
    }
 
-   if ( qFuzzyCompare(tmp_fg,_fg) ) 
+   if ( ! qFuzzyCompare(tmp_fg,_fg) ) 
    {
       _fg     = tmp_fg;
       if ( ! _uninitializedCalcs ) 
