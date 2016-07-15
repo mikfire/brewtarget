@@ -65,7 +65,7 @@ void WaterTableModel::observeDatabase(bool val)
    {
       observeRecipe(0);
       removeAll();
-      connect( &(Database::instance()), SIGNAL(newSignal(Water*)), this, SLOT(addWater(Water*)) );
+      connect( &(Database::instance()), SIGNAL(createdSignal(Water*)), this, SLOT(addWater(Water*)) );
       connect( &(Database::instance()), SIGNAL(deletedSignal(Water*)), this, SLOT(removeWater(Water*)) );
       addWaters( Database::instance().waters() );
    }
