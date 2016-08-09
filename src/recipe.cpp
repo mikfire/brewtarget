@@ -1427,7 +1427,7 @@ void Recipe::recalcColor_srm()
 
    ret = ColorMethods::mcuToSrm(mcu);
  
-   if ( ! qFuzzyCompare(_color_srm,ret) ) 
+   if ( ! qFuzzyCompare(_color_srm,ret) )
    {
       _color_srm = ret;
       if (!_uninitializedCalcs)
@@ -1457,7 +1457,7 @@ void Recipe::recalcIBU()
       // Conversion factor for lb/gal to kg/l = 8.34538.
       ibus += f->ibuGalPerLb() * (f->amount_kg() / batchSize_l()) / 8.34538;
 
-   if ( ! qFuzzyCompare(ibus,_IBU) ) 
+   if ( ! qFuzzyCompare(ibus,_IBU) )
    {
       _IBU = ibus;
       if (!_uninitializedCalcs)
