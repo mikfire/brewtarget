@@ -847,7 +847,6 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
    }
 
    sqlDatabase().commit();
-   makeDirty();
    // Emit all our signals
    if ( notify  ) {
       emit changed( metaProperty("recipes"), QVariant() );
@@ -2082,9 +2081,7 @@ void Database::addToRecipe( Recipe* rec, Fermentable* ferm, bool noCopy, bool tr
    }
 
    // If somebody upstream is doing the transaction, let them call recalcAll
-   // and makeDirty
    if ( transact ) {
-      makeDirty();
       if (! noCopy )
          spawn->recalcAll();
    }

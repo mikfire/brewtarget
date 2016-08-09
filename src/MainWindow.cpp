@@ -498,7 +498,7 @@ MainWindow::MainWindow(QWidget* parent)
    // No connections from the database yet? Oh FSM, that probably means I'm
    // doing it wrong again.
    connect( &(Database::instance()), SIGNAL( deletedSignal(BrewNote*)), this, SLOT( closeBrewNote(BrewNote*)));
-   connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
+//   connect( &(Database::instance()), SIGNAL( spawned(Recipe*,Recipe*)), this, SLOT(versionedRecipe(Recipe*, Recipe*)));
 
    // I want to disable the fields so we know they are not modifiable. But I
    // don't want them so greyed out that you can't read them. Mucking with the
