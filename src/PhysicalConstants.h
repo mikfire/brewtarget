@@ -1,3 +1,4 @@
+autocmd FileType c,cpp,
 /*
  * PhysicalConstants.h is part of Brewtarget, and is Copyright the following
  * authors 2009-2014
