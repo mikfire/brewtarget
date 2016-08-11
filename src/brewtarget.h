@@ -63,6 +63,7 @@ class Brewtarget : public QObject
 {
    Q_OBJECT
    Q_ENUMS(DBTypes)
+   Q_ENUMS(delOptions)
 
    friend class OptionDialog;
    friend class IbuMethods;
@@ -75,6 +76,7 @@ class Brewtarget : public QObject
 
 public:
    Brewtarget();
+
 
    //! \brief The formula used to get beer color.
    enum ColorType {MOSHER, DANIEL, MOREY};
@@ -164,6 +166,11 @@ public:
       PGSQL       // big, powerful, uptight and a little stodgy
    };
 
+   //! \brief 
+   enum delOptions { 
+      ANCESTOR,     // Delete the recipe and all its ancestors
+      DESCENDANT    // Delete only the recipe (orphan and delete)
+   };
    //! \return the data directory
    static QDir getDataDir();
    //! \return the doc directory

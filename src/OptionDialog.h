@@ -45,6 +45,7 @@ class OptionDialog : public QDialog, public Ui::optionsDialog
 {
    Q_OBJECT
 public:
+
    //! \brief Default constructor.
    OptionDialog(QWidget *parent=0);
 
@@ -106,6 +107,7 @@ public slots:
    void testRequired();
    //! \brief handle the dialogs for saving passwords
    void savePassword(bool state);
+   void versioningChanged(bool state);
   
 
 protected:
@@ -128,7 +130,12 @@ private:
    void showChanges();
    //
    void changeColors();
-   QButtonGroup *colorGroup, *ibuGroup;
+   //
+   void configure_unitCombos();
+   void configure_formulaCombos();
+   void configure_languages();
+   void connect_signals();
+
    QStringList ndxToLangCode;
    QVector<QIcon> langIcons;
 };

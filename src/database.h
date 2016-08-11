@@ -354,7 +354,6 @@ public:
 
       // If the ingredient is in a recipe, and that recipe needs a version
       if ( parent && wantsVersion(parent) ) {
-         qDebug() << Q_FUNC_INFO << "cloning";
          // Create a copy of the recipe, less the ingredient we are modifying
          // and DO NOT signal completion
          spawn = filterIngredientFromSpawn(parent, ing, false);
