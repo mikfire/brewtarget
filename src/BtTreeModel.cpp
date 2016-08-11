@@ -825,7 +825,10 @@ void BtTreeModel::copySelected(QList< QPair<QModelIndex, QString> > toBeCopied)
 void BtTreeModel::deleteSelected(QModelIndexList victims)
 {
    QModelIndexList toBeDeleted = victims; // trust me
+   Recipe *rec;
 
+   // There are black zones of shadow close to our daily paths,
+   // and now and then some evil soul breaks a passage through.
    while ( ! toBeDeleted.isEmpty() )
    {
       QModelIndex ndx = toBeDeleted.takeFirst();
@@ -844,7 +847,19 @@ void BtTreeModel::deleteSelected(QModelIndexList victims)
             Database::instance().remove( misc(ndx) );
             break;
          case BtTreeItem::RECIPE:
-            Database::instance().remove( recipe(ndx) );
+            rec = recipe(ndx);
+
+            // Oddly enough, the ancestor list includes the recipe itself. So
+            // if we are deleting just the descendent, send just that.
+            // Otherwise, send the entire list.
+            if ( Brewtarget::option("deletewhat", Brewtarget::DESCENDANT).toInt() == Brewtarget::DESCENDANT ) {
+               orphanRecipe(ndx);
+               Database::instance().remove( rec );
+            }
+            else {
+               Database::instance().remove( rec->ancestors() );
+            }
+
             break;
          case BtTreeItem::STYLE:
             Database::instance().remove( style(ndx) );
@@ -1473,6 +1488,9 @@ void BtTreeModel::orphanRecipe(QModelIndex ndx)
    // Display all of its brewnotes
    addBrewNoteSubTree(orphan, ndx.row(), pNode, false);
 
+   // Set the ancestor to visible
+   ancestor->setDisplay(true);
+
    // Put the ancestor into the tree
    if ( ! insertRow(pIndex.row(), pIndex, ancestor, BtTreeItem::RECIPE) )
       Brewtarget::logW(QString("%1 : Could not add ancestor to tree").arg(Q_FUNC_INFO));
@@ -1480,7 +1498,7 @@ void BtTreeModel::orphanRecipe(QModelIndex ndx)
    // Find the ancestor in the tree
    QModelIndex ancNdx = findElement(ancestor);
    if ( ! ancNdx.isValid() ) {
-      qDebug() << Q_FUNC_INFO << "Bugger. Couldn't find the ancestor";
+      Brewtarget::logW(QString("%1 : Could not find ancestor").arg(Q_FUNC_INFO));
    }
 
    // Add the ancestor's brewnotes to the descendant

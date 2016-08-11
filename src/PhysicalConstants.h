@@ -32,7 +32,7 @@ namespace PhysicalConstants{
    const double liquidExtractDensity_kgL = 1.412;
    //! \brief Dry extract density in kg per L.
    const double dryExtractDensity_kgL = sucroseDensity_kgL;
-   
+
    //! \brief How many liters of water get absorbed by 1 kg of grain.
    const double grainAbsorption_Lkg = 1.085;
 }

@@ -42,7 +42,6 @@
 
 OptionDialog::OptionDialog(QWidget* parent)
 {
-   int i;
 
    // I need a lot of control over what is displayed on the DbConfig dialog.
    // Maybe designer can do it? No idea. So I did this hybrid model, and I
@@ -57,6 +56,35 @@ OptionDialog::OptionDialog(QWidget* parent)
       setWindowIcon(parent->windowIcon());
    }
 
+   // set up the language panel
+   configure_languages();
+
+   // Call this here to set up translatable strings.
+   retranslate();
+
+   // Populate combo boxes on the "Units" tab
+   configure_unitCombos();
+
+   // Populate combo boxes on the "Formulas" tab
+   configure_formulaCombos();
+
+   // database panel stuff
+   comboBox_engine->addItem( tr("SQLite (default)"), QVariant(Brewtarget::SQLITE));
+   comboBox_engine->addItem( tr("PostgreSQL"), QVariant(Brewtarget::PGSQL));
+
+   // figure out which database we have
+   setDbDialog((Brewtarget::DBTypes)Brewtarget::option("dbType", Brewtarget::SQLITE).toInt());
+
+   // Set the signals
+   connect_signals();
+
+   pushButton_testConnection->setEnabled(false);
+
+}
+
+void OptionDialog::configure_languages()
+{
+   int i;
    ndxToLangCode <<
       "ca" <<
       "cs" <<
@@ -112,11 +140,11 @@ OptionDialog::OptionDialog(QWidget* parent)
    // Set icons.
    for( i = 0; i < langIcons.size(); ++i )
       comboBox_lang->setItemIcon(i, langIcons[i]);
+}
 
-   // Call this here to set up translatable strings.
-   retranslate();
+void OptionDialog::configure_unitCombos()
+{
 
-   // Populate combo boxes on the "Units" tab
    weightComboBox->addItem(tr("SI units"), QVariant(SI));
    weightComboBox->addItem(tr("US traditional units"), QVariant(USCustomary));
    weightComboBox->addItem(tr("British imperial units"), QVariant(Imperial));
@@ -137,6 +165,7 @@ OptionDialog::OptionDialog(QWidget* parent)
 
    colorComboBox->addItem(tr("SRM"), QVariant(Brewtarget::SRM));
    colorComboBox->addItem(tr("EBC"), QVariant(Brewtarget::EBC));
+}
 
    diastaticPowerComboBox->addItem(tr("Lintner"), QVariant(Brewtarget::LINTNER));
    diastaticPowerComboBox->addItem(tr("WK"), QVariant(Brewtarget::WK));
@@ -149,20 +178,16 @@ OptionDialog::OptionDialog(QWidget* parent)
    colorFormulaComboBox->addItem(tr("Mosher's approximation"), QVariant(Brewtarget::MOSHER));
    colorFormulaComboBox->addItem(tr("Daniel's approximation"), QVariant(Brewtarget::DANIEL));
    colorFormulaComboBox->addItem(tr("Morey's approximation"), QVariant(Brewtarget::MOREY));
+}
+
+void OptionDialog::connect_signals()
+{
+   connect( comboBox_engine, SIGNAL( currentIndexChanged(int) ), this, SLOT( setEngine(int) ) );
+   connect( pushButton_testConnection, SIGNAL( clicked() ), this, SLOT(testConnection()));
 
    connect( buttonBox, SIGNAL( accepted() ), this, SLOT( saveAndClose() ) );
    connect( buttonBox, SIGNAL( rejected() ), this, SLOT( cancel() ) );
 
-   // database panel stuff
-   comboBox_engine->addItem( tr("SQLite (default)"), QVariant(Brewtarget::SQLITE));
-   comboBox_engine->addItem( tr("PostgreSQL"), QVariant(Brewtarget::PGSQL));
-   connect( comboBox_engine, SIGNAL( currentIndexChanged(int) ), this, SLOT( setEngine(int) ) );
-   connect( pushButton_testConnection, SIGNAL( clicked() ), this, SLOT(testConnection()));
-
-   // figure out which database we have
-   setDbDialog((Brewtarget::DBTypes)Brewtarget::option("dbType", Brewtarget::SQLITE).toInt());
-
-   // Set the signals
    connect( checkBox_savePassword, SIGNAL(clicked(bool)), this, SLOT(savePassword(bool)));
 
    connect( btStringEdit_hostname, SIGNAL( textModified() ), this, SLOT(testRequired()));
@@ -175,8 +200,8 @@ OptionDialog::OptionDialog(QWidget* parent)
    connect( pushButton_browseDataDir, SIGNAL( clicked() ), this, SLOT( setDataDir() ) );
    connect( pushButton_browseBackupDir, SIGNAL( clicked() ), this, SLOT( setBackupDir() ) );
    connect( pushButton_resetToDefault, SIGNAL( clicked() ), this, SLOT( resetToDefault() ) );
-   pushButton_testConnection->setEnabled(false);
 
+   connect( checkBox_versioning, SIGNAL(clicked(bool)), this, SLOT(versioningChanged(bool)));
 }
 
 void OptionDialog::retranslate()
@@ -455,6 +480,20 @@ void OptionDialog::saveAndClose()
    if( Brewtarget::mainWindow() )
       Brewtarget::mainWindow()->showChanges();
 
+   // Set the versioning things
+   if ( checkBox_versioning->checkState() == Qt::Checked ) {
+      Brewtarget::setOption( "versioning", true );
+      if ( radioButton_deleteAncestor->isChecked() ) {
+         Brewtarget::setOption( "deletewhat", Brewtarget::ANCESTOR );
+      }
+      else if ( radioButton_deleteDescendant->isChecked() ) {
+         Brewtarget::setOption( "deletewhat", Brewtarget::DESCENDANT );
+      }
+   }
+   else {
+      Brewtarget::setOption( "versioning", false );
+   }
+
    setVisible(false);
 }
 
@@ -512,6 +551,24 @@ void OptionDialog::showChanges()
 
    status = OptionDialog::NOCHANGE;
    changeColors();
+
+   // Versioning stuff
+   if ( Brewtarget::option("versioning",true).toBool() ) {
+      checkBox_versioning->setCheckState(Qt::Checked);
+      groupBox_deleteBehavior->setEnabled(true);
+      switch ( Brewtarget::option("deletewhat", Brewtarget::DESCENDANT).toInt() ) {
+         case Brewtarget::ANCESTOR:
+            radioButton_deleteAncestor->setChecked(true);
+            break;
+         case Brewtarget::DESCENDANT:
+            radioButton_deleteDescendant->setChecked(true);
+            break;
+      }
+   }
+   else {
+      checkBox_versioning->setCheckState(Qt::Unchecked);
+      groupBox_deleteBehavior->setEnabled(false);
+   }
 }
 
 void OptionDialog::postgresVisible(bool canSee)
@@ -549,7 +606,7 @@ void OptionDialog::sqliteVisible(bool canSee)
    spinBox_frequency->setVisible(canSee);
 }
 
-void OptionDialog::setDbDialog(Brewtarget::DBTypes db) 
+void OptionDialog::setDbDialog(Brewtarget::DBTypes db)
 {
    groupBox_dbConfig->setVisible(false);
 
@@ -577,7 +634,7 @@ void OptionDialog::setDbDialog(Brewtarget::DBTypes db)
       gridLayout->addWidget(btStringEdit_password,4,1);
 
       gridLayout->addWidget(checkBox_savePassword, 4, 4);
-      
+
    }
    else {
       postgresVisible(false);
@@ -788,7 +845,7 @@ void OptionDialog::testConnection()
          success = Database::verifyDbConnection(newType,hostname);
    }
 
-   if ( success ) 
+   if ( success )
    {
       QMessageBox::information(0,
                            QObject::tr("Connection Test"),
@@ -796,7 +853,7 @@ void OptionDialog::testConnection()
                            );
       status = OptionDialog::TESTPASSED;
    }
-   else 
+   else
    {
       // Database::testConnection already popped the dialog
       status = OptionDialog::TESTFAILED;
@@ -844,7 +901,12 @@ void OptionDialog::changeColors()
 void OptionDialog::savePassword(bool state)
 {
    if ( state ) {
-      QMessageBox::warning(0, QObject::tr("Plaintext"), 
+      QMessageBox::warning(0, QObject::tr("Plaintext"),
                               QObject::tr("Passwords are saved in plaintext. We make no effort to hide, obscure or otherwise protect the password. By enabling this option, you take full responsibility for any potential problems."));
    }
+}
+
+void OptionDialog::versioningChanged(bool state)
+{
+   groupBox_deleteBehavior->setEnabled(state);
 }

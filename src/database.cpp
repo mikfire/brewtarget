@@ -830,7 +830,6 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
          addToRecipe( tmp, other->equipment(), false, false);
       }
       if ( ing->metaObject()->className() != QStringLiteral("Mash") ) {
-         qDebug() << Q_FUNC_INFO << "adding mash";
          addToRecipe( tmp, other->mash(), false, false);
       }
       if ( ing->metaObject()->className() != QStringLiteral("Style") ) {
@@ -1527,6 +1526,12 @@ Recipe* Database::newRecipe()
 bool Database::wantsVersion(Recipe* thing)
 {
    bool ret = false;
+
+   // If the user has said they don't want versioning, just return false.
+   if ( ! Brewtarget::option("versioning", true).toBool() ) {
+      return false;
+   }
+
    // When is a version needed? I will rely on the interface to mark ancestors
    // "read-only" -- that is, it will be up to the UI to disable anything that
    // could modify an ancestor. My only question here is do I fork the recipe
@@ -5601,7 +5606,6 @@ BeerXMLElement* Database::clone(BeerXMLElement* donor)
 {
    QString className = donor->metaObject()->className();
 
-   qDebug() << Q_FUNC_INFO;
    if ( className == QStringLiteral("Equipment") )
       return newEquipment( qobject_cast<Equipment*>(donor));
    else if ( className == QStringLiteral("Fermentable") )
@@ -5626,7 +5630,6 @@ void Database::addToRecipe(Recipe* rec, BeerXMLElement* bxml, bool noCopy, bool 
 {
    QString className = bxml->metaObject()->className();
 
-   qDebug() << Q_FUNC_INFO;
    if ( className == QStringLiteral("Equipment") )
       addToRecipe( rec, qobject_cast<Equipment*>(bxml), noCopy, transact);
    else if ( className == QStringLiteral("Fermentable") )
