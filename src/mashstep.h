@@ -39,6 +39,8 @@ bool operator==(MashStep &m1, MashStep &m2);
 class MashStep : public BeerXMLElement
 {
    Q_OBJECT
+   Q_CLASSINFO("signal", "mashsteps")
+   Q_CLASSINFO("prefix", "mashsteps")
    
    friend class Database;
    friend class MashStepItemDelegate;

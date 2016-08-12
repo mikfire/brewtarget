@@ -1420,21 +1420,26 @@ Qt::DropActions BtTreeModel::supportedDropActions() const
 // ===================== RECIPE VERSION STUFF ==============================
 // =========================================================================
 
+// The BtTreeItem is allowed to override display(). showChild() provides a
+// convenience method for the filter to determine if the override is required
 bool BtTreeModel::showChild(QModelIndex child) const
 {
    BtTreeItem* node = item(child);
    return node->showMe();
 }
 
+// And where there's a get, there should always be a set
 void BtTreeModel::setShowChild(QModelIndex child, bool val)
 {
    BtTreeItem* node = item(child);
    node->setShowMe(val);
 }
 
-// do not call up any that you can not put down
+// The user is allowed to drop a recipe on another in order to set up the
+// ancestoral relation. This method makes that happen.
 void BtTreeModel::makeAncestors(BeerXMLElement* anc, BeerXMLElement* dec)
 {
+   // do not call up any that you can not put down
    // if you try to make something an ancestor of itself, return
    if ( dec == anc )
       return;
@@ -1598,4 +1603,20 @@ void BtTreeModel::hideAncestors(QModelIndex ndx)
       // more, because I would like to issue just one signal instead of X
       emit dataChanged(cIndex,cIndex);
    }
+}
+
+void BtTreeModel::spawnRecipe(QModelIndex ndx) 
+{
+   Recipe *anc = recipe(ndx);
+   Recipe *dec = Database::instance().newRecipe(anc,true);
+
+   // First, we remove the ancestor from the tree
+   removeRows(ndx.row(),1,this->parent(ndx));
+
+   // Now we need to find the descendant in the tree. This has to be done
+   // after we removed the rows.
+   QModelIndex decNdx = findElement(dec);
+
+   emit dataChanged(decNdx,decNdx);
+   emit recipeSpawn(dec);
 }

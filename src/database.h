@@ -248,6 +248,8 @@ public:
    void addToRecipe( Recipe* rec, Fermentable* ferm, bool noCopy = false, bool transact = true);
    //! Add a mash, displacing any current mash.
    void addToRecipe( Recipe* rec, Mash* m, bool noCopy = false, bool transact = true );
+   //! noop, just to make later code prettier
+   void addToRecipe( Recipe* rec, MashStep* m) {return;}
    void addToRecipe( Recipe* rec, Misc* m, bool noCopy = false, bool transact = true);
    //! Add a style, displacing any current style.
    void addToRecipe( Recipe* rec, Style* s, bool noCopy = false, bool transact = true );
@@ -359,7 +361,12 @@ public:
          spawn = filterIngredientFromSpawn(parent, ing, false);
          // Clone what we want to modify. Believe it or not, this is sort of
          // the magic step. 
-         ingClone = clone(ing);
+         if ( ing->metaObject()->className() == QStringLiteral("MashStep") ) {
+            ingClone = clone(ing,spawn);
+         }
+         else {
+            ingClone = clone(ing);
+         }
          // Add the clone to the recipe and don't copy it, because we already
          // did
          addToRecipe(spawn, ingClone, true);
@@ -990,12 +997,13 @@ private:
    Hop*         clone(Hop* donor);
 //   Instruction* clone(Instruction* donor);
    Mash*        clone(Mash* donor);
-//   MashStep*    clone(MashStep* donor);
+   MashStep*    clone(MashStep* donor, Recipe* spawn);
    Misc*        clone(Misc* donor);
    Style*       clone(Style* donor);
    Water*       clone(Water* donor);
    Yeast*       clone(Yeast* donor);
    BeerXMLElement* clone(BeerXMLElement* donor);
+   BeerXMLElement* clone(BeerXMLElement* donor, Recipe* spawn);
    void addToRecipe(Recipe* rec, BeerXMLElement* bxml, bool noCopy = false, bool transact = true );
 
 };

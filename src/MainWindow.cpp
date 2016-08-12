@@ -510,7 +510,9 @@ MainWindow::MainWindow(QWidget* parent)
 // I think I may actually want to catch this here instead of in the tree,
 void MainWindow::versionedRecipe(Recipe* descendant) 
 {
+   QModelIndex ndx = treeView_recipe->findElement(descendant);
    setRecipe(descendant);
+   treeView_recipe->setCurrentIndex(ndx);
 }
 
 // When a recipe locks, many fields need to be disabled. This method handles
@@ -1332,7 +1334,6 @@ Yeast* MainWindow::selectedYeast()
    return y;
 }
 
-
 void MainWindow::removeSelectedFermentable()
 {
     QList<Fermentable *> itemsToRemove;
@@ -1348,7 +1349,6 @@ void MainWindow::removeSelectedFermentable()
         recipeObs->remove(f);
     }
 }
-
 
 void MainWindow::editSelectedFermentable()
 {
@@ -1404,7 +1404,6 @@ void MainWindow::removeSelectedHop()
         recipeObs->remove(h);
     }
 }
-
 
 void MainWindow::removeSelectedMisc()
 {
@@ -1621,6 +1620,7 @@ void MainWindow::setTreeSelection(QModelIndex item)
    active->scrollTo(item,QAbstractItemView::PositionAtCenter);
 
 }
+
 // reduces the inventory by the selected recipes
 void MainWindow::reduceInventory(){
 

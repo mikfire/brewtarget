@@ -65,7 +65,7 @@ BtTreeView::BtTreeView(QWidget *parent, BtTreeModel::TypeMasks type) :
    _filter->setSourceModel(_model);
    setModel(_filter);
    _filter->setDynamicSortFilter(true);
-   
+
    setExpanded(findElement(0), true);
    setSortingEnabled(true);
    sortByColumn(0,Qt::AscendingOrder);
@@ -125,7 +125,7 @@ QString BtTreeView::folderName(QModelIndex index)
    BeerXMLElement* thing = _model->thing(_filter->mapToSource(index));
    if ( thing )
       return _model->thing(_filter->mapToSource(index))->folder();
-   else 
+   else
       return "";
 }
 
@@ -166,7 +166,7 @@ Style* BtTreeView::style(const QModelIndex &index) const
 
 BrewNote* BtTreeView::brewNote(const QModelIndex &index) const
 {
-   if ( ! index.isValid() ) 
+   if ( ! index.isValid() )
       return NULL;
 
    return _model->brewNote(_filter->mapToSource(index));
@@ -174,7 +174,7 @@ BrewNote* BtTreeView::brewNote(const QModelIndex &index) const
 
 BtFolder* BtTreeView::folder(const QModelIndex &index) const
 {
-   if ( ! index.isValid() ) 
+   if ( ! index.isValid() )
       return NULL;
 
    return _model->folder(_filter->mapToSource(index));
@@ -242,7 +242,7 @@ void BtTreeView::mouseMoveEvent(QMouseEvent *event)
 
    drag->setMimeData(data);
    drag->start(Qt::CopyAction);
-} 
+}
 
 void BtTreeView::keyPressEvent(QKeyEvent *event)
 {
@@ -258,7 +258,7 @@ void BtTreeView::keyPressEvent(QKeyEvent *event)
    QTreeView::keyPressEvent(event);
 }
 
-QMimeData* BtTreeView::mimeData(QModelIndexList indexes) 
+QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
 {
    QMimeData *mimeData = new QMimeData();
    QByteArray encodedData;
@@ -277,7 +277,7 @@ QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
          continue;
 
       _type = type(index);
-      if ( _type != BtTreeItem::FOLDER ) 
+      if ( _type != BtTreeItem::FOLDER )
       {
          id   = _model->thing(_filter->mapToSource(index))->key();
          name = _model->name(_filter->mapToSource(index));
@@ -285,7 +285,7 @@ QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
          if ( itsa == -1 )
             itsa = _type;
       }
-      else 
+      else
       {
          id = -1;
          name = _model->folder(_filter->mapToSource(index))->fullPath();
@@ -294,7 +294,7 @@ QMimeData* BtTreeView::mimeData(QModelIndexList indexes)
    }
 
    // Recipes, equipment and styles get dropped on the recipe pane
-   if ( itsa == BtTreeItem::RECIPE || itsa == BtTreeItem::STYLE || itsa == BtTreeItem::EQUIPMENT ) 
+   if ( itsa == BtTreeItem::RECIPE || itsa == BtTreeItem::STYLE || itsa == BtTreeItem::EQUIPMENT )
       name = "application/x-brewtarget-recipe";
    // Everything other than folders get dropped on the ingredients pane
    else if ( itsa != -1 )
@@ -315,7 +315,7 @@ bool BtTreeView::multiSelected()
    hasRecipe        = false;
    hasSomethingElse = false;
 
-   if ( selected.count() == 0 ) 
+   if ( selected.count() == 0 )
       return false;
 
    foreach (QModelIndex selection, selected)
@@ -407,10 +407,23 @@ void BtTreeView::orphanRecipe()
    }
 }
 
+void BtTreeView::spawnRecipe()
+{
+   if ( _type == BtTreeModel::RECIPEMASK ) {
+      QModelIndexList indexes = selectionModel()->selectedRows();
+
+      foreach(QModelIndex selected, indexes) {
+         // make sure we see the ancestors in an interesting way
+         _model->spawnRecipe(_filter->mapToSource(selected));
+      }
+   }
+}
+
 void BtTreeView::enableDelete(bool enable) { _deleteAction->setEnabled(enable); }
 void BtTreeView::enableShowAncestor(bool enable) { _showAncestorAction->setEnabled(enable); }
 void BtTreeView::enableHideAncestor(bool enable) { _hideAncestorAction->setEnabled(enable); }
 void BtTreeView::enableOrphan(bool enable) { _orphanAction->setEnabled(enable); }
+void BtTreeView::enableSpawn(bool enable) { _spawnAction->setEnabled(enable); }
 
 void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
 {
@@ -426,7 +439,7 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
    _newMenu->setTitle(tr("New"));
    _contextMenu->addMenu(_newMenu);
 
-   switch(_type) 
+   switch(_type)
    {
       // the recipe case is a bit more complex, because we need to handle the brewnotes too
       case BtTreeModel::RECIPEMASK:
@@ -436,7 +449,8 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
          _versionMenu->setTitle("Ancestors");
          _showAncestorAction = _versionMenu->addAction(tr("Show Ancestors"), this, SLOT(showAncestors()));
          _hideAncestorAction = _versionMenu->addAction(tr("Hide Ancestors"), this, SLOT(hideAncestors()));
-         _orphanAction      = _versionMenu->addAction(tr("Orphan Recipe"), this, SLOT(orphanRecipe()));
+         _orphanAction       = _versionMenu->addAction(tr("Orphan Recipe"), this, SLOT(orphanRecipe()));
+         _spawnAction        = _versionMenu->addAction(tr("Version Recipe"), this, SLOT(spawnRecipe()));
          _contextMenu->addMenu(_versionMenu);
 
          _contextMenu->addSeparator();
@@ -487,8 +501,8 @@ void BtTreeView::setupContextMenu(QWidget* top, QWidget* editor)
    _contextMenu->addMenu(_exportMenu);
    _contextMenu->addAction(tr("Import"), top, SLOT(importFiles()));
 
-   
-} 
+
+}
 
 QMenu* BtTreeView::contextMenu(QModelIndex selected)
 {
@@ -499,14 +513,19 @@ QMenu* BtTreeView::contextMenu(QModelIndex selected)
       Recipe *rec = recipe(selected);
       QModelIndex translated = _filter->mapToSource(selected);
 
+      // A locked recipe cannot be deleted
       enableDelete( ! rec->locked() );
-      // If we have ancestors and are showing then, enable hideAncestors
-      enableHideAncestor(rec->hasAncestors() && _model->showChild(translated));
-      // If we have ancestors and are not showing then, enable showAncestors
+      // If we have ancestors and are showing them but are not an actual
+      // ancestor (eww), then enable hideAncestors
+      enableHideAncestor(rec->hasAncestors() && _model->showChild(translated) && rec->display());
+      // If we have ancestors and are not showing, then enable showAncestors
       enableShowAncestor(rec->hasAncestors() && ! _model->showChild(translated));
       // If we have ancestors and are not locked, we are a leaf node. Allow
       // detachment
       enableOrphan(rec->hasAncestors() && ! rec->locked() );
+      // If display is true, we can spawn it. This mostly should mean no
+      // ancestor can be spawned, which is what I want.
+      enableSpawn( rec->display() );
    }
    return _contextMenu;
 }
@@ -528,7 +547,7 @@ QString BtTreeView::verifyCopy(QString tag, QString name, bool *abort)
 
       name = askEm.textValue();
    }
-   else 
+   else
    {
       if ( abort )
          *abort = true;
@@ -544,7 +563,7 @@ void BtTreeView::copySelected(QModelIndexList selected)
    QModelIndexList translated;
    bool abort = false;
 
-   // Time to lay down the boogie 
+   // Time to lay down the boogie
    foreach( QModelIndex at, selected )
    {
       // If somebody said cancel, bug out
@@ -612,8 +631,8 @@ void BtTreeView::deleteSelected(QModelIndexList selected)
    QModelIndexList translated;
 
    int confirmDelete = QMessageBox::NoButton;
-  
-   // Time to lay down the boogie 
+
+   // Time to lay down the boogie
    foreach( QModelIndex at, selected )
    {
       // If somebody said cancel, bug out
@@ -633,7 +652,7 @@ void BtTreeView::deleteSelected(QModelIndexList selected)
          translated.append(trans);
          continue;
       }
-      
+
       // Otherwise prompt
       switch(_model->type(trans))
       {

@@ -192,6 +192,8 @@ public:
    void hideAncestors(QModelIndex ndx);
    //! \brief breaks the HEAD recipe off the ancestoral chain.
    void orphanRecipe(QModelIndex ndx);
+   //! \brief adds a recipe to the HEAD
+   void spawnRecipe(QModelIndex ndx);
 
 private slots:
    //! \brief slot to catch a changed folder signal. Folders are odd, because they

@@ -596,7 +596,7 @@ void Database::automaticBackup()
    backupToDir(backupDir,newName);
 
    // If we have maxBackups == -1, it means never clean. It also means we
-   // don't track the filenames. 
+   // don't track the filenames.
    if ( maxBackups == -1 )  {
       Brewtarget::removeOption("files","backups");
       return;
@@ -623,7 +623,7 @@ void Database::automaticBackup()
       }
    }
 
-   // re-encode the list 
+   // re-encode the list
    listOfFiles = fileNames.join(",");
 
    // finally, reset the counter and save the new list of files
@@ -1560,7 +1560,7 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
       QString set_ancestor = QString("update recipe set ancestor_id = %1 where id = %2").arg(ancestor->key()).arg(descendant->key());
 
       // If we are creating a descendant the ancestor is not displayed and
-      // locked.  When we orphan the recipe, the ancestor is the descendant, 
+      // locked.  When we orphan the recipe, the ancestor is the descendant,
       // we display it and unlock it.
       QString set_display = QString("update recipe set display = %1 where id = %2")
          .arg( ancestor == descendant ? Brewtarget::dbTrue() : Brewtarget::dbFalse())
@@ -1575,7 +1575,7 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
 
       if ( ! q.exec(set_display) )
          throw QString("Could not set ancestor's display flag (%1)").arg(q.lastError().text());
-      
+
       if ( ! q.exec(set_locked) )
          throw QString("Could not lock ancestor (%1)").arg(q.lastError().text());
 
@@ -1773,17 +1773,29 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
       if ( ndx == -1 )
          throw QString("could not locate classInfo for prefix on %1").arg(meta->className());
 
-      fKey = QString("%1_id").arg(meta->classInfo(ndx).value());
-
-      // if we have an in_recipe table, use it.
-      if ( Database::tableToChildTable.contains(table) ) {
-         tableToSearch = QString("%1_in_recipe").arg(meta->classInfo(ndx).value());
-         idToReturn = QString("recipe_id");
+      // When dealing with a mashstep, we need to find the recipe that has the
+      // mash that has the mashstep. Oddly, we can do this by joining on the
+      // mash_id in the mashstep and recipe table, with no need to actually
+      // use the mash table at all. The rest of this is just an egregious hack
+      // to have to use just one search.
+      if ( meta->className() == QStringLiteral("MashStep") ) {
+         idToReturn = QStringLiteral("r.id");
+         tableToSearch = QStringLiteral("recipe r, mashstep ms");
+         fKey = QStringLiteral("ms.mash_id = r.mash_id and ms.id=");
       }
-      // if we don't, it means the recipe points to the thing. Maybe.
       else {
-         tableToSearch = QStringLiteral("recipe");
-         idToReturn = QString("id");
+         fKey = QString("%1_id").arg(meta->classInfo(ndx).value());
+
+         // if we have an in_recipe table, use it.
+         if ( Database::tableToChildTable.contains(table) ) {
+            tableToSearch = QString("%1_in_recipe").arg(meta->classInfo(ndx).value());
+            idToReturn = QString("recipe_id");
+         }
+         // if we don't, it means the recipe points to the thing. Maybe.
+         else {
+            tableToSearch = QStringLiteral("recipe");
+            idToReturn = QString("id");
+         }
       }
 
       findIt = QString("select %1 from %2 where %3=%4")
@@ -5615,6 +5627,14 @@ void Database::addToRecipe(Recipe* rec, BeerXMLElement* bxml, bool noCopy, bool 
 }
 
 
-// This one will need more work. We will need to arrange to get the mash
-// step's parent mash
-// MashStep* Database::clone(MashStep* donor) { return newMashStep(donor) }
+// This one does not work like the rest. I *think* it works like this:
+//    1. filterIngredientFromRecipe will copy all of the mashsteps;
+//    2. clone() will use the stepnumber from the donor mashstep to find the
+//       mashstep in the newly spawned recipe
+//    3. clone will return the mashsteps pointer.
+MashStep* Database::clone(MashStep* donor, Recipe* spawn)
+{
+   return spawn->mash()->mashSteps().at( donor->stepNumber()-1 );
+}
+
+BeerXMLElement* Database::clone(BeerXMLElement* donor, Recipe* spawn) { return clone(qobject_cast<MashStep*>(donor),spawn); }

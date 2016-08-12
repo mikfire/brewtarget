@@ -100,10 +100,14 @@ public:
    //! \brief gets the type of the item at \c index. 
    int type(const QModelIndex &index);
 
+   //! \brief convenience methods to enable and disable various actions in the
+   // Ancestors submenu
    void enableDelete(bool enable);
    void enableShowAncestor(bool enable);
    void enableHideAncestor(bool enable);
    void enableOrphan(bool enable);
+   void enableSpawn(bool enable);
+
    //! returns true if a recipe and an ingredient (hop, equipment, etc.) are selected at the same time
    bool multiSelected();
 
@@ -144,6 +148,7 @@ private slots:
    void showAncestors();
    void hideAncestors();
    void orphanRecipe();
+   void spawnRecipe();
 
 signals: 
    void recipeSpawn(Recipe* dec);
@@ -152,8 +157,14 @@ private:
    BtTreeModel* _model;
    BtTreeFilterProxyModel* _filter;
    BtTreeModel::TypeMasks _type;
-   QMenu* _contextMenu, *subMenu, *_versionMenu;
-   QAction *_deleteAction, *_showAncestorAction, *_hideAncestorAction, *_orphanAction;
+   QMenu * _contextMenu,
+         *subMenu,
+         *_versionMenu;
+   QAction *_deleteAction, 
+           *_showAncestorAction,
+           *_hideAncestorAction,
+           *_spawnAction,
+           *_orphanAction;
    QPoint dragStart;
    QWidget* _editor;
 
