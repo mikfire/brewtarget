@@ -1308,6 +1308,32 @@ void BtTreeModel::observeElement(BeerXMLElement* d)
 // ===================== DRAG AND DROP STUFF ===============================
 // =========================================================================
 
+BeerXMLElement* getElement(int oType,int id) 
+{
+   switch(oType)
+   {
+      case BtTreeItem::RECIPE:
+         return Database::instance().recipe(id);
+      case BtTreeItem::EQUIPMENT:
+         return Database::instance().equipment(id);
+      case BtTreeItem::FERMENTABLE:
+         return Database::instance().fermentable(id);
+      case BtTreeItem::HOP:
+         return Database::instance().hop(id);
+      case BtTreeItem::MISC:
+         return Database::instance().misc(id);
+      case BtTreeItem::STYLE:
+         return Database::instance().style(id);
+      case BtTreeItem::YEAST:
+         return Database::instance().yeast(id);
+      case BtTreeItem::FOLDER:
+         break;
+      default:
+         return NULL;
+   }
+   return NULL;
+}
+
 bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
                                int row, int column, const QModelIndex &parent)
 {
@@ -1350,42 +1376,24 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
    {
       QString text;
       stream >> oType >> id >> name;
-      BeerXMLElement* elem;
-      switch(oType)
-      {
-         case BtTreeItem::RECIPE:
-            elem = Database::instance().recipe(id);
-            break;
-         case BtTreeItem::EQUIPMENT:
-            elem = Database::instance().equipment(id);
-            break;
-         case BtTreeItem::FERMENTABLE:
-            elem = Database::instance().fermentable(id);
-            break;
-         case BtTreeItem::HOP:
-            elem = Database::instance().hop(id);
-            break;
-         case BtTreeItem::MISC:
-            elem = Database::instance().misc(id);
-            break;
-         case BtTreeItem::STYLE:
-            elem = Database::instance().style(id);
-            break;
-         case BtTreeItem::YEAST:
-            elem = Database::instance().yeast(id);
-            break;
-         case BtTreeItem::FOLDER:
-            break;
-         default:
-            return false;
-      }
+      BeerXMLElement* elem = getElement(oType,id);
+
+      if ( elem == NULL && oType != BtTreeItem::FOLDER )
+         return false;
 
       // Wow. This is the work of this method. It sets a folder. I would have
       // expected ... more? And this is where I will need to worry about
       // making a recipe an ancestor of another.
       if ( oType == BtTreeItem::RECIPE && isRecipe(parent) ) {
-         // This is going to get hard.
-         makeAncestors(elem,something);
+         // If a the dropped element is in a different folder than the recipe
+         // it was dropped on, just set the folder.
+         Recipe* rent = recipe(parent);
+         if ( rent->folder() != elem->folder() ) {
+            elem->setFolder(target);
+         }
+         else {
+            makeAncestors(elem,something);
+         }
       }
       else if ( oType != BtTreeItem::FOLDER ) {
          elem->setFolder(target);
@@ -1493,8 +1501,9 @@ void BtTreeModel::orphanRecipe(QModelIndex ndx)
    // Display all of its brewnotes
    addBrewNoteSubTree(orphan, ndx.row(), pNode, false);
 
-   // Set the ancestor to visible
+   // Set the ancestor to visible and unlock it
    ancestor->setDisplay(true);
+   ancestor->setLocked(false);
 
    // Put the ancestor into the tree
    if ( ! insertRow(pIndex.row(), pIndex, ancestor, BtTreeItem::RECIPE) )

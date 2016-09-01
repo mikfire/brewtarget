@@ -1281,8 +1281,9 @@ void Recipe::loadAncestors()
 {
    QList<Recipe*> tmp;
 
-   foreach( int ancestor, Database::instance().ancestoralIds(this) )
+   foreach( int ancestor, Database::instance().ancestoralIds(this) ) {
       tmp.append( Database::instance().recipe(ancestor) );
+   }
    _ancestors = tmp;
 }
 
@@ -1293,7 +1294,8 @@ bool Recipe::hasAncestors()
    return ancestors().size() > 1;
 }
 
-void Recipe::setAncestor(Recipe* ancestor) {
+void Recipe::setAncestor(Recipe* ancestor)
+{
    // do nothing if we don't get an ancestor
    if ( ! ancestor )
       return;

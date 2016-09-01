@@ -1585,12 +1585,10 @@ bool DatabaseSchemaHelper::migrate_to_7(QSqlQuery q)
  
    try {
       // Add the new field
-      qDebug() << Q_FUNC_INFO << addColumn;
       if ( ! q.exec(addColumn) ) 
          throw QString("Could not add column %1 to %2").arg(colRecAncestorId).arg(tableRecipe);
 
       // Set the contents
-      qDebug() << Q_FUNC_INFO << setColumn;
       if ( ! q.exec(setColumn) ) 
          throw QString("Could not initialize column %1").arg(colRecAncestorId);
 

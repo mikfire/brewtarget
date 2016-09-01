@@ -421,12 +421,12 @@ MainWindow::MainWindow(QWidget* parent)
    if ( Brewtarget::dbType() == Brewtarget::PGSQL ) {
       actionBackup_Database->setEnabled(false);
       actionRestore_Database->setEnabled(false);
-      label_Brewtarget->setToolTip( recipeFormatter->getLabelToolTip());
    }
    else {
       connect( actionBackup_Database, SIGNAL( triggered() ), this, SLOT( backup() ) );
       connect( actionRestore_Database, SIGNAL( triggered() ), this, SLOT( restoreFromBackup() ) );
    }
+   label_Brewtarget->setToolTip(recipeFormatter->getLabelToolTip());
    // Printing signals/slots.
    // Refactoring is good.  It's like a rye saison fermenting away
    connect( actionRecipePrint, SIGNAL(triggered()), this, SLOT(print()));

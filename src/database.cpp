@@ -1055,7 +1055,7 @@ QList<int> Database::ancestoralIds(Recipe const* descendant)
       QString("UNION ALL ") +
       QString("select r.id, r.ancestor_id from ancestor a, recipe r ") +
       QString("where r.id = a.ancestor_id and r.ancestor_id != a.id ) ") +
-      QString("select r.id from ancestor a, recipe r where a.id = r.id");
+      QString("select id from ancestor");
 
    // That is a recursive query.
    // The first select initializes the chain, so we get the id and ancestor_id
@@ -1067,8 +1067,9 @@ QList<int> Database::ancestoralIds(Recipe const* descendant)
       if ( !q.exec(recursiveQuery) )
          throw QString("Could not find ancestoral recipes");
 
-      while ( q.next() )
+      while ( q.next() ) {
          ret.append(q.record().value("id").toInt());
+      }
    }
    catch (QString e) {
       Brewtarget::logE(QString("%1 : %2 (%3)").arg(Q_FUNC_INFO).arg(e).arg(q.lastError().text()));
@@ -1571,7 +1572,6 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
 
       if ( ! q.exec(set_ancestor) )
          throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
-
 
       if ( ! q.exec(set_display) )
          throw QString("Could not set ancestor's display flag (%1)").arg(q.lastError().text());
