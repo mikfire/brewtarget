@@ -101,12 +101,6 @@ Equipment::Equipment( Equipment const& other )
 }
 
 //============================"SET" METHODS=====================================
-void Equipment::setName( const QString &var )
-{
-   set( "name", "name", var );
-   emit changedName(var);
-}
-
 void Equipment::setBoilSize_l( double var )
 {
    if( var < 0.0 )

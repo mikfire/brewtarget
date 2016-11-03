@@ -162,10 +162,12 @@ void OptionDialog::configure_unitCombos()
    dateComboBox->addItem(tr("mm-dd-YYYY"), QVariant(Unit::displayUS));
    dateComboBox->addItem(tr("dd-mm-YYYY"), QVariant(Unit::displayImp));
    dateComboBox->addItem(tr("YYYY-mm-dd"), QVariant(Unit::displaySI));
+}
 
+void OptionDialog::configure_formulaCombos()
+{
    colorComboBox->addItem(tr("SRM"), QVariant(Brewtarget::SRM));
    colorComboBox->addItem(tr("EBC"), QVariant(Brewtarget::EBC));
-}
 
    diastaticPowerComboBox->addItem(tr("Lintner"), QVariant(Brewtarget::LINTNER));
    diastaticPowerComboBox->addItem(tr("WK"), QVariant(Brewtarget::WK));

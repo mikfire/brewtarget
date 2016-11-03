@@ -159,11 +159,7 @@ private:
    bool isValidType(const QString& str) const;
    bool isValidForm(const QString& str) const;
    bool isValidFlocculation(const QString& str) const;
-<<<<<<< HEAD
-   
-=======
 
->>>>>>> 646d58e... Better, maybe?
    static QHash<QString,QString> tagToProp;
    static QHash<QString,QString> tagToPropHash();
 };

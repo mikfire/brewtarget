@@ -153,9 +153,6 @@ private slots:
 signals: 
    void recipeSpawn(Recipe* dec);
 
-signals: 
-   void recipeSpawn(Recipe* dec);
-
 private:
    BtTreeModel* _model;
    BtTreeFilterProxyModel* _filter;

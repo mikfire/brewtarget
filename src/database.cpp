@@ -846,7 +846,6 @@ Recipe* Database::filterIngredientFromSpawn( Recipe* other, BeerXMLElement* ing,
    }
 
    sqlDatabase().commit();
-   makeDirty();
    // Emit all our signals
    if ( notify  ) {
       emit changed( metaProperty("recipes"), QVariant() );
