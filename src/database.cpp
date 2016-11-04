@@ -1782,7 +1782,7 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
       if ( meta->className() == QStringLiteral("MashStep") ) {
          idToReturn = QStringLiteral("r.id");
          tableToSearch = QStringLiteral("recipe r, mashstep ms");
-         fKey = QStringLiteral("ms.mash_id = r.mash_id and ms.id=");
+         fKey = QStringLiteral("ms.mash_id = r.mash_id and ms.id");
       }
       else {
          fKey = QString("%1_id").arg(meta->classInfo(ndx).value());

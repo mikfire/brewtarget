@@ -246,7 +246,7 @@ QString BeerXMLElement::text(QDate const& val)
    return val.toString(Qt::ISODate);
 }
 
-void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant const& value, bool notify )
+void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant const& value, bool notify, bool updateEntry )
 {
    if (prop_name != NULL && col_name != NULL) {
       QString cName = this->metaObject()->className();
@@ -255,7 +255,8 @@ void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant 
       // version. So if we are changing a recipe, just do the oldskool
       // updateEntry.
       if (  cName == QStringLiteral("Recipe") ||
-            cName == QStringLiteral("Mash")    ) {
+            cName == QStringLiteral("Mash")   ||
+            updateEntry ) {
          // Get the meta property.
          int ndx = metaObject()->indexOfProperty(prop_name);
 

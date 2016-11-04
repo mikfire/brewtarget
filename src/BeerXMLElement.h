@@ -155,7 +155,7 @@ protected:
     * 1) Set the appropriate value in the appropriate table row.
     * 2) Call the NOTIFY method associated with \c prop_name if \c notify == true.
     */
-   void set( const char* prop_name, const char* col_name, QVariant const& value, bool notify = true );
+   void set( const char* prop_name, const char* col_name, QVariant const& value, bool notify = true, bool updateEntry = false );
 
    /*!
     * \param col_name - The database column of the attribute we want to get.

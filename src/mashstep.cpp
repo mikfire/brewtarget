@@ -61,7 +61,11 @@ MashStep::MashStep()
 //================================"SET" METHODS=================================
 void MashStep::setInfuseTemp_c(double var)
 {
-   set("infuseTemp_c", "infuse_temp", var);
+   if ( stepNumber() == 1 ) {
+      set("infuseTemp_c", "infuse_temp", var,true,true);
+   }
+   else
+      set("infuseTemp_c", "infuse_temp", var);
 }
 
 void MashStep::setType( Type t )
@@ -165,7 +169,7 @@ bool MashStep::isSparge() const
 {
    MashStep::Type _type = type();
    return ( _type == MashStep::batchSparge ||
-            _type == MashStep::flySparge   || 
+            _type == MashStep::flySparge   ||
             name() == "Final Batch Sparge" );
 }
 
