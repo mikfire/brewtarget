@@ -1769,6 +1769,11 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
    if ( QStringLiteral("Recipe") == meta->className())
       return allRecipes[key];
 
+   // So are brewnotes
+   if ( meta->className() == QStringLiteral("BrewNote") ) {
+      return getParentRecipe(qobject_cast<BrewNote*>(object));
+   }
+
    QSqlQuery q(sqlDatabase());
    try {
       if ( ndx == -1 )
