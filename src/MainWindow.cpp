@@ -749,7 +749,7 @@ void MainWindow::setBrewNoteByIndex(const QModelIndex &index)
    }
    // THERE
 
-   Recipe* parent  = Database::instance().getParentRecipe(bNote);
+   Recipe* parent  = Database::instance().parentRecipe(bNote);
    // I think this means a brew note for a different recipe has been selected.
    // We need to select that recipe, which will clear the current tabs
    if (  parent != recipeObs )
@@ -1459,7 +1459,7 @@ void MainWindow::removeSelectedMisc()
 
 void MainWindow::removeSelectedYeast()
 {
-    
+
     QList<Yeast *> itemsToRemove;
 
     foreach( QModelIndex viewIndex, yeastTable->selectionModel()->selectedIndexes()) {
@@ -1700,7 +1700,7 @@ void MainWindow::reduceInventory(){
          h->setInventoryAmount(newVal);
       }
       //reduce yeast
-      foreach( Yeast* y, rec->yeasts() ) 
+      foreach( Yeast* y, rec->yeasts() )
       {
          //Yeast inventory is done by quanta not amount
          int newVal = y->inventory() - 1;
@@ -2251,7 +2251,7 @@ void MainWindow::exportSelected()
    dbase = doc.createElement("DATABASE");
    recipe = doc.createElement("RECIPES");
 
-   foreach( QModelIndex selection, selected ) 
+   foreach( QModelIndex selection, selected )
    {
       int type = active->type(selection);
 
@@ -2488,7 +2488,7 @@ void MainWindow::updateStatus(const QString status) {
 
 void MainWindow::closeBrewNote(BrewNote* b)
 {
-   Recipe* parent = Database::instance().getParentRecipe(b);
+   Recipe* parent = Database::instance().parentRecipe(b);
 
    // If this isn't the focused recipe, do nothing because there are no tabs
    // to close.

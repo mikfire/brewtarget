@@ -874,6 +874,7 @@ void Database::removeFrom( Mash* mash, MashStep* step )
    emit mash->mashStepsChanged();
 }
 
+/*
 // TODO: if I create a generic inRecipe method for the recipe versions, do I
 // need a separate method just for brewnotes? In fact, wouldn't it be nice to
 // just reuse this name?
@@ -904,6 +905,7 @@ Recipe* Database::getParentRecipe( BrewNote const* note )
 
    return allRecipes[key];
 }
+*/
 
 Recipe*      Database::recipe(int key)      { return allRecipes[key]; }
 Equipment*   Database::equipment(int key)   { return allEquipments[key]; }
@@ -1757,7 +1759,7 @@ QString Database::getDbFileName()
 
 // Attempts to determine if the given object is in a recipe. It will have to
 // do this in two different passes, depending on if there is a childTable
-Recipe* Database::inRecipe(BeerXMLElement* object, int key)
+Recipe* Database::parentRecipe(BeerXMLElement* object)
 {
    QString findIt, tableToSearch, idToReturn;
    const QMetaObject* meta = object->metaObject();
@@ -1765,19 +1767,13 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
    int ndx = meta->indexOfClassInfo("prefix");
    QString fKey;
 
+   int key = object->key();
    // recipes are easy
    if ( QStringLiteral("Recipe") == meta->className())
       return allRecipes[key];
 
-   // So are brewnotes
-   if ( meta->className() == QStringLiteral("BrewNote") ) {
-      return getParentRecipe(qobject_cast<BrewNote*>(object));
-   }
-
    QSqlQuery q(sqlDatabase());
    try {
-      if ( ndx == -1 )
-         throw QString("could not locate classInfo for prefix on %1").arg(meta->className());
 
       // When dealing with a mashstep, we need to find the recipe that has the
       // mash that has the mashstep. Oddly, we can do this by joining on the
@@ -1789,7 +1785,17 @@ Recipe* Database::inRecipe(BeerXMLElement* object, int key)
          tableToSearch = QStringLiteral("recipe r, mashstep ms");
          fKey = QStringLiteral("ms.mash_id = r.mash_id and ms.id");
       }
+      // brewnotes are a littl odd. But since I've hacked this much into
+      // place, why not go a step further?
+      else if ( meta->className() == QStringLiteral("BrewNote") ) {
+         idToReturn = QString("recipe_id");
+         tableToSearch = QStringLiteral("brewnote");
+         fKey = QStringLiteral("id");
+      }
       else {
+         if ( ndx == -1 )
+            throw QString("could not locate classInfo for prefix on %1").arg(meta->className());
+
          fKey = QString("%1_id").arg(meta->classInfo(ndx).value());
 
          // if we have an in_recipe table, use it.

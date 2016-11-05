@@ -1228,7 +1228,7 @@ void BtTreeModel::elementAdded(BeerXMLElement* victim)
 
    if ( qobject_cast<BrewNote*>(victim) )
    {
-      pIdx = findElement(Database::instance().getParentRecipe(qobject_cast<BrewNote*>(victim)));
+      pIdx = findElement(Database::instance().parentRecipe(victim));
       lType = BtTreeItem::BREWNOTE;
    }
    else
@@ -1308,7 +1308,7 @@ void BtTreeModel::observeElement(BeerXMLElement* d)
 // ===================== DRAG AND DROP STUFF ===============================
 // =========================================================================
 
-BeerXMLElement* getElement(int oType,int id) 
+BeerXMLElement* getElement(int oType,int id)
 {
    switch(oType)
    {

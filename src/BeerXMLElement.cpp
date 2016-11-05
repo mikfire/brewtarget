@@ -256,6 +256,7 @@ void BeerXMLElement::set( const char* prop_name, const char* col_name, QVariant 
       // updateEntry.
       if (  cName == QStringLiteral("Recipe") ||
             cName == QStringLiteral("Mash")   ||
+            cName == QStringLiteral("BrewNote")   ||
             updateEntry ) {
          // Get the meta property.
          int ndx = metaObject()->indexOfProperty(prop_name);

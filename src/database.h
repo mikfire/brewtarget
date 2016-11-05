@@ -370,7 +370,7 @@ public:
       int ndx;
       T* ingClone;
 
-      parent = inRecipe(ing,ing->key());
+      parent = parentRecipe(ing);
 
       // If the ingredient is in a recipe, and that recipe needs a version
       if ( parent && wantsVersion(parent) ) {
@@ -378,7 +378,7 @@ public:
          // and DO NOT signal completion
          spawn = filterIngredientFromSpawn(parent, ing, false);
          // Clone what we want to modify. Believe it or not, this is sort of
-         // the magic step. 
+         // the magic step.
          if ( ing->metaObject()->className() == QStringLiteral("MashStep") ) {
             ingClone = clone(ing,spawn);
          }
@@ -410,8 +410,9 @@ public:
    }
 
    //! Get the recipe that this \b note is part of.
-   Recipe* getParentRecipe( BrewNote const* note );
+   // Recipe* getParentRecipe( BrewNote const* note );
 
+   Recipe* parentRecipe(BeerXMLElement* object);
    //! Interchange the step orders of the two steps. Must be in same mash.
    void swapMashStepOrder(MashStep* m1, MashStep* m2);
    //! Interchange the instruction orders. Must be in same recipe.
@@ -1025,7 +1026,7 @@ private:
    void copyDatabase( Brewtarget::DBTypes oldType, Brewtarget::DBTypes newType, QSqlDatabase oldDb);
    void automaticBackup();
 
-   Recipe* inRecipe(BeerXMLElement* object, int key);
+   // Recipe* inRecipe(BeerXMLElement* object, int key);
 
    void addToHash( MashStep* whatever );
 
