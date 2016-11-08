@@ -305,6 +305,7 @@ public:
    bool hasBoilExtract();
    bool isFermentableSugar(Fermentable*);
    bool hasAncestors();
+   bool isMyAncestor(Recipe *maybe);
    PreInstruction addExtracts(double timeRemaining);
    
    // Helpers

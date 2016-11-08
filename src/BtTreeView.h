@@ -100,6 +100,9 @@ public:
    //! \brief gets the type of the item at \c index. 
    int type(const QModelIndex &index);
 
+   //! \brief returns true if the recipe at ndx is showing its ancestors
+   //  returns false if ndx isn't a recipe, or if the recipe isn't
+   bool ancestorsAreShowing(QModelIndex ndx);
    //! \brief convenience methods to enable and disable various actions in the
    // Ancestors submenu
    void enableDelete(bool enable);

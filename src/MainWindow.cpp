@@ -544,7 +544,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 // I think I may actually want to catch this here instead of in the tree,
 // mostly so I can invalidate but only after I've updated all the rest.
-
 void MainWindow::versionedRecipe(Recipe* descendant)
 {
    QModelIndex ndx = treeView_recipe->findElement(descendant);
@@ -750,10 +749,29 @@ void MainWindow::setBrewNoteByIndex(const QModelIndex &index)
    // THERE
 
    Recipe* parent  = Database::instance().parentRecipe(bNote);
+   QModelIndex pNdx = treeView_recipe->parent(index);
    // I think this means a brew note for a different recipe has been selected.
    // We need to select that recipe, which will clear the current tabs
-   if (  parent != recipeObs )
-      setRecipe(parent);
+   // This just got complex. Setting the recipe can't clear the tabs with the
+   // recipe versioning thing.
+   if ( parent != recipeObs ) {
+      qDebug() << Q_FUNC_INFO << "isMyAncestor() =" << recipeObs->isMyAncestor(parent);
+      qDebug() << Q_FUNC_INFO << "ancestorsAreShowing() =" << treeView_recipe->ancestorsAreShowing(pNdx);
+      if ( ! recipeObs->isMyAncestor(parent) ) {
+         setRecipe(parent);
+      }
+      else if ( treeView_recipe->ancestorsAreShowing(pNdx)) {
+         tabWidget_recipeView->setCurrentIndex(0);
+         // Start closing from the right (highest index) down. Anything else dumps
+         // core in the most unpleasant of fashions
+         int tabs = tabWidget_recipeView->count() - 1;
+         for (int i = tabs; i >= 0; --i) {
+            if (tabWidget_recipeView->widget(i)->objectName() == "BrewNoteWidget")
+               tabWidget_recipeView->removeTab(i);
+         }
+         setRecipe(parent);
+      }
+   }
 
    ni = findBrewNoteWidget(bNote);
    if ( ! ni )
