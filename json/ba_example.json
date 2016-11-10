@@ -1,0 +1,54 @@
+   {
+      "id": 3,
+      "name": "American-Style Light Lager",
+      "source": "ba",
+      "revision": "2015",
+      "description": "American-Style Light Lagers are very light to pale. In these beers the word \"light\" refers to relatively low body and reduced calories, rather than to color. Chill haze should not be perceived. Aromas typically related to beer are very low. Low fruity-ester aromas are acceptable. Diacetyl aroma should be absent. Hop aroma is absent to very low. Hop flavor is absent to very low. Hop bitterness is absent to very low. Corn, rice, or other grain or sugar adjuncts often used. These beers are high in carbonation. Flavors typically related to beer are very low. Low fruityester flavors are acceptable. Diacetyl flavor should be absent. Calorie level should not exceed 125 per 12 ounce serving. Low carb beers should have a maximum carbohydrate level of 3.0 gm per 12 oz. (356 ml). These beers are characterized by extremely high degree of attenuation; often final gravity is less than 1.000 (0 ºPlato). Body is light with dry mouthfeel.",
+      "origin": "North American",
+      "stats" : {
+         "gravity" : {
+            "original": {
+               "min" : 1.024,
+               "max" : 1.040
+            },
+            "final" : {
+               "min" : 0.992,
+               "max" : 1.008
+            }
+         },
+         "plato": {
+            "original": {
+               "min" : 6.1,
+               "max" : 10
+            },
+            "final" : {
+               "min" : -2.1,
+               "max" : 2.1
+            }
+         },
+         "abw" : {
+            "min": 2.8,
+            "max": 3.5
+         },
+         "abv" : {
+            "min": 3.5,
+            "max": 4.4
+         },
+         "ibu": {
+            "min" : 8,
+            "max" : 12
+         },
+         "srm" : {
+            "min" : 4,
+            "max" : 12
+         },
+         "ecb" : {
+            "min" : 8,
+            "max" : 24
+         },
+         "carb": {
+            "min": 2.5,
+            "max": 3.0
+         }
+      }
+   }

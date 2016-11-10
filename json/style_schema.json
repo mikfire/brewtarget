@@ -1,0 +1,122 @@
+{
+
+   "definitions": {
+      "range": {
+         "type": "object",
+         "description": "Defines a range consisting of a minimum and maximum",
+         "properties": {
+            "min":          { "type": "number" },
+            "max":          { "type": "number" }
+         }
+      },
+      "gravity" : {
+         "type": "object",
+         "description": "Defines a range of gravities consisting of an original and final",
+         "properties": {
+               "original": { "$ref": "#/definitions/range" },
+               "final":    { "$ref": "#/definitions/range" }
+         }
+      },
+
+      "ba_stats" : {
+         "type" : "object",
+         "description": "Defines the stats for each style",
+         "required": [ "gravity", "plato", "srm", "ecb", "ibu", "abv", "abw", "carb" ],
+         "properties": {
+            "gravity":    { "$ref": "#/definitions/gravity" },
+            "plato":      { "$ref": "#/definitions/gravity" },
+            "srm":        { "$ref": "#/definitions/range" },
+            "ecb":        { "$ref": "#/definitions/range" },
+            "ibu":        { "$ref": "#/definitions/range" },
+            "abv":        { "$ref": "#/definitions/range" },
+            "abw":        { "$ref": "#/definitions/range" },
+            "carb":       { "$ref": "#/definitions/range" }
+         }
+      },
+      "bjcp_stats" : {
+         "type" : "object",
+         "description": "Defines the stats for each style",
+         "required": [ "gravity", "srm", "ibu", "abv"],
+         "properties": {
+            "gravity":    { "$ref": "#/definitions/gravity" },
+            "srm":        { "$ref": "#/definitions/range" },
+            "ibu":        { "$ref": "#/definitions/range" },
+            "abv":        { "$ref": "#/definitions/range" },
+            "exceptions": { "type": "string" }
+         }
+      },
+
+      "ba_style": {
+         "type": "object",
+         "description": "defines as style as described by the Brewers Association",
+         "required": ["source","description","origin","stats"],
+         "properties": {
+            "stats":        { "$ref": "#/definitions/ba_stats" },
+            "revision":     { "type": "string" },
+            "source":       { "type": "string",
+                              "enum": [ "ba" ] },
+            "description":  { "type": "string" },
+            "origin":       { "type": "string" }
+         }
+      },
+      "bjcp_style": {
+         "type": "object",
+         "description": "defines as style as described by the BJCP",
+         "required": [
+            "source","category","subcategory","stats","aroma","appearance",
+            "flavor","mouthfeel","impression","comments","history","ingredients",
+            "comparison", "examples", "class"
+         ],
+         "properties": {
+            "source":       { "type" : "string",
+                              "enum": [ "bjcp" ] },
+            "stats":        { "$ref": "#/definitions/bjcp_stats" },
+            "category":     { "type": "integer" },
+            "subcategory":  { "type": "string" },
+            "aroma":        { "type": "string" },
+            "appearance":   { "type": "string" },
+            "flavor":       { "type": "string" },
+            "mouthfeel":    { "type": "string" },
+            "impression":   { "type": "string" },
+            "comments":     { "type": "string" },
+            "history":      { "type": "string" },
+            "ingredients":  { "type": "string" },
+            "varieties":    { "type": "string" },
+            "comparison":   { "type": "string" },
+            "examples":     { "type": "string" },
+            "class":        { "type": "string" },
+            "tags":         { 
+               "type": "array",
+               "items": {
+                  "type": "string"
+               }
+            },
+            "notes": {
+               "type": "array",
+               "items": {
+                  "type": "string"
+               }
+            }
+         }
+      }
+   },
+   "type": "object",
+   "$schema": "http://json-schema.org/draft-04/schema#",
+   "description": "the union type for BA and BJCP styles",
+   "required": [ "id", "revision", "name", "substyle" ],
+   "properties": {
+      "id":        { "type": "integer" },
+      "name":      { "type": "string" },
+      "revision":  { "type": "string" },
+      "substyle": {
+         "type": "array",
+         "items": {
+            "oneOf": [ 
+               { "$ref": "#/definitions/bjcp_style" },
+               { "$ref": "#/definitions/ba_style"}
+            ]
+         }
+      }
+   }
+}
+

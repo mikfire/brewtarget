@@ -1,0 +1,47 @@
+{
+   "definitions": {
+      "range": {
+         "type": "object",
+         "description": "Defines a range consisting of a minimum and maximum",
+         "properties": {
+            "min":          { "type": "number" },
+            "max":          { "type": "number" }
+         }
+      },
+      "gravity" : {
+         "type": "object",
+         "description": "Defines a range of gravities consisting of an original and final",
+         "properties": {
+               "original": { "$ref": "#/definitions/range" },
+               "final":    { "$ref": "#/definitions/range" }
+         }
+      },
+      "ba_stats" : {
+         "type" : "object",
+         "description": "Defines the stats for each style",
+         "required": [ "gravity", "plato", "srm", "ecb", "ibu", "abv", "abw", "carb" ],
+         "properties": {
+            "gravity":    { "$ref": "#/definitions/gravity" },
+            "plato":      { "$ref": "#/definitions/gravity" },
+            "srm":        { "$ref": "#/definitions/range" },
+            "ecb":        { "$ref": "#/definitions/range" },
+            "ibu":        { "$ref": "#/definitions/range" },
+            "abv":        { "$ref": "#/definitions/range" },
+            "abw":        { "$ref": "#/definitions/range" },
+            "carb":       { "$ref": "#/definitions/range" }
+         }
+      }
+   },
+   "type": "object",
+   "description": "defines as style as described by the Brewers Association",
+   "required": ["source","description","origin","stats"],
+   "properties": {
+      "stats":        { "$ref": "#/definitions/ba_stats" },
+      "revision":     { "type": "string" },
+      "source":       { "type": "string",
+                        "enum": [ "ba" ] },
+      "description":  { "type": "string" },
+      "origin":       { "type": "string" }
+   }
+}
+
