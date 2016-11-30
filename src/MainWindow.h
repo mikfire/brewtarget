@@ -43,6 +43,7 @@ class MainWindow;
 #include <functional>
 
 // Forward Declarations
+class AncestorDialog;
 class FermentableDialog;
 class HopDialog;
 class MiscDialog;
@@ -297,6 +298,7 @@ private:
    QString highSS, lowSS, goodSS, boldSS; // Palette replacements
 
    AboutDialog* dialog_about;
+   AncestorDialog* ancestorDialog;
    QFileDialog* fileOpener;
    QFileDialog* fileSaver;
    QList<QMenu*> contextMenus;

@@ -234,7 +234,7 @@
            <x>0</x>
            <y>0</y>
            <width>622</width>
-           <height>403</height>
+           <height>427</height>
           </rect>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -1659,7 +1659,7 @@
    </property>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
-     <string>&amp;About</string>
+     <string>Abo&amp;ut</string>
     </property>
     <addaction name="actionManual"/>
     <addaction name="separator"/>
@@ -1667,7 +1667,7 @@
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>&amp;File</string>
+     <string>Fi&amp;le</string>
     </property>
     <widget class="QMenu" name="menuBrewday">
      <property name="title">
@@ -1700,7 +1700,7 @@
     </widget>
     <widget class="QMenu" name="menuInventory">
      <property name="title">
-      <string>I&amp;nventory</string>
+      <string>In&amp;ventory</string>
      </property>
      <addaction name="actionInventoryPreview"/>
      <addaction name="actionInventoryPrint"/>
@@ -1737,6 +1737,7 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <addaction name="actionAncestor"/>
     <addaction name="actionConvert_Units"/>
     <addaction name="actionOG_Correction_Help"/>
     <addaction name="actionPitch_Rate_Calculator"/>
@@ -2234,6 +2235,15 @@
    </property>
    <property name="text">
     <string>&amp;Export to HTML</string>
+   </property>
+  </action>
+  <action name="actionAncestor">
+   <property name="icon">
+    <iconset resource="../brewtarget.qrc">
+     <normaloff>:/images/merge.png</normaloff>:/images/merge.png</iconset>
+   </property>
+   <property name="text">
+    <string>Ancestor</string>
    </property>
   </action>
  </widget>

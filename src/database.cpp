@@ -1566,9 +1566,6 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
       // If we are creating a descendant the ancestor is not displayed and
       // locked.  When we orphan the recipe, the ancestor is the descendant,
       // we display it and unlock it.
-      QString set_display = QString("update recipe set display = %1 where id = %2")
-         .arg( ancestor == descendant ? Brewtarget::dbTrue() : Brewtarget::dbFalse())
-         .arg( ancestor->key() );
       QString set_locked  = QString("update recipe set locked = %1 where id = %2")
          .arg( ancestor == descendant ? Brewtarget::dbFalse() : Brewtarget::dbTrue())
          .arg( ancestor->key() );
@@ -1576,8 +1573,9 @@ void Database::setAncestor(Recipe* descendant, Recipe* ancestor, bool transact)
       if ( ! q.exec(set_ancestor) )
          throw QString("Could not create ancestoral tree (%1)").arg(q.lastError().text());
 
-      if ( ! q.exec(set_display) )
-         throw QString("Could not set ancestor's display flag (%1)").arg(q.lastError().text());
+      // I dislike this, but since I invented the cache, I need to make sure
+      // the cache is updated. Ick.
+      ancestor->setDisplay( ancestor == descendant );
 
       if ( ! q.exec(set_locked) )
          throw QString("Could not lock ancestor (%1)").arg(q.lastError().text());

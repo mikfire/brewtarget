@@ -58,6 +58,7 @@
 #include <QDesktopWidget>
 
 #include "Algorithms.h"
+#include "AncestorDialog.h"
 #include "MashStepEditor.h"
 #include "MashStepTableModel.h"
 #include "mash.h"
@@ -162,6 +163,7 @@ MainWindow::MainWindow(QWidget* parent)
    recipeObs = 0;
 
    dialog_about = new AboutDialog(this);
+   ancestorDialog = new AncestorDialog(this);
    equipEditor = new EquipmentEditor(this);
    singleEquipEditor = new EquipmentEditor(this, true);
    fermDialog = new FermentableDialog(this);
@@ -417,6 +419,7 @@ MainWindow::MainWindow(QWidget* parent)
    connect( actionPitch_Rate_Calculator, SIGNAL(triggered()), this, SLOT(showPitchDialog()));
    connect( actionMergeDatabases, SIGNAL(triggered()), this, SLOT(updateDatabase()) );
    connect( actionTimers, SIGNAL(triggered()), timerMainDialog, SLOT(show()) );
+   connect( actionAncestor, SIGNAL(triggered()), ancestorDialog, SLOT(show()) );
    connect( actionDeleteSelected, SIGNAL(triggered()), this, SLOT(deleteSelected()) );
 
    // postgresql cannot backup or restore yet. I would like to find some way
@@ -530,6 +533,7 @@ MainWindow::MainWindow(QWidget* parent)
    connect( tabWidget_ingredients, SIGNAL( setYeasts(QList<Yeast*>) ), this, SLOT(droppedRecipeYeast(QList<Yeast*>)));
 
    // Recipe versions
+   connect( ancestorDialog, SIGNAL(ancestoryChanged(Recipe*,Recipe*)), treeView_recipe->model(), SLOT(versionedRecipe(Recipe*, Recipe*)));
    connect( treeView_recipe, SIGNAL(recipeSpawn(Recipe*)), this, SLOT(versionedRecipe(Recipe*)));
    connect( checkBox_locked, SIGNAL(stateChanged(int)), this, SLOT( lockRecipe(int)));
 

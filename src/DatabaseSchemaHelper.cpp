@@ -592,8 +592,8 @@ void DatabaseSchemaHelper::select_dbStrings(Brewtarget::DBTypes dbType)
    display = QString("display" + SEP + TYPEBOOLEAN + SEP + DEFAULT + SEP + TRUE);
 }
 
-bool DatabaseSchemaHelper::create_table(QSqlQuery q, QString create, QString tableName, 
-                  Brewtarget::DBTable tableid, QString className, 
+bool DatabaseSchemaHelper::create_table(QSqlQuery q, QString create, QString tableName,
+                  Brewtarget::DBTable tableid, QString className,
                   Brewtarget::DBTable inv_id, Brewtarget::DBTable child_id)
 {
    try {
@@ -613,18 +613,18 @@ bool DatabaseSchemaHelper::create_table(QSqlQuery q, QString create, QString tab
    return true;
 }
 
-bool DatabaseSchemaHelper::insert_meta(QSqlQuery q, QString const& name, 
-                  Brewtarget::DBTable tableid, QString className, 
+bool DatabaseSchemaHelper::insert_meta(QSqlQuery q, QString const& name,
+                  Brewtarget::DBTable tableid, QString className,
                   Brewtarget::DBTable inv_id, Brewtarget::DBTable child_id)
 {
    QString insert = QString(
-         INSERTINTO + SEP + tableMeta + SEP + 
+         INSERTINTO + SEP + tableMeta + SEP +
          OPENPAREN +
             "name"             + COMMA +
             colMetaClassName   + COMMA +
             colMetaTableId     + COMMA +
             colMetaInvId       + COMMA +
-            colMetaChildId     + 
+            colMetaChildId     +
          CLOSEPAREN + SEP +
          "VALUES('%1','%2',%3,%4,%5)")
       .arg(name)
@@ -634,7 +634,7 @@ bool DatabaseSchemaHelper::insert_meta(QSqlQuery q, QString const& name,
       .arg(child_id);
 
    try {
-      if ( ! q.exec(insert) ) 
+      if ( ! q.exec(insert) )
          throw QString("Inserting into meta table failed: %1 : %2").arg(insert).arg(q.lastError().text());
    }
    catch( QString e ) {
@@ -660,7 +660,7 @@ bool DatabaseSchemaHelper::create_meta(QSqlQuery q)
          colMetaVersion     + SEP + TYPEINTEGER  + SEP + DEFAULT + SEP + "%1"   + COMMA +
          colMetaTableId     + SEP + TYPEINTEGER  + SEP + "not null" +
       CLOSEPAREN).arg(dbVersion);
-  
+
    return create_table(q,create,tableMeta,Brewtarget::BTALLTABLE);
 }
 
@@ -748,12 +748,12 @@ bool DatabaseSchemaHelper::create_childrenTables(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_childTable( QSqlQuery q, QString const& tableName, QString const& foreignTable, Brewtarget::DBTable tableid)
 {
-   QString create = 
+   QString create =
             CREATETABLE + SEP + tableName + SEP + OPENPAREN +
             id                                             + COMMA +
-            "ancestor_id" + SEP + TYPEINTEGER  + COMMA +
+            "parent_id" + SEP + TYPEINTEGER  + COMMA +
             "child_id"  + SEP + TYPEINTEGER  + SEP + UNIQUE              + COMMA +
-            foreignKey("ancestor_id", foreignTable)          + COMMA +
+            foreignKey("parent_id", foreignTable)          + COMMA +
             foreignKey("child_id", foreignTable) +
             CLOSEPAREN;
 
@@ -786,7 +786,7 @@ bool DatabaseSchemaHelper::create_settings(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_equipment(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableEquipment + SEP + OPENPAREN +
       id                                                                          + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -855,7 +855,7 @@ bool DatabaseSchemaHelper::create_fermentable(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_hop(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE         + SEP + tableHop + OPENPAREN +
       id                                                                      + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -889,7 +889,7 @@ bool DatabaseSchemaHelper::create_hop(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_misc(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableMisc + SEP + OPENPAREN +
       id                                                                          + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -915,7 +915,7 @@ bool DatabaseSchemaHelper::create_misc(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_style(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableStyle + SEP + OPENPAREN +
       id                                                                   + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -951,7 +951,7 @@ bool DatabaseSchemaHelper::create_style(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_yeast(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableYeast + SEP + OPENPAREN +
       id                                                                            + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -985,7 +985,7 @@ bool DatabaseSchemaHelper::create_yeast(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_water(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableWater + SEP + "(" +
       id                                                             + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -1010,7 +1010,7 @@ bool DatabaseSchemaHelper::create_water(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_mash(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableMash + SEP + OPENPAREN +
       id                                                                        + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -1034,7 +1034,7 @@ bool DatabaseSchemaHelper::create_mash(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_mashstep(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableMashStep + SEP + OPENPAREN +
       id                                                                       + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -1067,7 +1067,7 @@ bool DatabaseSchemaHelper::create_mashstep(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_brewnote(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableBrewnote + SEP + OPENPAREN +
       id                                                                          + COMMA +
       colBNoteBrewDate        + SEP + TYPEDATETIME + SEP + DEFAULT + SEP + THENOW + COMMA +
@@ -1117,7 +1117,7 @@ bool DatabaseSchemaHelper::create_brewnote(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_instruction(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableInstruction + SEP + OPENPAREN +
       id                                                                        + COMMA +
       name                                                                      + COMMA +
@@ -1137,7 +1137,7 @@ bool DatabaseSchemaHelper::create_instruction(QSqlQuery q)
 
 bool DatabaseSchemaHelper::create_recipe(QSqlQuery q)
 {
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableRecipe + SEP + OPENPAREN +
       id                                                                                                 + COMMA +
       // BeerXML properties----------------------------------------------------
@@ -1182,7 +1182,7 @@ bool DatabaseSchemaHelper::create_recipe(QSqlQuery q)
       folder                                                                                             + COMMA +
       foreignKey(colRecStyleId, tableStyle)                                                              + COMMA +
       foreignKey(colRecMashId, tableMash)                                                                + COMMA +
-      foreignKey(colRecEquipId, tableEquipment) + 
+      foreignKey(colRecEquipId, tableEquipment) +
       CLOSEPAREN;
 
    return create_table(q,create,tableRecipe,Brewtarget::RECTABLE,"Recipe",Brewtarget::NOTABLE,Brewtarget::RECIPECHILDTABLE);
@@ -1191,7 +1191,7 @@ bool DatabaseSchemaHelper::create_recipe(QSqlQuery q)
 bool DatabaseSchemaHelper::create_btTable(QSqlQuery q, QString tableName, QString foreignTableName, Brewtarget::DBTable tableid)
 {
    QString foreignIdName = QString("%1_id").arg(foreignTableName);
-   QString create = 
+   QString create =
       CREATETABLE + SEP + tableName + SEP + OPENPAREN +
       id                                           + COMMA +
       foreignIdName + SEP + TYPEINTEGER            + COMMA +
@@ -1203,13 +1203,13 @@ bool DatabaseSchemaHelper::create_btTable(QSqlQuery q, QString tableName, QStrin
 bool DatabaseSchemaHelper::create_recipeChildTable( QSqlQuery q, QString tableName, QString foreignTableName, Brewtarget::DBTable tableid)
 {
    QString index = QString("%1_id").arg(foreignTableName);
-   QString create = 
+   QString create =
            CREATETABLE + SEP + tableName + SEP + OPENPAREN +
            id                                               + COMMA +
            index + SEP + TYPEINTEGER                        + COMMA +
            "recipe_id" + SEP + TYPEINTEGER                  + COMMA;
    // silly special cases
-   if ( tableName == tableInsInRec ) 
+   if ( tableName == tableInsInRec )
       create += "instruction_number " + TYPEINTEGER + SEP + DEFAULT + SEP + "0" + COMMA;
 
    create += foreignKey(index, foreignTableName) + COMMA +
@@ -1235,7 +1235,7 @@ bool DatabaseSchemaHelper::create_inventoryTable(QSqlQuery q, QString tableName,
 
    QString cName = tableName == tableYeastInventory ? "quanta" : "amount";
 
-   QString create = 
+   QString create =
       CREATETABLE   + SEP + tableName + SEP + OPENPAREN +
       id                                                + COMMA +
       field                                             + COMMA +
@@ -1365,7 +1365,7 @@ bool DatabaseSchemaHelper::create_pgsql_decrement_trigger(QSqlQuery q)
          "END;" +
          "$BODY$"+
          " LANGUAGE plpgsql;";
-   QString trigger =QString() + 
+   QString trigger =QString() +
          "CREATE TRIGGER dec_ins_num AFTER DELETE ON instruction_in_recipe " +
          "FOR EACH ROW EXECUTE PROCEDURE decrement_instruction_num();";
 
@@ -1582,14 +1582,14 @@ bool DatabaseSchemaHelper::migrate_to_7(QSqlQuery q)
 {
    QString addColumn     = ALTERTABLE + SEP + tableRecipe + SEP + ADDCOLUMN + SEP + colRecAncestorId + SEP + TYPEINTEGER + QString(" references %1(id)").arg(tableRecipe);
    QString setColumn     = UPDATE + SEP + tableRecipe + SEP + SET + SEP + colRecAncestorId + SEP + "=" + SEP + "id";
- 
+
    try {
       // Add the new field
-      if ( ! q.exec(addColumn) ) 
+      if ( ! q.exec(addColumn) )
          throw QString("Could not add column %1 to %2").arg(colRecAncestorId).arg(tableRecipe);
 
       // Set the contents
-      if ( ! q.exec(setColumn) ) 
+      if ( ! q.exec(setColumn) )
          throw QString("Could not initialize column %1").arg(colRecAncestorId);
 
    }
@@ -1605,14 +1605,14 @@ bool DatabaseSchemaHelper::migrate_to_8(QSqlQuery q)
 {
    QString addColumn     = ALTERTABLE + SEP + tableRecipe + SEP + ADDCOLUMN + SEP + colRecLocked + SEP + TYPEBOOLEAN  + SEP + DEFAULT + SEP + FALSE;
    QString setColumn     = UPDATE + SEP + tableRecipe + SEP + SET + SEP + colRecLocked + SEP + "=" + SEP + FALSE;
- 
+
    try {
       // Add the new field
-      if ( ! q.exec(addColumn) ) 
+      if ( ! q.exec(addColumn) )
          throw QString("Could not add column %1 to %2").arg(colRecLocked).arg(tableRecipe);
 
       // Set the contents
-      if ( ! q.exec(setColumn) ) 
+      if ( ! q.exec(setColumn) )
          throw QString("Could not initialize column %1").arg(colRecLocked);
 
    }

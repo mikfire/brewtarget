@@ -1301,6 +1301,7 @@ void Recipe::setAncestor(Recipe* ancestor)
 
    // Marking an ancestor does three things -- it first sets the ancestor's
    // display to false, locks the ancestor and then sets the ancestoral id
+   // except when it doesn't.
    Database::instance().setAncestor(this,ancestor);
    loadAncestors();
 

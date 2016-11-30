@@ -55,6 +55,7 @@ ENDMACRO(ADD_PCH_RULE _src_list _header_filename)
 SET( brewtarget_SRCS
     ${SRCDIR}/AboutDialog.cpp
     ${SRCDIR}/Algorithms.cpp
+    ${SRCDIR}/AncestorDialog.cpp
     ${SRCDIR}/BeerXMLElement.cpp
     ${SRCDIR}/BeerXMLSortProxyModel.cpp
     ${SRCDIR}/boiltime.cpp
@@ -207,6 +208,7 @@ SET( brewtarget_UIS
 # In other words, classes that have Q_OBJECT declarations and stuff.
 SET( brewtarget_MOC_HEADERS
     ${SRCDIR}/AboutDialog.h
+    ${SRCDIR}/AncestorDialog.h
     ${SRCDIR}/BeerColorWidget.h
     ${SRCDIR}/BeerXMLElement.h
     ${SRCDIR}/BeerXMLSortProxyModel.h

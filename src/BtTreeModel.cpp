@@ -28,6 +28,7 @@
 #include <QMimeData>
 
 #include "brewtarget.h"
+#include "AncestorDialog.h"
 #include "BtTreeItem.h"
 #include "BtTreeModel.h"
 #include "BtTreeView.h"
@@ -1382,20 +1383,8 @@ bool BtTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
          return false;
 
       // Wow. This is the work of this method. It sets a folder. I would have
-      // expected ... more? And this is where I will need to worry about
-      // making a recipe an ancestor of another.
-      if ( oType == BtTreeItem::RECIPE && isRecipe(parent) ) {
-         // If a the dropped element is in a different folder than the recipe
-         // it was dropped on, just set the folder.
-         Recipe* rent = recipe(parent);
-         if ( rent->folder() != elem->folder() ) {
-            elem->setFolder(target);
-         }
-         else {
-            makeAncestors(elem,something);
-         }
-      }
-      else if ( oType != BtTreeItem::FOLDER ) {
+      // expected ... more? 
+      if ( oType != BtTreeItem::FOLDER ) {
          elem->setFolder(target);
       }
       else
