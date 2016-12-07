@@ -1530,7 +1530,7 @@ bool Database::wantsVersion(Recipe* thing)
    bool ret = false;
 
    // If the user has said they don't want versioning, just return false.
-   if ( ! Brewtarget::option("versioning", true).toBool() ) {
+   if ( ! Brewtarget::option("versioning", false).toBool() ) {
       return false;
    }
 
